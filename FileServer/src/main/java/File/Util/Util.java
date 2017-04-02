@@ -7,9 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class Util {
-	
-	
-	
 	/**
 	 * 将图片从临时目录移动到真实目录，并删除临时路径图片
 	 * @param tmpInfoFilePath 临时图片存放路径

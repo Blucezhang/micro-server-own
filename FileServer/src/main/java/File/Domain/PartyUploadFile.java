@@ -15,7 +15,6 @@ import javax.persistence.Transient;
 @Table(name="Par_UploadFile")
 public class PartyUploadFile implements File.Base.IDomainBase {
 
-	private static final long serialVersionUID = 6769258056282342479L;
 
 	@Transient
 	public Object getObjectId() {

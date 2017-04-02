@@ -12,7 +12,6 @@ import javax.persistence.Transient;
 @Table(name="UploadFile_Info")
 public class UploadFileInfo implements File.Base.IDomainBase {
 
-	private static final long serialVersionUID = -4579616699590724753L;
 
 	@Transient
 	public Object getObjectId() {
