@@ -6,6 +6,10 @@ import javax.persistence.Transient;
 
 import workflow.util.Util;
 
+/**
+ * @author BluceZhang
+ */
+
 public class BizBusinessFlowBean {
 	
 	private Integer bizTypeId;

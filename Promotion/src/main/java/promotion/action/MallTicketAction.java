@@ -1,7 +1,5 @@
 package promotion.action;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import promotion.dao.MallTicketDao;
 import promotion.dao.domain.MallTicket;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping(value="/sale/mallTicket")

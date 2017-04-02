@@ -37,14 +37,9 @@ public class PromotionMain extends Neo4jConfiguration{
 
 	@Bean
     public Neo4jServer neo4jServer() {
-        return new RemoteServer("http://192.168.0.169:7474","neo4j","neo4j123456");
+        return new RemoteServer("http://localhost:7474","neo4j1","neo4j123");
     }
-	
-//	@Bean(name="discount")
-////	@Named(value="discount")
-//	public PromotionBean getPromotionBean(){
-//		return new PromotionBean();
-//	}
+
 	
 	
 	

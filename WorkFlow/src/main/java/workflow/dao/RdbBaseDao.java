@@ -15,8 +15,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-
-
+/**
+ * @author BluceZhang
+ */
 @Repository
 public class RdbBaseDao{
 

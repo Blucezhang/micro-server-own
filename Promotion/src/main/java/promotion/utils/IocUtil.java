@@ -1,9 +1,5 @@
 package promotion.utils;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.util.Map;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
