@@ -1,0 +1,137 @@
+/*common*/
+html, body, div, iframe, h1, h2, h3, h4, h5, h6, p, a, span, em, img, dl, dt, dd, ol, ul, li, form, label, table, caption, tbody, tfoot, thead, tr, th, td, canvas, footer, header{margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; outline: 0;}
+ol, ul{list-style: none;}
+a{text-decoration: none;}
+*{padding: 0; margin: 0;}
+*:focus{outline: none; }
+.clear{clear: both;}
+
+body{font-family:'Microsoft YaHei';}
+.login_wrap{background: url(../image/bg.jpg) no-repeat; width: 1440px; padding-top: 200px; padding-bottom: 240px; margin: 0 auto; position: relative;}
+.login_wrap div.content{width: 260px; margin: 0 auto;}
+.login_wrap div.logo{position:relative; width:114px; height: 50px; margin: 0 auto;}
+.login_wrap p.logo_word{display:block; position: relative; margin: 20px auto; text-align: center; font-size: 18px; color: #333;}
+.login_wrap input.login_input{font-size: 14px; color: #333; width: 210px; height: 39px; padding-left: 50px; border: 0; font-family:'Microsoft YaHei'}
+.login_wrap input.login_input2{font-size: 14px; color: #333; width: 125px; height: 39px; padding-left: 50px; border: 0; margin-top: 20px; font-family:'Microsoft YaHei'}
+.login_wrap input[type=text]{background:url(../image/btn.png) left top no-repeat #f5f5f5;}
+.login_wrap input[type=password]{background: url(../image/password_bg1.jpg); margin-top: 20px;}
+.login_wrap input[type=password]:focus{background: url(../image/password_bg2.jpg);}
+.login_wrap input[type=button]{width: 260px; padding-left: 0; margin-top: 20px; background: url(../image/bg_submit.png) repeat-x; color: #fff; font-size: 16px; cursor: pointer;}
+.login_wrap p.tip{display: block; text-align: center; margin-top: 20px; font-size: 14px; cursor: pointer;}
+.login_wrap p.tip a{color: #0071c5; text-decoration: underline;}
+
+.inner_wrap{width: 1288px; position: relative;}
+.inner_wrap .wrap_box{width: 1280px; margin: 0 auto; padding: 10px 0 0 5px;}
+.inner_wrap .wrap_box .content{border-top-left-radius: 2px; padding: 5px 0 0 5px; font-family: 'SimSun'}
+
+.inner_wrap_menu{width: 1500px; position: relative;}
+.inner_wrap_menu .nav{width: 100%; height: 70px; border-bottom: 3px solid #0071c5; background: rgb(53, 75, 102);}
+.inner_wrap_menu .nav .logo{width: 200px; height: 70px; float: left;}
+.inner_wrap_menu .nav .menu{float: left; margin-left: 40px;}
+.inner_wrap_menu .nav .menu ul{display:block; height: 35px; margin-top: 35px;}
+.inner_wrap_menu .nav .menu ul li{display:block; padding: 0 18px; height: 100%; float: left;}
+.inner_wrap_menu .nav .menu ul li:hover,.inner_wrap .nav .menu ul li.active{background: url(../image/bg_menu.jpg) repeat-x; border-top-left-radius: 4px; border-top-right-radius: 4px; -moz-box-shadow:0 2px 2px #3787d4 inset; -webkit-box-shadow:0 2px 2px #3787d4 inset; box-shadow:0 2px 2px #3787d4 inset; }
+.inner_wrap_menu .nav .menu ul li a{display: block; height: 100%; line-height: 35px; font-size: 14px; color: #fff;}
+.inner_wrap_menu .nav .exit{float: right; padding: 10px 20px 0 0;}
+.inner_wrap_menu .nav .exit ul li{display: block; float: left; color: #fff; font-size: 12px; font-family: 'SimSun'}
+.inner_wrap_menu .nav .exit ul li a{color: #fff;}
+
+.inner_wrap_lef{width: 190px; margin: 0 auto; position: relative;}
+.inner_wrap_left .wrap_box{width: 185px; margin: 0 auto; padding: 10px; background: rgb(231, 235, 241);}
+.inner_wrap_left .wrap_box .content{border-top-left-radius: 1px; background-color: rgb(231, 235, 241); padding: 5px 0 0 5px; font-family: 'SimSun'}
+
+.content .left_menu{width: 175px;}
+.content .left_menu .menu1{height: 30px; padding-left: 25px; border-radius: 2px; background: rgb(231, 235, 241); color: #666; font-size: 16px; line-height: 35px;}
+.content .left_menu .menu2{padding-left: 7px; padding-right: 3px; margin-top: 5px; border-top-left-radius: 2px; border-top-right-radius: 2px; background: rgb(231, 235, 241); height: 772px;}
+.content .left_menu .menu2 ul.second li .second_name{background: url(../image/sj_right.png) no-repeat right top; height: 40px; line-height: 40px; color: #666; font-size: 14px; font-weight: bold; border-bottom: 1px solid #f4f5f6; padding-left: 18px; cursor: pointer;}
+.content .left_menu .menu2 ul.second li .active{color: #0071c5; background: url(../image/sj_bottom.png) no-repeat right top;}
+/* .content .left_menu .menu2 ul.third{display: none;} */
+.content .left_menu .menu2 ul.third li{display: block; height: 40px; line-height: 40px; padding-left: 30px; font-size: 12px; color: #666;}
+.content .left_menu .menu2 ul.third li a{display:block; color: #666;}
+
+.content .box{width:1230px; height: 812px; float: left; padding: 0 20px; border-top-left-radius: 2px; background-color: #fff;}
+.content .box .title{height: 45px; border-bottom: 3px solid #d5e7fb; line-height: 50px; color: #333; font-size: 14px; font-weight: bold; padding-left: 10px; }
+.content .box .search{}
+.content .box .search ul li{margin-top: 20px; float: left;}
+.content .box .search ul li.btn_search{width: 100%; text-align: center;}
+.content .box .search ul li.area{float: left; width: 1210px; padding-left: 10px;}
+.content .box .search ul li.area textarea{width: 1050px; height: 136px; border: 1;  padding: 10px; font-size: 14px; color: #000000; resize:none}
+.content .box .search ul li.upload{float: left; position: relative; width: 1190px; padding-left: 10px;}
+.content .box .search ul li.upload .btn_upload{position:relative; z-index:0; width: 110px; height: 36px; border: 1px solid #0875c5; background-color: rgb(103, 125, 152); color: #fff; font-size: 16px; border-radius: 2px; font-family: 'Microsoft YaHei'; cursor: pointer;}
+.content .box .search ul li.upload .real_upload{position: absolute; z-index: 999; width: 110px;font-size:100px; height: 36px; opacity: 0; filter:Alpha(Opacity=0); left: 145px; cursor: pointer;}
+.content .box .search ul li.certain{text-align: center; position: relative; width: 1190px; padding-left: 10px; margin-top: 10px;}
+.content .box .search ul li.certain input{margin-right: 20px; width: 110px; height: 30px; cursor: pointer; border: 1px solid #dedede; border-radius: 2px; font-size: 16px; font-family: 'Microsoft YaHei';cursor: pointer;}
+
+.content .box .search input.button{width: 110px; height: 30px; border-radius: 2px; border:  1px solid #dedede; background-color: rgb(113, 125, 152); font-size: 16px; color: #fff; font-family: 'Microsoft YaHei'; cursor: pointer;}
+.content .box .search ul li.certain input.yes{background-color:rgb(103, 125, 152); color:#fff; border: 1px solid #0875c5;}
+.content .box .search ul li.certain input.no{background-color: #fff; color: #666;}
+.content .box .search .left{padding-left: 10px;}
+.content .box .search .right{float: right;}
+.content .box .search label{float: left; text-align:right; display: block; height: 30px; width: 128px; line-height: 30px; font-size: 14px; color: #666; padding-right: 5px;}
+.content .box .excel{width: 100%; margin-top: 30px; position: relative;}
+.content .box .excel table.info th{background-color: rgb(53, 75, 102); height: 30px; color: #fff; font-size: 13px; font-weight: bold; text-align: center;}
+.content .box .excel table.info th.sum{width: 50px;}
+.content .box .excel table.info tr td{height: 30px; line-height: 30px; text-align: center; font-size: 12px; color: #666; border-left: 1px solid #f0f0f0; word-wrap:break-word; word-break:break-all;}
+/* .content .box .excel table.info tr td:first-child{font-family: 'arial'; font-size: 14px; border-left:0; text-align: left; padding-left: 60px;} */
+.content .box .bottom{width: 100%; margin-top: 20px;}
+.content .box .bottom .page{float: right; height: 24px; font-size: 12px; line-height: 24px; text-align: center;}
+.content .box .bottom .page .turn{width: 60px; margin-left: 10px; float: left; border: 1px solid #dedede; color: #666; border-radius: 2px;}
+.content .box .bottom .page .turn a{display:block; color: #666;}
+.content .box .bottom .page .turn a:hover{background-color: #127ac6; color: #fff; border:1px solid #127ac6;}
+.content .box .bottom .page .sum{float: left; margin-left: 10px;}
+.content .box .bottom .page .sum a{display: block; float: left; width: 24px; color: #999; border: 1px solid #dedede; margin-left: 7px; border-radius: 2px;}
+.content .box .bottom .page .sum a:first-child{margin-left: 0;}
+.content .box .bottom .page .sum a:hover,.content .box .bottom .page .sum a.active{background-color: #127ac6; color: #fff; font-weight: bold; border:1px solid #127ac6;}
+.content .box .bottom .page .sum span{display: block; float: left; width: 14px; margin-left: 7px; color: #999; line-height: 28px;}
+.content .box .bottom .zsgc{float: left;}
+.content .box .bottom .zsgc a{display: block; width: 70px; height: 30px; line-height: 30px; margin-right: 10px; color: #666; font-size: 12px; float: left; text-align: center; border: 1px solid #dedede; border-radius: 2px;}
+.content .box .bottom .zsgc a:hover{background-color: #127ac6; color: #fff; border:1px solid #127ac6;}
+.content .box .bottom .zsgc .turn{width: 120px; height: 30px; margin-right: 10px; float: left; border: 1px solid #dedede; color: #666; border-radius: 2px;}
+.content .box .bottom .zsgc input{background-color: #fff; display: block; width: 110px; height: 26x; line-height: 26px; margin-right: 10px; color: #666; font-size: 12px; float: left; text-align: center; border: 1px solid #dedede; border-radius: 2px;}
+.content .box .bottom .zsgc input:hover{background-color: #127ac6; color: #fff; border:1px solid #127ac6;}
+
+.errors {color: red;text-align: center;vertical-align:middle;padding-left: 5px;padding-top:5px;padding-bottom:5px;margin-bottom:5px; margin-top: 20px;}
+
+/*默认data-select*/
+.tag-public{height: 32px; float: left;}
+.data-select{border:1;width: 412px;height: 32px;padding-left:10px;line-height: 30px;}
+.temp-select{border:1; color:#8b8b8b;}
+.temp-select .up{background:#f0f0f0 url(../image/sj_down.png) no-repeat right center;padding:0px 20px 0px 10px;height:30px;line-height:30px;padding:0px 20px 0px 10px;cursor:pointer;font-size:14px; text-align: left;}
+.tempDown{border:1; z-index: 99999; overflow-x: hidden; font-family: 'SimSun'}
+.tempDown a{display:block;float: left;width:100%;height:30px;line-height:30px;text-indent:10px;font-size:14px; color: #8b8b8b; cursor: pointer;}
+.tempDown a:hover{background:#ddd;}
+
+.slideTxtBox{ width:1200px; text-align:left; margin-top: 20px;}
+.slideTxtBox .hd{ height:30px; line-height:30px; background:#d0e4f8; padding:0 10px 0 10px; position:relative; }
+.slideTxtBox .hd ul{ float:left; position:absolute; left:10px; top:5px; height:30px;   }
+.slideTxtBox .hd ul li{display: block; height: 100%; line-height: 35px; width: 100px; float:left; text-align: center; cursor:pointer; font-size: 14px; color: #666; font-family: 'SimSun'}
+.slideTxtBox .hd ul li.on{ height:100%; background:#fff; border-top-left-radius: 2px; border-top-right-radius: 2px; color: #2e88e1; font-weight: bold;}
+.slideTxtBox .bd ul{ zoom:1;  }
+
+input.i_text{float: left;  border: 1; width: 400px; font-size: 14px; height: 30px; line-height: 30px; padding-left: 10px; text-align: left;}
+span.s_text{float: left;  border: 1; width: 400px; font-size: 14px; height: 30px; line-height: 30px; padding-left: 10px; text-align: left;}
+input.tb_text{text-align: center;  border: 1; width: 300px; font-size: 14px; height: 30px; line-height: 30px; padding-left: 10px; text-align: left;}
+
+.content .box .search ul li.area input[type="checkbox"]{margin-top: 8px; float: left; margin-right: 5px;}
+.content .box .search ul li.area .check{float: left; width: 300px; height: 30px; line-height: 30px; color: #000000; font-size: 14px; margin-right: 20px;}
+.content .box .search ul li.area .check2{float: left; width: 300px; line-height: 30px; color: #000000; font-size: 14px; margin-right: 20px;}
+.content .box .search ul li.area input[type="radio"]{margin-top: 8px; float: left; margin-right: 5px;}
+.content .box .search ul li.area .radio{float: left; width: 180px; height: 30px; line-height: 30px; color: #000000; font-size: 14px; margin-right: 20px;}
+
+.content .box .search ul li.area2{float: left; width: 1210px; padding-left: 10px;}
+.content .box .search ul li.area2 textarea{width: 1050px; height: 136px; border: 1; padding: 10px; font-size: 14px; resize:none; overflow-y: hidden; overflow-x: hidden; color: #000000; background:#ffffff;}
+
+.Sepline{
+border-top-color:#bfc8d8;
+border-top-width:1px;
+border-top-style:solid;
+background-image:none;
+background-attachment:scroll;
+background-repeat:repeat;
+background-position-x:0%;
+background-position-y:0%;
+background-color:rgb(244, 245, 246);
+}
+.rowCss{
+background:#f7f7f7;
+}		

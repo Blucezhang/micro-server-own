@@ -1,0 +1,13 @@
+angular-resource.pager{
+	text-align: right;
+}
+.pager p{
+	display:inline;
+}
+.self_ul_left{text-align: left;}
+.self_li2col{width:45%;display:inline-block!important;text-align:left;}
+.self_li2col2{width:45%;display:inline-block!important;text-align:right;}
+.self_li2col_head{width:90.40%;text-align:left;font-weight:bolder; font-size:18px}
+label{width:160px;}
+li input{width:100%;display:inline;}
+.title_and_table{margin-top:50px;width:90%;}

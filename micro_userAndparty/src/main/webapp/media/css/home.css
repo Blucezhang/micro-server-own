@@ -1,0 +1,89 @@
+/*
+a:link - 正常，未访问过的链接
+a:visited - 用户已访问过的链接
+a:hover - 当用户鼠标放在链接上时
+a:active - 链接被点击的那一刻
+*/
+a.bigtype:link{
+	color:#1827e2; 
+	font-weight:bold;
+	font-size: 15px; 
+	text-decoration: none;
+}
+a.bigtype:visited {
+	color:#c0c0c0;
+	text-decoration: none;
+	}
+a.bigtype:hover{
+	color: #ffcc00;
+	text-decoration: underline;
+}
+a.bigtype:ACTIVE {
+	color: gray;
+}
+
+a.smalltype:link{
+	color:#000000; 
+	text-decoration: none;
+}
+a.smalltype:visited {
+	/* color:#c0c0c0; */
+	text-decoration: none;
+}
+a.smalltype:hover{
+	color: #d84227;
+	text-decoration: underline;
+}
+a.smalltype:ACTIVE {
+	color: gray;
+}
+
+/*标签页样式*/
+a.protypetab:LINK{
+	color: #000000;
+	font-size: 15px;
+	font-weight: bold;
+	text-decoration: none;
+}
+a.protypetab:VISITED{
+	color:#6a6a6a;
+	text-decoration: none;
+}
+a.protypetab:HOVER {
+	color: #d84227;
+	text-decoration: underline;
+}
+
+/*标签页样式*/
+a.newprotypetab:LINK{
+	color: #000000;
+	font-size: 15px;
+	font-weight: bold;
+	text-decoration: none;
+}
+a.newprotypetab:VISITED{
+	color: #000000;
+	text-decoration: none;
+}
+a.newprotypetab:HOVER {
+	color: #d84227;
+	text-decoration: underline;
+}
+
+/*style="margin-right: 2px;border: 1px solid;width: auto;padding: 2px"*/
+.labelSearch{
+	margin-right: 4px;
+	border: 1px solid;
+	border-style:groove;
+	font-size:11px;
+	width: auto;
+	padding-left: 2px;
+	padding-right: 2px;
+}
+/*多余字符显示省略号...*/
+.contentStyle{
+     width:150px;    
+     white-space:nowrap; 
+     overflow:hidden;    
+     text-overflow:ellipsis;
+} 

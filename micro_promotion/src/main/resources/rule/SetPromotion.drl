@@ -1,0 +1,16 @@
+package promotion.action
+
+import promotion.dao.domain.SetPromotion
+import face.promotion.CartBean
+
+rule "setpromotion"
+
+	salience 15
+    lock-on-active true
+	when
+		
+		c:CartBean(join == true)
+	then
+		c.setProductTotolCount(c.doSome(c));
+		c.setAfterTotal(c.getProductTotolCount() * c.getAmount());
+end

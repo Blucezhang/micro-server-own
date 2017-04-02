@@ -1,0 +1,124 @@
+@CHARSET "UTF-8";
+
+ * {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	 font:  Arial, Helvetica, sans-serif; 
+}
+
+li {
+	list-style: none;
+} 
+
+.detail {
+	margin: 0 0 5px 30px;
+	position: relative;
+	top: 10px;
+}
+
+.detail input {
+	color: #999999;
+	border: 1px solid #74C8E5;
+	border-radius: 3px 3px 3px 3px;
+	height: 15px;
+	line-height: 14px;
+	padding: 8px 5px 7px;
+	width: 184px;
+}
+
+#suggest {
+	background: none repeat scroll 0 0 #FFFFFF;
+	border: 1px solid #CCCCCC;
+	left: 18px;
+	margin: 0;
+	overflow: hidden;
+	display: none;
+	padding: 0;
+	position: absolute;
+	text-align: left;
+	top: 33px;
+	visibility: visible;
+	width: 194px;
+	z-index: 1
+}
+
+#suggestUpd {
+	background: none repeat scroll 0 0 #FFFFFF;
+	border: 1px solid #CCCCCC;
+	left: 18px;
+	margin: 0;
+	overflow: hidden;
+	display: none;
+	padding: 0;
+	position: absolute;
+	text-align: left;
+	top: 33px;
+	visibility: visible;
+	width: 194px;
+	z-index: 1
+}
+
+#suggestUpdOut {
+	background: none repeat scroll 0 0 #FFFFFF;
+	border: 1px solid #CCCCCC;
+	left: 18px;
+	margin: 0;
+	overflow: hidden;
+	display: none;
+	padding: 0;
+	position: absolute;
+	text-align: left;
+	top: 33px;
+	visibility: visible;
+	width: 194px;
+	z-index: 1
+}
+
+.note,.item {
+	clear: both;
+	color: #999999;
+	cursor: pointer;
+	font-size: 12px;
+	height: 20px;
+	line-height: 20px;
+	list-style: none outside none;
+	margin: 0 1px;
+	padding: 0 5px;
+	white-space: nowrap;
+}
+
+.active {
+	white-space: nowrap;
+	clear: both;
+	color: rgb(153, 153, 153);
+	cursor: pointer;
+	font-size: 12px;
+	height: 20px;
+	line-height: 20px;
+	list-style: none outside none;
+	margin: 0pt 1px;
+	padding: 0pt 5px;
+	background: none repeat scroll 0% 0% rgb(232, 244, 252);
+}
+
+.code {
+	background: url(../images/vcode.png);
+	font-family: Arial;
+	color: blue;
+	font-size: 25px;
+	cursor: pointer;
+	text-align: center;
+	vertical-align: middle;
+}
+
+a {
+	text-decoration: none;
+	color: #288bc4;
+}
+
+a:hover {
+	text-decoration: underline;
+}
