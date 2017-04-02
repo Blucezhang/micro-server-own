@@ -3,6 +3,14 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/EMServer/EMServer.iml" filepath="$PROJECT_DIR$/EMServer/EMServer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/FileServer/FileServer.iml" filepath="$PROJECT_DIR$/FileServer/FileServer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PartyAndUser/PartyAndUser.iml" filepath="$PROJECT_DIR$/PartyAndUser/PartyAndUser.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ProFace/ProFace.iml" filepath="$PROJECT_DIR$/ProFace/ProFace.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Product/Product.iml" filepath="$PROJECT_DIR$/Product/Product.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Promotion/Promotion.iml" filepath="$PROJECT_DIR$/Promotion/Promotion.iml" />
+      <module fileurl="file://$PROJECT_DIR$/WorkFlow/WorkFlow.iml" filepath="$PROJECT_DIR$/WorkFlow/WorkFlow.iml" />
+      <module fileurl="file://$PROJECT_DIR$/config_server/config_server.iml" filepath="$PROJECT_DIR$/config_server/config_server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/eureka_server/eureka_server.iml" filepath="$PROJECT_DIR$/eureka_server/eureka_server.iml" />
     </modules>
   </component>
 </project>

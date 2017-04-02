@@ -2,5 +2,14 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/EMServer" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/FileServer" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/PartyAndUser" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ProFace" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ProFace" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Product" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Promotion" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/WorkFlow" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/config_server" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/eureka_server" charset="UTF-8" />
   </component>
 </project>
