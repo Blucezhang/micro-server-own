@@ -23,7 +23,7 @@ import ems.domain.IDomainBase;
 public class RdbSvc{
  	 
 	@Autowired
-	private RdbBaseDao baseDao	=	null;//这里借用IPartyOrgDao来调用通用方法，其实任何一个dao都可以
+	private RdbBaseDao baseDao	=	null;
 	
 	public RdbBaseDao getBaseDao() {
 		return baseDao;

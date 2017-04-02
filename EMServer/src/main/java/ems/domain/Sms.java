@@ -18,8 +18,7 @@ import javax.persistence.Transient;
 @Table(name="SMS")
 public class Sms implements Serializable, IDomainBase{
 	
-	private static final long serialVersionUID = 3239791447897868700L;
-	
+
 	@Id
 	@Column(name="id", unique=true, nullable=false)
 	@GeneratedValue(strategy=GenerationType.IDENTITY)

@@ -497,9 +497,7 @@ public class PromotionFace extends FaceBase{
 			List<Promotion> list = restTemplate.getForObject(serviceUrl+"/promotion/sellerPromotion?zoneId={zoneId}", ArrayList.class, map);
 			return list;
 		}
-		
-		
-		
+
 		/**
 		 * 购物结算
 		 * 公共方法，使用所有促销类型

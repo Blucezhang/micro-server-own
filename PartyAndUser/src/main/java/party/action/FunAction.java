@@ -19,7 +19,7 @@ import party.dao.domain.Fun;
 
 /**
  * 功能
- * @author Administrator
+ * @author Blucezhang
  *
  */
 @EnableAutoConfiguration  

@@ -1,7 +1,5 @@
 package face.promotion;
 
-import java.util.Date;
-
 
 public class Promotion {
 //private Long id;
@@ -143,24 +141,7 @@ private int integral; //赠送积分
 	public void setSaleMark(String saleMark) {
 		this.saleMark = saleMark;
 	}
-//	public Date getCreateTime() {
-//		return createTime;
-//	}
-//	public void setCreateTime(Date createTime) {
-//		this.createTime = createTime;
-//	}
-//	public int getSaleStatus() {
-//		return saleStatus;
-//	}
-//	public void setSaleStatus(int saleStatus) {
-//		this.saleStatus = saleStatus;
-//	}
-//	public int getExamineStatus() {
-//		return examineStatus;
-//	}
-//	public void setExamineStatus(int examineStatus) {
-//		this.examineStatus = examineStatus;
-//	}
+
 	public String getUserName() {
 		return userName;
 	}
@@ -179,19 +160,7 @@ private int integral; //赠送积分
 	public void setUserRole(String userRole) {
 		this.userRole = userRole;
 	}
-//	public int getFlag() {
-//		return flag;
-//	}
-//	public void setFlag(int flag) {
-//		this.flag = flag;
-//	}
-//	public int getAllJoin() {
-//		return allJoin;
-//	}
-//	public void setAllJoin(int allJoin) {
-//		this.allJoin = allJoin;
-//	}
-	
+
 	public boolean isAllJoin() {
 		return allJoin;
 	}

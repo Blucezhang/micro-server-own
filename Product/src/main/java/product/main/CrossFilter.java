@@ -15,7 +15,7 @@ public class CrossFilter implements Filter {
 	@Override
 	public void init(FilterConfig arg0) throws ServletException 
 	{
-		System.out.println("CrossFilter++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++拦截器初始化！");
+		System.out.println("CrossFilter++++++++++++拦截器初始化！");
 	}
 
 	/**
@@ -33,7 +33,7 @@ public class CrossFilter implements Filter {
 	@Override
 	public void destroy()
 	{
-		System.out.println("CrossFilter++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++拦截器终结化！");
+		System.out.println("CrossFilter++拦截器终结化！");
 	}
 
 }

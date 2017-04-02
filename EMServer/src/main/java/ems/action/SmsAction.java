@@ -62,20 +62,6 @@ public class SmsAction {
 		
 	}
 	
-//	@RequestMapping(value="/info/sms",method={RequestMethod.GET})
-//	public List getMessageList(@RequestParam Integer id,String title){
-//		log.info("获取短信列表信息.....id:"+id+"  title："+title);
-////		System.out.println("获取信息.....");
-////		List<Message> list = null;
-//	    List list = smsSvc.getSms();
-//	    log.info("查询集合长度："+list.size());
-////	    System.out.println("查询集合长度："+list.size());
-//	    //test，测试是否获取到配置文件参数信息
-////	    System.out.println("获取参数信息："+tmpFilePath);
-//		return list;
-//		
-//	}
-	
 	/**
 	 * 发送短信,post
 	 * @return

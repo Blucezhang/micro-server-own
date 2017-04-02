@@ -22,7 +22,6 @@ public interface BaseDao<T> extends GraphRepository<T>{
      * @return
      */
     @Query("START startNode=node({0}),endNode=node({1}) CREATE (startNode)-[:DATA]->(endNode)")
-	//@Query("MATCH (p:Person { name: {0} }), (o:Organization { name: {1} }) CREATE (p)-[:{2}]->(o)")
     public void createRelationship(Integer startNodeId,Integer endNodeId,String relationShipType);
     
     /**
@@ -35,7 +34,6 @@ public interface BaseDao<T> extends GraphRepository<T>{
     /**
      * 删除节点和节点关系(指向别的节点的关系)
      * @param id 节点id
-     * @param relationShip 关系类型
      * @return
      */
     @Query("START n=node({0}) MATCH (n)-[s]-() delete n,s")

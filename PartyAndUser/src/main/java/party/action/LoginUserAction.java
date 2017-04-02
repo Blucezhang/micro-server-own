@@ -22,7 +22,7 @@ import party.util.Util;
 /**
  * 系统用户
  * 
- * @author Administrator
+ * @author Blucezhang
  */
 
 @EnableAutoConfiguration

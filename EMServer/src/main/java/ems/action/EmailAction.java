@@ -22,14 +22,11 @@ import ems.service.EmailSvc;
 import ems.utils.SendMail;
 
 
-
-
-
 @RestController
 @RequestMapping(value="/Info")
 public class EmailAction {
 
-	@Autowired//上面要设置扫描组件dao,否则这里不认识这个bean
+	@Autowired
 	private EmailSvc emailSvc;
 	
 	@Autowired

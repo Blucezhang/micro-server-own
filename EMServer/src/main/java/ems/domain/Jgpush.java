@@ -17,8 +17,7 @@ import javax.persistence.TemporalType;
 @Table(name="JGPUSH")
 public class Jgpush implements Serializable, IDomainBase{
 	
-	private static final long serialVersionUID = -4067422147574393393L;
-	
+
 	@Id
 	@Column(unique=true,nullable=false)
 	@GeneratedValue(strategy=GenerationType.IDENTITY)

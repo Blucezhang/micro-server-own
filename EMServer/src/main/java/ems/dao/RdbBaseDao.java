@@ -17,8 +17,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-
-
 @Repository
 public class RdbBaseDao{
 
@@ -27,31 +25,23 @@ public class RdbBaseDao{
 	protected EntityManager em;  
 
 	
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#saveCommonEntry(java.lang.Object)
-	 */
+
 	public <T> T save(T obj){
 		em.persist(obj);
 		return obj;
 	}
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#findCommonEntry(java.lang.Class, java.lang.Object)
-	 */
+
 	 
 	public Object  find(Object obj,Object key){
 		Class<? extends Object> clazz = obj.getClass();
 	 		return em.find(clazz, key);
 	}
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#removeCommonEntry(java.lang.Object)
-	 */
+
 	public void remove(Object obj){
 		em.remove(obj);
 	}
 	
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#findAllByConditions(java.lang.String, java.util.Map, org.springframework.data.domain.Pageable)
-	 */
+
 	public Page<?> findPage(String jsql, String countJsql, Map<String, ?> paramsMap, Pageable pageable){
 		Integer count = 0;
 		if(countJsql!=null&&!"".equals(countJsql)){
@@ -78,11 +68,7 @@ public class RdbBaseDao{
 		Page<?> page = new PageImpl(list,pageable,count);
 		return page;
 	}
-	
-	
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#findAllByConditions(java.lang.String, java.util.Map, org.springframework.data.domain.Pageable)
-	 */
+
 	public Page<?> findAll2Page(String jsql,Map<String, ?> paramsMap){
 		 
 		Query query = em.createQuery(jsql);  
@@ -125,22 +111,11 @@ public class RdbBaseDao{
 		return query.getSingleResult();
  	}
 	
-	
-	
-	
-	
-
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#findAllByConditions(java.lang.String, java.lang.String, org.springframework.data.domain.Pageable)
-	 */
 	public Page<?> findAllByConditions(String jsql, String countJsql,Pageable pageable) {
 		
 		return findPage(jsql, countJsql, null, pageable);
 	}
 
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#exeNativeUpdate(java.lang.String, java.util.Map)
-	 */
 	public int exeNativeUpdate(String sql, Map<String, ?> paramsMap) {
 		Query query = em.createNativeQuery(sql);  
 		if(paramsMap!=null){

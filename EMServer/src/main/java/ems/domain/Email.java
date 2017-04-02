@@ -17,8 +17,7 @@ import javax.persistence.TemporalType;
 @Table(name="EMAIL")
 public class Email implements Serializable, IDomainBase{
 	
-	private static final long serialVersionUID = -4067422147574393393L;
-	
+
 	@Id
 	@Column(name="id", unique=true, nullable=false)
 	@GeneratedValue(strategy=GenerationType.IDENTITY)

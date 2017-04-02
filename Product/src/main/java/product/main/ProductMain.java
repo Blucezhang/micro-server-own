@@ -58,7 +58,7 @@ public class ProductMain extends Neo4jConfiguration {
 	    public static  void main(String[] args){
 	    	SpringApplication.run(ProductMain.class, args);
 	    	ApplicationInfoManager.getInstance().setInstanceStatus(InstanceStatus.UP);
-	    	System.out.println("================>");
+	    	System.out.println("end");
 	    }
 
 }
