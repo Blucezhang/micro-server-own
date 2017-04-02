@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.springframework.cloud:spring-cloud-starter-ribbon:1.2.7.BUILD-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/springframework/cloud/spring-cloud-starter-ribbon/1.2.7.BUILD-SNAPSHOT/spring-cloud-starter-ribbon-1.2.7.BUILD-20170402.044834-188.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/springframework/cloud/spring-cloud-starter-ribbon/1.2.7.BUILD-SNAPSHOT/spring-cloud-starter-ribbon-1.2.7.BUILD-20170402.044834-188-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/springframework/cloud/spring-cloud-starter-ribbon/1.2.7.BUILD-SNAPSHOT/spring-cloud-starter-ribbon-1.2.7.BUILD-20170402.044834-188-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

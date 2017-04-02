@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.neo4j:neo4j-cypher-compiler-1.9:2.0.4">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/neo4j/neo4j-cypher-compiler-1.9/2.0.4/neo4j-cypher-compiler-1.9-2.0.4.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/neo4j/neo4j-cypher-compiler-1.9/2.0.4/neo4j-cypher-compiler-1.9-2.0.4-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/neo4j/neo4j-cypher-compiler-1.9/2.0.4/neo4j-cypher-compiler-1.9-2.0.4-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

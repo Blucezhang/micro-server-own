@@ -1,0 +1,18 @@
+package rule
+
+import face.promotion.CartBean
+import promotion.dao.domain.PromotionalGifts
+
+//赠品促销
+rule "promotionalGifts"  
+ 
+    salience 2
+    lock-on-active true  
+    when  
+        p: PromotionalGifts()
+    	c: CartBean(join && selectedGifts)//判断是否参加、是否选择赠品
+    then  
+        c.setAfterTotal(c.getSinglePrice()*c.getAmount());//计算总价
+          
+        
+end  

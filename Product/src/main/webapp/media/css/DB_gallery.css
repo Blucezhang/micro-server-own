@@ -1,0 +1,17 @@
+﻿#DB_gallery ul, #DB_gallery li{list-style:none;margin:0;padding:0}
+#DB_gallery img{border:none;vertical-align:top;}
+
+#DB_gallery .DB_imgSet {position:relative;width:580px;height:387px;overflow:hidden;}
+#DB_gallery .DB_imgSet .DB_imgWin{height:100%}
+#DB_gallery .DB_imgSet .DB_page{position:absolute;bottom:0;font:11px tahoma bold;padding:5px;color:#ffffff}
+#DB_gallery .DB_imgSet .DB_page .DB_current{color:#ffff00}
+#DB_gallery .DB_imgSet .DB_page .DB_total{color:#ffcc00}
+#DB_gallery .DB_imgSet .DB_prevBtn{position:absolute;top:50%;margin-top:-45px;cursor:pointer;left:0;}
+#DB_gallery .DB_imgSet .DB_nextBtn{position:absolute;top:50%;margin-top:-45px;cursor:pointer;right:0;}
+
+#DB_gallery .DB_thumSet {position:relative;margin-top:10px;width:100px;height:63px;overflow:hidden}
+#DB_gallery .DB_thumSet .DB_thumMove{position:relative;white-space:nowrap;font-size:0}
+#DB_gallery .DB_thumSet .DB_thumMove li{display:inline;margin-right:8px}
+#DB_gallery .DB_thumSet .DB_prevPageBtn{position:absolute;top:0;cursor:pointer;left:0;}
+#DB_gallery .DB_thumSet .DB_nextPageBtn{position:absolute;top:0;cursor:pointer;right:0;}
+#DB_gallery .DB_thumSet .DB_thumLine{position:absolute;width:100px;height:63px;border:5px solid #ff0000;left:0;top:0}
