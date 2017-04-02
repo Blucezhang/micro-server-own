@@ -15,13 +15,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.siaya.action.core.MsgResult;
 import com.siaya.exception.StateException;
 import com.siaya.util.Util;
 
-import ems.action.ConfigProperty;
 
 public class SendSms {
 	
@@ -33,7 +31,7 @@ public class SendSms {
 	 */
 	public MsgResult sendSms(String mobile,String content,String serviceUrl,String sn,String pwd) {
 		try{
-			content = URLEncoder.encode(content+"【盛大科技】","utf-8");
+			content = URLEncoder.encode(content+"","utf-8");
 			}
 		catch(UnsupportedEncodingException e){
 			e.printStackTrace();

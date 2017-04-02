@@ -1,7 +1,6 @@
 package ems.utils;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.siaya.util.Util;
 
@@ -16,32 +15,15 @@ import cn.jpush.api.push.model.audience.Audience;
 import cn.jpush.api.push.model.notification.AndroidNotification;
 import cn.jpush.api.push.model.notification.IosNotification;
 import cn.jpush.api.push.model.notification.Notification;
-import ems.action.ConfigProperty;
 
 public class SendJgpush {
-//	private static String appKey = "";
-//	private static String masterSecret = ""; // API主密码
-	
-	
-	
+
+
 	Logger LOG = Logger.getLogger(SendJgpush.class);
-	
-//	static{
-//		Properties props=null;
-//		try {
-//			props = PropertiesLoaderUtils.loadAllProperties("Properties/Action.properties");
-//		} catch (IOException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//		appKey = props.getProperty("JPush.appKey");
-//		masterSecret = props.getProperty("JPush.masterSecret");
-//	}
+
 	
 	public String sendJpush(String title,String msgContent,String platform,String sendId,String releaseFun,String appKey,String masterSecret){
-		
 		String status = "";
-		
 		 title = Util.toStringAndTrim(title); // 通知标题
 		String alert = Util.toStringAndTrim(msgContent); // 推送的内容
 
@@ -99,8 +81,6 @@ public class SendJgpush {
 
 			if (!Util.isNullOrEmpty(sendId)) { // 精准推送
 				temp.setAudience(Audience.alias(sendId));//使用alias匹配终端
-//				temp.setAudience(Audience.registrationId("jianengfly"));//按照注册id匹配终端
-//				temp.setAudience(Audience.tag("北京"));
 			} else {
 				temp.setAudience(Audience.all());
 			}
