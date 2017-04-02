@@ -40,7 +40,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="config.server" target="1.5" />
-      <module name="config_server" target="1.5" />
+      <module name="config_server" target="1.8" />
       <module name="EMServer" target="1.8" />
       <module name="EMServer (1)" target="1.7" />
       <module name="eureka.server" target="1.5" />
