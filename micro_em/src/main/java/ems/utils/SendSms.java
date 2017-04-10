@@ -99,7 +99,7 @@ public class SendSms {
 	 */
 	public String mdsmssend(String mobile, String content, String ext, String stime,
 			String rrid,String msgfmt,String serviceURL,String sn,String pwd){
-		
+		//http://entinfo.cn/mdsmssend
 		String result = "";
 		String soapAction = "http://entinfo.cn/mdsmssend";
 		StringBuffer xml = new StringBuffer();
