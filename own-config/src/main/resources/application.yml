@@ -1,25 +1,21 @@
-
 server:
   port: 8001
-
-
-
-
 
 spring:
   application:
     name: own-config
   profiles:
-    active:
+    active: dev
   cloud:
-    bus:
-      enabled: true
     config:
       server:
         git:
           uri: https://github.com/Blucezhang/center-config.git
-
-
+          #native:
+            #search-locations:
+---
+spring:
+  profiles: dev
 eureka:
   instance:
     prefer-ip-address: true
@@ -27,20 +23,26 @@ eureka:
     lease-expiration-duration-in-seconds: 20
   client:
     serviceUrl:
-      defaultZone:
+      defaultZone:  http://own:123456@eureka:8002/eureka
 
+---
+spring:
+  profiles: test
+eureka:
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 20
+  client:
+    serviceUrl:
+      defaultZone: http://own:123456@eureka:8002/eureka
 
-
-
-
-
-
-
-
-management:
-  context-path: /config
-
-
-logging:
-  level: debug
-
+---
+spring:
+  profiles: prd
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    serviceUrl:
+      defaultZone: http://own:123456@eureka:8002/eureka

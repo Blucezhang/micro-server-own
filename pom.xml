@@ -48,16 +48,16 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-config-monitor</artifactId>
-        </dependency>
+        </dependency>-->
 
         <!--neo4j 支持-->
-        <dependency>
+        <!--<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-neo4j</artifactId>
-        </dependency>
+        </dependency>-->
 
         <!--Lombok-->
         <dependency>
@@ -67,10 +67,16 @@
         </dependency>
 
         <!--kafka支持-->
-        <dependency>
+    <!--    <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bus-kafka</artifactId>
+        </dependency>-->
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-stream-kafka</artifactId>
         </dependency>
+
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>

@@ -42,7 +42,7 @@
         </plugins>
     </build>
 
-<!--  <repositories>
+  <repositories>
         <repository>
             <id>nexus-aliyun</id>
             <name>Nexus aliyun</name>
@@ -55,8 +55,6 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
-    </repositories>-->
-
-
+    </repositories>
 
 </project>
