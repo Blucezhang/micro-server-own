@@ -1,0 +1,8 @@
+# Created by .ignore support plugin (hsz.mobi)
+/own-config/own-config.iml
+/micro-server-own.iml
+/.idea/
+/own-config/src/test/
+/src/test/
+/own-eureka-server/own-eureka-server.iml
+/own-eureka-server/src/test/
