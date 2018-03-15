@@ -6,3 +6,6 @@
 /src/test/
 /own-eureka-server/own-eureka-server.iml
 /own-eureka-server/src/test/
+/micro.server.own.iml
+/own-eureka-server/own.eureka.server.iml
+/own-config/own.config.iml

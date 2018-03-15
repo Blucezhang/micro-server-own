@@ -8,24 +8,22 @@
         <version>${own.version}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
+    <groupId>com.own</groupId>
     <artifactId>own.eureka.server</artifactId>
-    <groupId>${own.version}</groupId>
+    <version>${own.version}</version>
     <packaging>jar</packaging>
 
 
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-eureka-server</artifactId>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-security</artifactId>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-eureka-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-security</artifactId>
+        </dependency>
+    </dependencies>
 
 
     <build>
@@ -44,7 +42,7 @@
         </plugins>
     </build>
 
-   <!-- <repositories>
+<!--  <repositories>
         <repository>
             <id>nexus-aliyun</id>
             <name>Nexus aliyun</name>
