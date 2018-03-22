@@ -1,18 +1,15 @@
-server:
-  port: 8001
-
 spring:
   application:
-    name: own-config
+    name: own-api-gateway
   profiles:
     active: dev
   cloud:
     config:
-      server:
-        git:
-          uri: https://github.com/Blucezhang/center-config.git
-          #native:
-            #search-locations:
+      fail-fast: true
+      discovery:
+        service-id: own-config
+        enabled: true
+      profile: ${spring.profiles.active}
 ---
 spring:
   profiles: dev
