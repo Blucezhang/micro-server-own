@@ -13,6 +13,10 @@
         <module>own-eureka-server</module>
         <module>own-api-gateway</module>
         <module>own-send-server</module>
+        <module>own-user-party</module>
+        <module>own-promotion</module>
+        <module>own-workflow</module>
+        <module>own-file</module>
     </modules>
 
 
