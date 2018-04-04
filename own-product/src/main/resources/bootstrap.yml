@@ -1,15 +1,26 @@
+server:
+  port: 6008
+
 spring:
   application:
     name: own-product
-  profiles:
-    active: dev
-  cloud:
-    config:
-      fail-fast: true
-      discovery:
-        service-id: own-config
-        enabled: true
-      profile: ${spring.profiles.active}
+  #profiles:
+   # active: dev
+  #cloud:
+   # config:
+   #   fail-fast: true
+   ##   discovery:
+     #   service-id: own-config
+     #   enabled: true
+     # profile: ${spring.profiles.active}
+  data:
+    neo4j:
+      open-in-view: true
+      username: neo4j
+      password: 123456
+      uri: http://localhost:7474
+
+
 
 ---
 spring:
@@ -23,21 +34,10 @@ eureka:
     serviceUrl:
       defaultZone:  http://own:123456@192.168.1.111:8002/eureka
 
----
-spring:
-  profiles: test
-eureka:
-  instance:
-    prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 5
-    lease-expiration-duration-in-seconds: 20
-  client:
-    serviceUrl:
-      defaultZone: http://own:123456@eureka:8002/eureka
 
 ---
 spring:
-  profiles: prd
+  profiles: pro
 eureka:
   instance:
     prefer-ip-address: true

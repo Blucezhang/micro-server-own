@@ -7,7 +7,7 @@
     <groupId>com.own</groupId>
     <artifactId>micro.server.own</artifactId>
     <packaging>pom</packaging>
-    <version>${own.version}</version>
+    <version>1.0-ALPHA</version>
     <modules>
         <module>own-config</module>
         <module>own-eureka-server</module>
@@ -18,6 +18,7 @@
         <module>own-workflow</module>
         <module>own-file</module>
         <module>own-product</module>
+        <module>own-common</module>
     </modules>
 
 
@@ -28,49 +29,18 @@
         <own.version>1.0-ALPHA</own.version>
         <spring-boot.version>1.5.9.RELEASE</spring-boot.version>
         <spring-cloud.version>Edgware.RELEASE</spring-cloud.version>
+        <spring-data-neo4j.version>4.1.2.RELEASE</spring-data-neo4j.version>
     </properties>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>1.5.9.RELEASE</version>
-        <relativePath/>
     </parent>
-    <dependencies>
 
-        <!--监控-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-        <!--注册中心-->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-eureka</artifactId>
-        </dependency>
-        <!--配置中心-->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-config</artifactId>
-        </dependency>
-        <!--Lombok-->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-        </dependency>
-
-    </dependencies>
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>io.spring.platform</groupId>
-                <artifactId>platform-bom</artifactId>
-                <version>Brussels-SR6</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -78,6 +48,34 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!--Lombok-->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>LATEST</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.siaya</groupId>
+                <artifactId>jspider</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>mail</artifactId>
+                <version>1.4.7</version>
+            </dependency>
+
+
+
         </dependencies>
     </dependencyManagement>
 
@@ -112,7 +110,7 @@
                 <enabled>false</enabled>
             </snapshots>
             <releases>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </releases>
         </repository>
 
@@ -120,6 +118,12 @@
             <id>3party-nexus</id>
             <name>3party-nexus</name>
             <url>http://47.93.14.223:8082/nexus/content/repositories/thirdparty/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
         </repository>
     </repositories>
 

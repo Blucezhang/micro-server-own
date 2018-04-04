@@ -7,7 +7,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.own</groupId>
 	<artifactId>own-api-gateway</artifactId>
-	<version>${own.version}</version>
+	<version>1.0-ALPHA</version>
 	<packaging>jar</packaging>
 
 	<name>own-api-gateway</name>

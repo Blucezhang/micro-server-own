@@ -5,43 +5,50 @@
 
 	<groupId>com.own</groupId>
 	<artifactId>own-product</artifactId>
-	<version>${own.version}</version>
+	<version>1.0-ALPHA</version>
 	<packaging>jar</packaging>
 
 	<name>own-product</name>
 	<description>产品</description>
 
-	<properties>
-		<spring-data-neo4j.version>4.1.2.RELEASE</spring-data-neo4j.version>
-	</properties>
-
 	<parent>
 		<artifactId>micro.server.own</artifactId>
 		<groupId>com.own</groupId>
-		<version>${own.version}</version>
+		<version>1.0-ALPHA</version>
 	</parent>
 
 	<dependencies>
+
+		<dependency>
+			<groupId>com.own</groupId>
+			<artifactId>own-common</artifactId>
+			<version>${own.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-rest</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.data</groupId>
-					<artifactId>spring-data-commons</artifactId>
-				</exclusion>
-			</exclusions>
+			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-hystrix</artifactId>
+			<artifactId>spring-cloud-starter-stream-kafka</artifactId>
 		</dependency>
-
 		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-neo4j</artifactId>
-			<version>${spring-data-neo4j.version}</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-neo4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-eureka</artifactId>
 		</dependency>
 
 		<dependency>
@@ -50,15 +57,5 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
-
 
 </project>
