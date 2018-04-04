@@ -17,6 +17,7 @@
         <module>own-promotion</module>
         <module>own-workflow</module>
         <module>own-file</module>
+        <module>own-product</module>
     </modules>
 
 
@@ -80,37 +81,24 @@
         </dependencies>
     </dependencyManagement>
 
-
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
-            </plugin>
-            <plugin>
-                <!--skip deploy (this is just a test module) -->
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <target>${java.version}</target>
-                    <source>${java.version}</source>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <target>${java.version}</target>
+                        <source>${java.version}</source>
+                        <encoding>UTF-8</encoding>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
 
@@ -126,6 +114,12 @@
             <releases>
                 <enabled>true</enabled>
             </releases>
+        </repository>
+
+        <repository>
+            <id>3party-nexus</id>
+            <name>3party-nexus</name>
+            <url>http://47.93.14.223:8082/nexus/content/repositories/thirdparty/</url>
         </repository>
     </repositories>
 
