@@ -5,7 +5,7 @@
     <parent>
         <artifactId>micro.server.own</artifactId>
         <groupId>com.own</groupId>
-        <version>${own.version}</version>
+        <version>1.0-ALPHA</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.own</groupId>
@@ -14,19 +14,12 @@
     <packaging>jar</packaging>
 
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-config</artifactId>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-config-monitor</artifactId>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -44,7 +37,7 @@
         </plugins>
     </build>
 
-<!--    <repositories>
+    <repositories>
         <repository>
             <id>nexus-aliyun</id>
             <name>Nexus aliyun</name>
@@ -57,7 +50,7 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
-    </repositories>-->
+    </repositories>
 
 
 

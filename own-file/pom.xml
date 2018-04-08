@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>micro.server.own</artifactId>
+        <groupId>com.own</groupId>
+        <version>1.0-ALPHA</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.own</groupId>
+    <artifactId>own-file</artifactId>
+    <version>${own.version}</version>
+    <packaging>jar</packaging>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>com.own</groupId>
+            <artifactId>own-common</artifactId>
+            <version>${own.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>
