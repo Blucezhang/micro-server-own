@@ -1,9 +1,9 @@
 package com.own.product.controller;
 
 import com.own.face.product.CategoryBean;
+import com.own.face.util.Util;
 import com.own.product.dao.CategoryDao;
 import com.own.product.domain.Category;
-import com.own.product.util.Util;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
