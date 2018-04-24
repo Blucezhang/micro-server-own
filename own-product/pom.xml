@@ -12,7 +12,7 @@
 	<description>产品</description>
 
 	<parent>
-		<artifactId>micro.server.own</artifactId>
+		<artifactId>micro-server-own</artifactId>
 		<groupId>com.own</groupId>
 		<version>1.0-ALPHA</version>
 	</parent>

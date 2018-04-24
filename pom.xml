@@ -148,7 +148,7 @@
             <name>3party-nexus</name>
             <url>http://47.93.14.223:8082/nexus/content/repositories/thirdparty/</url>
             <snapshots>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </snapshots>
             <releases>
                 <enabled>true</enabled>

@@ -15,7 +15,7 @@
 
 
 	<parent>
-		<artifactId>micro.server.own</artifactId>
+		<artifactId>micro-server-own</artifactId>
 		<groupId>com.own</groupId>
 		<version>${own.version}</version>
 	</parent>
