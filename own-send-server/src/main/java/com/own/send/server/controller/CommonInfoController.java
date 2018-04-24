@@ -2,12 +2,10 @@ package com.own.send.server.controller;
 
 import com.own.send.server.domain.CommonInfo;
 import com.own.send.server.service.CommonInfoSvc;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,11 +21,12 @@ public class CommonInfoController {
     private CommonInfoSvc cifSvc;
 
     /**
-     * 查询公共信息列表,使用post
+     * ,使用post
      *
      * @return
      */
-    @RequestMapping(method = {RequestMethod.GET})
+    @ApiOperation(value = "查询公共信息列表")
+    @GetMapping
     public List<CommonInfo> findCommonInfo(@RequestParam Integer id, String title, String content, String sendAccount, String receiveAccount) {
         id = id != null ? id : null;
         title = title != null ? title : null;

@@ -1,0 +1,45 @@
+package rule
+
+import face.promotion.CartBean
+import promotion.dao.domain.SaveFullLadder
+
+//阶梯满减
+
+rule "saveFullLadder-one"  
+ 
+    salience 10
+    lock-on-active true  
+    when  
+    	c: CartBean()
+        s: SaveFullLadder(c.getSinglePrice()*c.getAmount() >= baseCoutOneLevel && c.getSinglePrice()*c.getAmount() < baseCoutTwoLevel)
+    then  
+        c.setAfterTotal(c.getSinglePrice()*c.getAmount() - s.getBaseCutOneLevel());
+        
+end  
+
+rule "saveFullLadder-two"  
+ 
+    salience 9
+    lock-on-active true  
+    when  
+    	c: CartBean()
+        s: SaveFullLadder(c.getSinglePrice()*c.getAmount() >= baseCoutTwoLevel && c.getSinglePrice()*c.getAmount() < baseCoutThreeLevel)
+    then  
+        c.setAfterTotal(c.getSinglePrice()*c.getAmount() - s.getBaseCutTwoLevel());
+        
+end  
+
+rule "saveFullLadder-three"  
+ 
+    salience 8
+    lock-on-active true  
+    when  
+    	c: CartBean()
+        s: SaveFullLadder(c.getSinglePrice()*c.getAmount() >= baseCoutThreeLevel)
+    then  
+        c.setAfterTotal(c.getSinglePrice()*c.getAmount() - s.getBaseCutThreeLevel());
+        
+end 
+
+
+

@@ -1,0 +1,17 @@
+package com.own.promotion.controller.bean
+  
+import com.own.promotion.controller.bean.Clock
+  
+rule "run"  
+ 
+    salience 1  
+    lock-on-active true  
+    when  
+        c: Clock(buyNums == 5)  
+    then  
+        c.setPoint(c.getPoint()+10);  
+        c.setBuyNums(c.getBuyNums()*2);  
+        c.setBuyMoney(c.getBuyMoney()*2);    
+          
+        
+end  

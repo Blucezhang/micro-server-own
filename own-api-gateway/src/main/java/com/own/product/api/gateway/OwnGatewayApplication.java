@@ -1,9 +1,10 @@
-package com.own.product.api.gateway.main;
+package com.own.product.api.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * Created by Bluce on 2018/3/22.
@@ -11,6 +12,7 @@ import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 @SpringBootApplication
 @EnableZuulProxy
 @EnableDiscoveryClient
+@ComponentScan(basePackages = {"com.own.product.api.gateway","com.own.face"})
 public class OwnGatewayApplication {
 
     public static void main(String[] args){

@@ -14,12 +14,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * 邮件，推送服务
  */
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.own.send.server","com.own.face"})
-@EnableJpaRepositories(basePackages={"com.own.send.server.dao"})
-@EnableTransactionManagement
 @EnableAsync
 @EnableFeignClients
 @EnableDiscoveryClient
+@ComponentScan(basePackages = {"com.own.send.server","com.own.face"})
+@EnableJpaRepositories(basePackages={"com.own.send.server.dao"})
 public class SendServerApplication {
 
     public static void main(String[] args){

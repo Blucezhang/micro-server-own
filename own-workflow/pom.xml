@@ -19,7 +19,11 @@
             <artifactId>own-common</artifactId>
             <version>${own.version}</version>
         </dependency>
-    </dependencies>
 
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

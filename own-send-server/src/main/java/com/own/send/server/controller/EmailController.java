@@ -5,6 +5,7 @@ import com.own.send.server.domain.Email;
 import com.own.send.server.service.CommonInfoSvc;
 import com.own.send.server.service.EmailSvc;
 import com.own.send.server.util.SendMail;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -29,30 +30,19 @@ public class EmailController {
     @Autowired
     public ConfigProperty configProperty;
 
-    /**
-     * 根据id查询email信息
-     * @param id
-     * @return
-     */
-    @ResponseBody
-    @RequestMapping(value="/email/{id}",method={RequestMethod.GET})
-    public Email getEmail(@PathVariable int id){
+
+
+    @ApiOperation(value = "根据id查询email信息") @GetMapping("/email/{id}")
+    public @ResponseBody Email getEmail(@PathVariable int id){
         log.info("Get Email info !");
         Email email = null;
         email = emailSvc.findEmailById(id);
         return email;
     }
 
-    /**
-     * 查询邮件列表
-     * @param id
-     * @param title
-     * @param content
-     * @return
-     */
-    @ResponseBody
-    @RequestMapping(value="/email",method={RequestMethod.GET})
-    public List<Email> getInfo(@RequestParam Integer id, String title, String content){
+    @ApiOperation(value = "查询邮件列表")
+   @GetMapping("/email")
+    public @ResponseBody List<Email> getInfo(@RequestParam Integer id, String title, String content){
         log.info("Get Emails info !");
         log.info("获取短信列表信息.....id:"+id+" title:"+title+"  content:"+content);
         StringBuffer sb = new StringBuffer();
@@ -72,13 +62,8 @@ public class EmailController {
         return list;
     }
 
-    /**
-     * 发送邮件
-     * @param param
-     * @return
-     * @throws Throwable
-     */
-    @RequestMapping(value="/email",method={RequestMethod.POST})
+    @ApiOperation(value = "发送邮件")
+    @PostMapping("/email")
     public String sendEmail(@RequestBody Map param) throws Throwable{//use this method to get param value
         Email mail = (Email)param.get("Email");
         System.out.println("传入email:"+mail.getTitle());
@@ -136,18 +121,12 @@ public class EmailController {
                 log.info("保存邮件成功");
             }
         }
-
         return result;
     }
 
 
-
-    /**
-     * 修改邮件，比如暂存草稿
-     * 入参为Email实体对象
-     * @return Email
-     */
-    @RequestMapping(value="/email",method={RequestMethod.PUT})//修改动作使用put
+    @ApiOperation("修改邮件，比如暂存草稿")
+    @PutMapping("/email")
     public Email updateSms(@RequestBody Email email){//note:客户端是用requestbody提交的，这里如果写成requestX别的东西，会找不到这个方法
         Email ss = email;
         log.info("修改短信信息......"+ss.getContent());
@@ -163,17 +142,12 @@ public class EmailController {
         return ss;
     }
 
-    /**
-     * This is an test method,use this method the request will be redirect the index page
-     * @return
-     */
-    @RequestMapping(value="/email/test")
+    @ApiOperation(value = "mvc 测试")
+    @GetMapping("/email/test")
     public ModelAndView getEmailTest(){
-
         // index match html file name ,not contain suffix
         ModelAndView mv = new ModelAndView("index");
         System.out.println("Internet the index page !");
-
         return mv;
     }
 

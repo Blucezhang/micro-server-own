@@ -1,0 +1,17 @@
+package promotion.action 
+
+import promotion.dao.domain.FullCut
+import face.promotion.CartBean
+import promotion.dao.domain.Product
+
+
+rule "fullcut"
+
+	salience 14
+    lock-on-active true
+	when
+		f:FullCut() 
+		c:CartBean(join == true && c.getAmount() >= f.getBaseCount())	
+	then
+		c.setAfterTotal((c.getSinglePrice() * c.getAmount()) - f.getCutCout());
+end
