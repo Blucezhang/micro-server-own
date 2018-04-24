@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.own</groupId>
-    <artifactId>own.promotion</artifactId>
+    <artifactId>own-promotion</artifactId>
     <version>1.0-ALPHA</version>
     <packaging>jar</packaging>
 
