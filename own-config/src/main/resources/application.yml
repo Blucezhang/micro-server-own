@@ -10,7 +10,7 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/Blucezhang/center-config.git
+          uri: http://github.com/Blucezhang/center-config.git
           #native:
             #search-locations:
 ---
@@ -23,7 +23,7 @@ eureka:
     lease-expiration-duration-in-seconds: 20
   client:
     serviceUrl:
-      defaultZone:  http://own:123456@192.168.1.192:8002/eureka
+      defaultZone:  http://own:123456@localhost:8002/eureka
 
 ---
 spring:

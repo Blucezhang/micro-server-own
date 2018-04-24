@@ -1,6 +1,5 @@
 package com.own.workflow.controller.bean;
-
-import com.own.workflow.util.Util;
+import com.own.face.util.Util;
 import lombok.Data;
 
 import java.util.Map;

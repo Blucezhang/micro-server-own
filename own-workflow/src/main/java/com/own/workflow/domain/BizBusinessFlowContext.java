@@ -1,20 +1,13 @@
 package com.own.workflow.domain;
 
+import com.own.face.util.Util;
+
 import java.io.Serializable;
 import java.util.Map;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
-import javax.persistence.Transient;
 
-import workflow.util.Util;
+import javax.persistence.*;
+
 
 @Entity
 @Table(name="biz_businessflowcontext")

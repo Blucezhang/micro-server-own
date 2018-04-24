@@ -5,21 +5,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.fastjson.JSON;
 import com.own.workflow.controller.bean.BizBusinessFlowBean;
 import com.own.workflow.domain.BizBusinessFlowContext;
 import com.own.workflow.domain.BizState;
 import com.own.workflow.domain.FlowView;
-import com.own.workflow.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-
-/*
+/**
  * View_ProcOper中同一个Process应该具有多条记录，每个人一条记录
- * 
- * 
- * 
  */
 @Service
 public class FlowSvc {
@@ -149,7 +145,7 @@ public class FlowSvc {
 		bizContext.setBizTypeId(FlowBean.getBizTypeId());
 		bizContext.setProcessId(FlowBean.getProcessId());
 		entityValue.put("List", FlowBean);
-		bizContext.setBusinessflowContext(Util.toJsonString(entityValue)
+		bizContext.setBusinessflowContext(JSON.toJSONString(entityValue)
 				.toString());
 		return rdbSvc.save(bizContext);
 	}

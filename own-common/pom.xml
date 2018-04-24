@@ -8,47 +8,36 @@
         <version>1.0-ALPHA</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>own-common</artifactId>
-
     <dependencies>
-
-
-        <dependency>
+       <!-- <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
         </dependency>
-
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-feign</artifactId>
         </dependency>
-
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-httpclient</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.siaya</groupId>
             <artifactId>jspider</artifactId>
@@ -96,6 +85,12 @@
             <version>2.0.1</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-neo4j</artifactId>
+            <version>5.0.6.RELEASE</version>
+        </dependency>
 
     </dependencies>
 

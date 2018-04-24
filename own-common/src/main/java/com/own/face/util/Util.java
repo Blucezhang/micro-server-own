@@ -1,5 +1,7 @@
 package com.own.face.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.*;
 
 public class Util {
@@ -78,6 +80,20 @@ public class Util {
 				}
 			}
 		}
+	}
+
+	public static Object createJson2Bean(String value, Class calsz)
+	{
+		if(value == null || "".equals(value))
+			return null;
+		ObjectMapper mapper = new ObjectMapper();
+		Object object = null;
+		try {
+			object = mapper.readValue(value, calsz);
+		} catch(IOException e){
+			e.printStackTrace();
+		}
+		return object;
 	}
 
 

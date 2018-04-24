@@ -53,8 +53,6 @@
             <artifactId>spring-data-jpa</artifactId>
         </dependency>
 
-
-
         <dependency>
             <groupId>cn.jpush.api</groupId>
             <artifactId>jpush-client</artifactId>
