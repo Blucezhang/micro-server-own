@@ -10,7 +10,8 @@ spring:
     config:
       server:
         git:
-          uri: http://github.com/Blucezhang/center-config.git
+          uri: https://github.com/Blucezhang/center-config
+          search-paths: application*,own*
           #native:
             #search-locations:
 ---

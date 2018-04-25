@@ -37,7 +37,6 @@
             <version>1.0.2</version>
         </dependency>
 
-        <!--swagger-->
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
@@ -50,23 +49,21 @@
             <version>5.0.5.RELEASE</version>
         </dependency>
 
-        <!--MySQL-->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
 
-        <!--HikariCP连接池-->
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
         </dependency>
 
-        <dependency>
+     <!--   <dependency>
             <groupId>io.shardingjdbc</groupId>
             <artifactId>sharding-jdbc-core-spring-boot-starter</artifactId>
             <version>2.0.1</version>
-        </dependency>
+        </dependency>-->
 
 
         <dependency>

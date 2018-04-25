@@ -1,6 +1,7 @@
 package com.own.file.domain;
 
 import com.own.file.base.IDomainBase;
+import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +13,7 @@ import javax.persistence.Transient;
 
 @Entity
 @Table(name="UploadFile_Info")
+@Data
 public class UploadFileInfo implements IDomainBase {
 
 
@@ -33,63 +35,4 @@ public class UploadFileInfo implements IDomainBase {
 	private String saveName;
 	private String picName;
 	private String picType;
-
-	public UploadFileInfo() {
-		
-	}
-
-	public UploadFileInfo(Long uploadId) {
-
-		this.uploadId = uploadId;
-	}
-
-	public Long getUploadId() {
-		return uploadId;
-	}
-	public void setUploadId(Long uploadId) {
-		this.uploadId = uploadId;
-	}
-	public Integer getType() {
-		return type;
-	}
-	public void setType(Integer type) {
-		this.type = type;
-	}
-	public String getUploadName() {
-		return uploadName;
-	}
-	public void setUploadName(String uploadName) {
-		this.uploadName = uploadName;
-	}
-	public String getNote() {
-		return note;
-	}
-	public void setNote(String note) {
-		this.note = note;
-	}
-	public String getSaveDir() {
-		return saveDir;
-	}
-	public void setSaveDir(String saveDir) {
-		this.saveDir = saveDir;
-	}
-	public String getSaveName() {
-		return saveName;
-	}
-	public void setSaveName(String saveName) {
-		this.saveName = saveName;
-	}
-	public String getPicName() {
-		return picName;
-	}
-	public void setPicName(String picName) {
-		this.picName = picName;
-	}
-	public String getPicType() {
-		return picType;
-	}
-	public void setPicType(String picType) {
-		this.picType = picType;
-	}
-	
 }

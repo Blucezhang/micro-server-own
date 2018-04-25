@@ -30,12 +30,12 @@ public class FileController {
 	@Autowired
 	//public Config config;
 
-	private String getTmpInfoFilePath = "abc";
-	private String getRealInfofilePath = "dcb";
+	private String tTmpInfoFilePath = "abc";
+	private String tRealInfofilePath = "dcb";
 
 	@RequestMapping(value = "/picture", method = RequestMethod.POST)
 	public @ResponseBody Map<String, String> uploadFile(MultipartHttpServletRequest request) {
-		File fileUploadPath = new File(getTmpInfoFilePath);//tme
+		File fileUploadPath = new File(tTmpInfoFilePath);//tme
 		if (!fileUploadPath.exists())
 			fileUploadPath.mkdirs();
 		List<MultipartFile> files = request.getFiles("file");
@@ -47,7 +47,7 @@ public class FileController {
 			try {
 				byte[] bytes = files.get(0).getBytes();
 				FileOutputStream fos = new FileOutputStream(
-						getTmpInfoFilePath + File.separator + realFileName);// 写入文件
+						tTmpInfoFilePath + File.separator + realFileName);// 写入文件
 				fos.write(bytes);
 				fos.close();
 			} catch (IOException e) {
@@ -72,7 +72,7 @@ public class FileController {
 	public @ResponseBody void downloadTmpFile(HttpServletRequest request, HttpServletResponse response,
 			@PathVariable String fileName, @PathVariable String fileSuffix) {
 		response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
-		String filePath = getTmpInfoFilePath + "/" + fileName + "." + fileSuffix;
+		String filePath = tTmpInfoFilePath + "/" + fileName + "." + fileSuffix;
 		try {
 			FileInputStream imageIn = new FileInputStream(filePath);
 			BufferedInputStream bis = new BufferedInputStream(imageIn);
@@ -107,7 +107,7 @@ public class FileController {
 			@PathVariable String fileName, @PathVariable String fileSuffix) {
 
 		response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
-		String filePath = getRealInfofilePath + "/" + fileName + "." + fileSuffix;
+		String filePath = tRealInfofilePath + "/" + fileName + "." + fileSuffix;
 		try {
 			FileInputStream imageIn = new FileInputStream(filePath);
 			BufferedInputStream bis = new BufferedInputStream(imageIn);
@@ -143,13 +143,13 @@ public class FileController {
 		FileOutputStream fos = null;
 		for (String fileName : fileNames) {
 			try {
-				file = new File(getTmpInfoFilePath + "/" + fileName);
+				file = new File(tTmpInfoFilePath + "/" + fileName);
 				if (!file.exists()) {
 					continue;
 				}
 				fis = new FileInputStream(file);
 				bis = new BufferedInputStream(fis);
-				fos = new FileOutputStream(getRealInfofilePath + "/" + fileName);// 写入文件
+				fos = new FileOutputStream(tRealInfofilePath + "/" + fileName);// 写入文件
 				byte data[] = new byte[4096];
 				int size = 0;
 				size = bis.read(data);

@@ -1,6 +1,7 @@
 package com.own.file.domain;
 
 import com.own.file.base.IDomainBase;
+import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,6 +16,7 @@ import javax.persistence.Transient;
 
 @Entity
 @Table(name="Par_UploadFile")
+@Data
 public class PartyUploadFile implements IDomainBase {
 
 
@@ -41,28 +43,5 @@ public class PartyUploadFile implements IDomainBase {
 	@JoinColumn(name="uploadId", nullable=false)
 	private UploadFileInfo uploadFile;
 
-	public Long getRelationId() {
-		return relationId;
-	}
-
-	public void setRelationId(Long relationId) {
-		this.relationId = relationId;
-	}
-
-	/*public Party getParty() {
-		return party;
-	}
-
-	public void setParty(Party party) {
-		this.party = party;
-	}*/
-
-	public UploadFileInfo getUploadFile() {
-		return uploadFile;
-	}
-
-	public void setUploadFile(UploadFileInfo uploadFile) {
-		this.uploadFile = uploadFile;
-	}
 
 	}
