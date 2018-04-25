@@ -21,7 +21,7 @@ eureka:
     lease-expiration-duration-in-seconds: 20
   client:
     serviceUrl:
-      defaultZone: http://own:123456@192.168.1.111:8002/eureka
+      defaultZone: http://own:123456@192.168.1.175:8002/eureka
 
 ---
 spring:

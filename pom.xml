@@ -5,9 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.own</groupId>
-    <artifactId>micro.server.own</artifactId>
+    <artifactId>micro-server-own</artifactId>
     <packaging>pom</packaging>
     <version>1.0-ALPHA</version>
+
+
     <modules>
         <module>own-config</module>
         <module>own-eureka-server</module>
@@ -38,17 +40,28 @@
         <version>1.5.9.RELEASE</version>
     </parent>
 
-
-    <dependencyManagement>
         <dependencies>
+            <!--注册中心-->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <artifactId>spring-cloud-starter-eureka</artifactId>
             </dependency>
-
+            <!--配置中心-->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-config</artifactId>
+            </dependency>
+            <!--监控-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-actuator</artifactId>
+            </dependency>
+            <!--测试依赖-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <scope>test</scope>
+            </dependency>
             <!--Lombok-->
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -73,11 +86,27 @@
                 <artifactId>mail</artifactId>
                 <version>1.4.7</version>
             </dependency>
+        </dependencies>
 
-
-
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.spring.platform</groupId>
+                <artifactId>platform-bom</artifactId>
+                <version>Brussels-SR6</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+
 
     <build>
         <pluginManagement>
@@ -119,7 +148,7 @@
             <name>3party-nexus</name>
             <url>http://47.93.14.223:8082/nexus/content/repositories/thirdparty/</url>
             <snapshots>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </snapshots>
             <releases>
                 <enabled>true</enabled>

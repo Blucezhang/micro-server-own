@@ -1,15 +1,25 @@
+debug: true
+
+logging.level: debug
+server.port: 9999
+
+spring.application.name: own-api-gateway
+spring.cloud.config.name: own-config
 spring:
-  application:
-    name: own-api-gateway
   profiles:
-    active: dev
+    active:  dev
   cloud:
     config:
-      fail-fast: true
       discovery:
+        enabled:  true
         service-id: own-config
-        enabled: true
       profile: ${spring.profiles.active}
+
+
+
+
+
+
 ---
 spring:
   profiles: dev
@@ -20,7 +30,7 @@ eureka:
     lease-expiration-duration-in-seconds: 20
   client:
     serviceUrl:
-      defaultZone:  http://own:123456@192.168.1.192:8002/eureka
+      defaultZone:  http://own:123456@localhost:8002/eureka
 
 ---
 spring:
@@ -43,3 +53,5 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://own:123456@eureka:8002/eureka
+
+

@@ -17,3 +17,10 @@
 /own-send-server/target/
 /own-promotion/target/
 /own-file/target/
+/own-common/own-common.iml
+/own-workflow/src/test/
+/own-user-party/src/test/
+/own-send-server/src/test/
+/own-promotion/src/test/
+/own-file/src/test/
+/own-common/src/test/
