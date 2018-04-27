@@ -2,6 +2,7 @@ package com.own.send.server.controller;
 
 import com.own.send.server.domain.CommonInfo;
 import com.own.send.server.domain.Email;
+import com.own.send.server.prop.ConfigProperty;
 import com.own.send.server.service.CommonInfoSvc;
 import com.own.send.server.service.EmailSvc;
 import com.own.send.server.util.SendMail;

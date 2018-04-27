@@ -1,10 +1,4 @@
-debug: true
-
-logging.level: debug
-server.port: 9999
-
-spring.application.name: own-api-gateway
-spring.cloud.config.name: own-config
+spring.application.name: own-gateway
 spring:
   profiles:
     active:  dev
@@ -14,11 +8,6 @@ spring:
         enabled:  true
         service-id: own-config
       profile: ${spring.profiles.active}
-
-
-
-
-
 
 ---
 spring:

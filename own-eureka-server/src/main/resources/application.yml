@@ -8,7 +8,7 @@ spring:
 
 security:
   basic:
-    enabled: false
+    enabled: true
   user:
     name: own
     password: 123456

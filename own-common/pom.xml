@@ -14,6 +14,7 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -50,26 +51,9 @@
         </dependency>
 
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-        </dependency>
-
-     <!--   <dependency>
-            <groupId>io.shardingjdbc</groupId>
-            <artifactId>sharding-jdbc-core-spring-boot-starter</artifactId>
-            <version>2.0.1</version>
-        </dependency>-->
-
-
-        <dependency>
             <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j</artifactId>
-            <version>5.0.6.RELEASE</version>
+            <artifactId>spring-data-commons</artifactId>
+            <version>2.0.6.RELEASE</version>
         </dependency>
 
     </dependencies>

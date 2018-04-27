@@ -4,7 +4,9 @@ import java.util.List;
 
 import com.own.user.party.dao.domain.LoginUser;
 import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface LoginUserDao extends BaseDao<LoginUser> {
 	
 	/**
