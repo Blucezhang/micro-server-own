@@ -14,7 +14,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableDiscoveryClient
 @SpringBootApplication
 @EnableJpaRepositories(repositoryBaseClass = com.own.workflow.dao.RdbBaseDao.class)
-@ComponentScan(basePackages = {"com.own.workflow"})
+@ComponentScan(basePackages = {"com.own.workflow","com.own.face"})
 public class WorkFlowApplication {
     public static void main(String[] args){
         SpringApplication.run(WorkFlowApplication.class,args);

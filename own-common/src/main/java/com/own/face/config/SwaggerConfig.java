@@ -22,7 +22,7 @@ public class SwaggerConfig {
                 .description("http://www.zyplayer.cn")
                 .termsOfServiceUrl("http://www.zyplayer.cn")
                 .contact(new Contact("blucezhang","https://github.com/Blucezhang/micro-server-own.git","zylove324796@163.com"))
-                .version("1.0")
+                .version("swagger2.0")
                 .build();
     }
 

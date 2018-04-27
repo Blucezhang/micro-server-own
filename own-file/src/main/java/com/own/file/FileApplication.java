@@ -12,7 +12,7 @@ import org.springframework.context.annotation.ComponentScan;
 @SpringBootApplication
 @EnableDiscoveryClient
 @EntityScan(basePackages = {"com.own.file.domain"})
-@ComponentScan(basePackages = {"com.own.file"})
+@ComponentScan(basePackages = {"com.own.file","com.own.face"})
 public class FileApplication {
 
     public static void main(String[] args){

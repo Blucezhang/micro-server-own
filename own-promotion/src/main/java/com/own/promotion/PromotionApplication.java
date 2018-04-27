@@ -19,7 +19,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableFeignClients
 @EntityScan(basePackages = "com.own.promotion.dao.domain")
 @EnableNeo4jRepositories(basePackages = "com.own.promotion.dao")
-@ComponentScan(basePackages = {"com.own.promotion.controller"})
+@ComponentScan(basePackages = {"com.own.promotion.controller","com.own.face"})
 public class PromotionApplication {
 
     public static void main(String[] args){
