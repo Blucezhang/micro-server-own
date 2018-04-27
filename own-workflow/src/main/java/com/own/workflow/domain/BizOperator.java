@@ -1,5 +1,7 @@
 package com.own.workflow.domain;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,6 +11,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name="Biz_Operator")
+@Data
 public class BizOperator implements Serializable,IDomainBase {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,5 +1,7 @@
 package com.own.workflow.domain;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -13,6 +15,7 @@ import javax.persistence.TemporalType;
 
 @Entity
 @Table(name="Biz_BizType")
+@Data
 public class BizBizType implements Serializable {
 
 	private static final long serialVersionUID = 322594978128004935L;
@@ -27,44 +30,4 @@ public class BizBizType implements Serializable {
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date updateTime;
-
-	public Long getProcessId() {
-		return processId;
-	}
-	public void setProcessId(Long processId) {
-		this.processId = processId;
-	}
-	public Long getBizTypeId() {
-		return bizTypeId;
-	}
-	public void setBizTypeId(Long bizTypeId) {
-		this.bizTypeId = bizTypeId;
-	}
-
-	public String getBizTypesId() {
-		return bizTypesId;
-	}
-	public void setBizTypesId(String bizTypesId) {
-		this.bizTypesId = bizTypesId;
-	}
- 	public Date getUpdateTime() {
-		return updateTime;
-	}
-	public void setUpdateTime(Date updateTime) {
-		this.updateTime = updateTime;
-	}
-	public String getNote() {
-		return note;
-	}
-	public void setNote(String note) {
-		this.note = note;
-	}
-	public Boolean getCurrFlag() {
-		return currFlag;
-	}
-	public void setCurrFlag(Boolean currFlag) {
-		this.currFlag = currFlag;
-	}
- 
-
-	}
+}
