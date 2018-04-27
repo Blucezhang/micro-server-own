@@ -1,6 +1,8 @@
 package com.own.workflow.domain;
 
 
+import lombok.Data;
+
 import java.io.Serializable;
 
 import javax.persistence.Entity;
@@ -14,6 +16,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name="Biz_Relation")
+@Data
 public class BizRelation implements Serializable {
 
 	private static final long serialVersionUID = -3921977620097393758L;
@@ -21,22 +24,9 @@ public class BizRelation implements Serializable {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private String bizRelationId;
-
- 
 	private Long firstProcessId;
-
- 
 	private Long secondProcessId;
-
- 
 	private Integer bizRelationTypeId;
 
-	public String getBizRelationId() {
-		return bizRelationId;
-	}
-
-	public void setBizRelationId(String bizRelationId) {
-		this.bizRelationId = bizRelationId;
-	}
   
-	}
+}

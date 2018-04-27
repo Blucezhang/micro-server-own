@@ -4,6 +4,7 @@ import com.own.face.product.CategoryBean;
 import com.own.face.util.Util;
 import com.own.product.dao.CategoryDao;
 import com.own.product.domain.Category;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,17 +17,15 @@ import java.util.Map;
  */
 @RestController
 @Slf4j
+@RequestMapping("/category")
 public class CategoryController {
 
     @Autowired
     private CategoryDao categoryDao;
 
-    /**
-     * 根据级别查询类别
-     * @param parms
-     * @return map
-     */
-    @RequestMapping(value="/Category",method={RequestMethod.GET})
+
+    @ApiOperation(value = "根据级别查询类别")
+    @GetMapping("")
     public @ResponseBody List<Category> queryCategory(@RequestParam Map<String,Object> parms){
         //如果没有传入级别，默认查询第一级
         String level = "1";
@@ -37,23 +36,15 @@ public class CategoryController {
         return c;
     }
 
-    /**
-     * 根据id查询类别
-     * @param id
-     * @return
-     */
-
-    @RequestMapping(value="/Category/{id}",method={RequestMethod.GET})
+    @ApiOperation(value = "根据id查询类别")
+    @GetMapping("/{id}")
     public  @ResponseBody Category queryCategoryById(@PathVariable Long id){
         Category c = categoryDao.queryCategoryById(id);
         return c;
     }
 
-    /**
-     * 添加类别
-     * @param cb
-     */
-    @RequestMapping(value="/Category",method={RequestMethod.PUT})
+    @ApiOperation(value = "添加类别")
+    @PutMapping("")
     public void addCategory(@RequestBody CategoryBean cb){
         Category c = new Category();
         c.setName(cb.getName());
@@ -65,13 +56,23 @@ public class CategoryController {
         }
     }
 
-    @RequestMapping(value="/Category/{id}",method={RequestMethod.POST})
-    public void updCategory(@PathVariable Long id){
-
+    @ApiOperation(value = "根据Id修改类别信息")
+    @PostMapping("/{id}")
+    public void updCategory(@PathVariable Long id,@RequestBody CategoryBean categoryBean){
+      Category category= categoryDao.queryCategoryById(id);
+      categoryDao.save(new Category(){
+          {
+              setId(category.getId());
+              setLevel(categoryBean.getLevel());
+              setName(categoryBean.getName());
+              setRemark(categoryBean.getRemark());
+          }
+      });
     }
 
-    @RequestMapping(value="/Category/{id}",method={RequestMethod.DELETE})
+    @ApiOperation(value = "根据ID删除类别")
+    @DeleteMapping("/{id}")
     public void delCategory(@PathVariable Long id){
-
+        categoryDao.deleteCategory(id);
     }
 }

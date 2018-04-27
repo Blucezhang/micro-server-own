@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 @ConfigurationProperties(prefix = "ems")
 @Data
+@Component
 public class ConfigProperty {
 
     private String appKey;

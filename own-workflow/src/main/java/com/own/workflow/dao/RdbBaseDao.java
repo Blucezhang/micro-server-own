@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class RdbBaseDao{
 
-	@Autowired 
+	@Autowired
+	@PersistenceContext
 	protected EntityManager em;  
 
 	public <T> T save(T obj){

@@ -1,5 +1,7 @@
 package com.own.workflow.domain;
 
+import lombok.Data;
+
 import java.io.Serializable;
 
 import javax.persistence.Entity;
@@ -10,6 +12,7 @@ import javax.persistence.Table;
  
 @Entity
 @Table(name="Biz_Party")
+@Data
 public class BizParty implements Serializable {
 
 	private static final long serialVersionUID = -9129050135050885452L;
@@ -17,22 +20,8 @@ public class BizParty implements Serializable {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long bizPartyId;
- 
 	private Long partyId;
-
- 
 	private Long processId;
-
- 
 	private Integer roleType;
 
-	public Long getBizPartyId() {
-		return bizPartyId;
-	}
-
-	public void setBizPartyId(Long bizPartyId) {
-		this.bizPartyId = bizPartyId;
-	}
- 
-
-	}
+}
