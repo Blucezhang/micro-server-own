@@ -1,14 +1,10 @@
-package com.own.send.server.controller;
+package com.own.send.server.prop;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
-@EnableConfigurationProperties
-@PropertySource("classpath:action.properties")
-@Component("configProperty")
+@ConfigurationProperties(prefix = "ems")
 @Data
 public class ConfigProperty {
 

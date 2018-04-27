@@ -2,6 +2,9 @@ package com.own.send.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
@@ -14,9 +17,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * 邮件，推送服务
  */
 @SpringBootApplication
-@EnableAsync
 @EnableFeignClients
 @EnableDiscoveryClient
+
+@EntityScan(basePackages = {"com.own.send.server.domain"})
 @ComponentScan(basePackages = {"com.own.send.server","com.own.face"})
 @EnableJpaRepositories(basePackages={"com.own.send.server.dao"})
 public class SendServerApplication {

@@ -10,10 +10,10 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/Blucezhang/center-config
-          search-paths: application*,own*
-          #native:
-            #search-locations:
+          uri: https://github.com/Blucezhang/center-config.git
+          search-paths: application-*,own-*
+          username: Blucezhang@outlook.com
+          password: 324796qqzy
 ---
 spring:
   profiles: dev
