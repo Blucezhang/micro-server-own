@@ -1,6 +1,7 @@
 package com.own.send.server.controller;
 
 import com.own.send.server.domain.Jgpush;
+import com.own.send.server.prop.ConfigProperty;
 import com.own.send.server.service.JgpushSvc;
 import com.own.send.server.util.SendJgpush;
 import io.swagger.annotations.ApiOperation;

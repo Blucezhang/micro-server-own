@@ -1,4 +1,4 @@
-package com.own.promotion.action;
+package com.own.promotion.controller;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -9,6 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.own.face.core.FaceUtil;
+import com.own.face.core.IfException;
+import com.own.face.promotion.CartBean;
+import com.own.promotion.controller.bean.SellerBean;
+import com.own.promotion.dao.*;
+import com.own.promotion.dao.domain.*;
 import org.apache.log4j.Logger;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
@@ -22,33 +30,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import face.core.FaceUtil;
-import face.core.IfException;
-import face.product.ProductBean;
-import face.product.ProductFace;
-import face.promotion.CartBean;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import promotion.action.bean.Clock;
-import promotion.action.bean.SellerBean;
-import promotion.dao.MallTicketDao;
-import promotion.dao.ProductDao;
-import promotion.dao.PromotionDao;
-import promotion.dao.SellerDao;
-import promotion.dao.StoreTicketDao;
-import promotion.dao.domain.FullCut;
-import promotion.dao.domain.FullPromotion;
-import promotion.dao.domain.NmPromotion;
-import promotion.dao.domain.Product;
-import promotion.dao.domain.Promotion;
-import promotion.dao.domain.PromotionalGifts;
-import promotion.dao.domain.SaveFullLadder;
-import promotion.dao.domain.Seller;
-import promotion.dao.domain.SetPromotion;
 
 @RestController
 @RequestMapping(value = "/sale/promotion")
-public class PromotionAction {
+public class PromotionController {
 	
 	@Autowired
 	private PromotionDao promotionDao;
@@ -63,7 +48,7 @@ public class PromotionAction {
 	@Autowired
 	private StoreTicketDao storeTicketDao;
 
-	Logger log = Logger.getLogger(PromotionAction.class);
+	Logger log = Logger.getLogger(PromotionController.class);
 
 	/**
 	 * 查询单条活动信息
@@ -296,7 +281,7 @@ public class PromotionAction {
 		}
 
 		if (!faceUtil.isNullOrEmpty(productJson) && productJson.startsWith("[") && productJson.endsWith("]")) {
-			JSONArray json = productJson != null ? JSONArray.fromObject(productJson) : null;
+			JSONArray json = productJson != null ? JSONArray.parseArray(productJson) : null;
 			if (!faceUtil.isNullOrEmpty(json) && json.size() > 0) {
 				for (int i = 0; i < json.size(); i++) {
 					JSONObject job = json.getJSONObject(i);
@@ -324,7 +309,7 @@ public class PromotionAction {
 
 	@ResponseBody
 	@RequestMapping(value="/calculates",method={RequestMethod.GET})
-	public CartBean calculates(@RequestParam Map map) throws NumberFormatException, IfException{
+	public CartBean calculates(@RequestParam Map map) throws NumberFormatException, IfException {
 		Map<String,Object> insert = new HashMap<String,Object>();
 		
 		CartBean cb = new CartBean();

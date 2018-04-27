@@ -10,6 +10,11 @@ spring:
         service-id: own-config
         enabled: true
       profile: ${spring.profiles.active}
+  #jpa:
+   # hibernate:
+    #  ddl-auto: create
+
+
 
 
 ---
@@ -45,4 +50,5 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://own:123456@eureka:8002/eureka
+
 

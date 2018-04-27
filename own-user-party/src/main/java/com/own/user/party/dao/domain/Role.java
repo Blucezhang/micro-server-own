@@ -1,10 +1,12 @@
 package com.own.user.party.dao.domain;
 
+import lombok.Data;
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Property;
 
 @NodeEntity
+@Data
 public class Role {
 
 	@GraphId
@@ -17,45 +19,4 @@ public class Role {
 	private Long OrgId;
 	@Property(name="partmentid")
 	private Long PartmentId;
-
-	public Long getOrgId() {
-		return OrgId;
-	}
-
-	public void setOrgId(Long orgId) {
-		OrgId = orgId;
-	}
-
-	public Long getPartmentId() {
-		return PartmentId;
-	}
-
-	public void setPartmentId(Long partmentId) {
-		PartmentId = partmentId;
-	}
-
-	public Long getRole() {
-		return Role;
-	}
-
-	public void setRole(Long role) {
-		Role = role;
-	}
-
-	public String getNote() {
-		return Note;
-	}
-
-	public void setNote(String note) {
-		Note = note;
-	}
-
-	public String getName() {
-		return Name;
-	}
-
-	public void setName(String name) {
-		Name = name;
-	}
-
 }

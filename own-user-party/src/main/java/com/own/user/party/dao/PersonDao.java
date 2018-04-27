@@ -4,7 +4,10 @@ import java.util.List;
 
 import com.own.user.party.dao.domain.Person;
 import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.stereotype.Repository;
 
+
+@Repository
 public interface PersonDao extends BaseDao<Person>  {
 	
 	/**

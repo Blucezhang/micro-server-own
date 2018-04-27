@@ -5,7 +5,9 @@ import java.util.Map;
 
 import com.own.user.party.dao.domain.Fun;
 import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface FunDao extends BaseDao<Fun> {
 	
 	/**

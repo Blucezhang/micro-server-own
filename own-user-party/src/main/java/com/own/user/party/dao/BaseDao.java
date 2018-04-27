@@ -13,11 +13,11 @@ public interface BaseDao<T> extends GraphRepository<T> {
 	 * 4. match  (t:Table {table:'par_person'}),(d:DataBase {name:'DataBase'}) create (d)-[r:table]->(t) 创建table关系
 	 * 5. match  (t:Table {table:'par_org'}),(d:DataBase {name:'DataBase'}) create (d)-[r:table]->(t) 创建table关系
 	 * 6. create (n:Table {name:'Fun',table:'sys_fun'}) return n 创建功能表 Fun
-	 * 7。  create (n:Table {name:'LoginUser',table:'sys_loginuser'}) return n 创建系统用户表LoginUser
-	 * 8. create (n:Table {name:'Role',table:'sys_role'}) return n 创建角色表Role
-	 * 9. match  (t:Table {table:'sys_fun'}),(d:DataBase {name:'DataBase'}) create (d)-[r:table]->(t)  创建Table关系
+	 * 7.create (n:Table {name:'LoginUser',table:'sys_loginuser'}) return n 创建系统用户表LoginUser
+	 * 8.create (n:Table {name:'Role',table:'sys_role'}) return n 创建角色表Role
+	 * 9.match  (t:Table {table:'sys_fun'}),(d:DataBase {name:'DataBase'}) create (d)-[r:table]->(t)  创建Table关系
 	 * 10.match  (t:Table {table:'sys_loginuser'}),(d:DataBase {name:'DataBase'}) create (d)-[r:table]->(t) 创建Table关系
-	 * 11。match  (t:Table {table:'sys_role'}),(d:DataBase {name:'DataBase'}) create (d)-[r:table]->(t) 创建Table关系
+	 * 11.match  (t:Table {table:'sys_role'}),(d:DataBase {name:'DataBase'}) create (d)-[r:table]->(t) 创建Table关系
 	 * 
 	 * 
 	 * 1、start n=node(9) match(n)-[s]->() delete s 删除节点关系

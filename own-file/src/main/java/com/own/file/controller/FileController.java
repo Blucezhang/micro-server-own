@@ -14,26 +14,24 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 
 @RestController
+@RequestMapping("/file")
 public class FileController {
 
-	@Autowired
-	//public Config config;
+	/*@Autowired
+	//public Config config;*/
 
-	private String tTmpInfoFilePath = "abc";
-	private String tRealInfofilePath = "dcb";
+	private static String tTmpInfoFilePath = "abc";
+	private static String tRealInfofilePath = "dcb";
 
-	@RequestMapping(value = "/picture", method = RequestMethod.POST)
+	@ApiOperation(value = "图片上传接口")
+	@PostMapping("/picture")
 	public @ResponseBody Map<String, String> uploadFile(MultipartHttpServletRequest request) {
 		File fileUploadPath = new File(tTmpInfoFilePath);//tme
 		if (!fileUploadPath.exists())
@@ -60,15 +58,8 @@ public class FileController {
 		return resultMap;
 	}
 
-	/**
-	 * 下载临时文件图片 根据imgUri获得图片并输出到response
-	 * 
-	 * @param request
-	 * @param response
-	 * @param fileName
-	 * @param fileSuffix
-	 */
-	@RequestMapping(value = "/tmpPicture/{fileName}/{fileSuffix}", method = RequestMethod.GET)
+	@ApiOperation(value = "下载临时文件图片 根据imgUri获得图片并输出到response")
+	@GetMapping("/tmpPicture/{fileName}/{fileSuffix}")
 	public @ResponseBody void downloadTmpFile(HttpServletRequest request, HttpServletResponse response,
 			@PathVariable String fileName, @PathVariable String fileSuffix) {
 		response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
@@ -131,11 +122,12 @@ public class FileController {
 
 	/**
 	 *
-	 * 将图片从临时目录移动到真实目录，并删除临时路径图片
+	 *
 	 * @param fileNames 移动图片的名称数组 例如 [a.png,b.jpb,c.png]
 	 */
 
-	@RequestMapping(value = "/Copy/{fileNames}", method = RequestMethod.POST)
+	@ApiOperation(value = "将图片从临时目录移动到真实目录，并删除临时路径图片")
+	@PostMapping("/Copy/{fileNames}")
 	public @ResponseBody void Copy(@PathVariable String[] fileNames) {
 		File file = null;
 		FileInputStream fis = null;
