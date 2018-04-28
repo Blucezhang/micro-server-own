@@ -1,8 +1,10 @@
 package com.own.promotion.dao.domain;
 
+import lombok.Data;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Property;
 
+@Data
 @NodeEntity
 public class NmPromotion extends BasePromotion {
 	
@@ -11,24 +13,4 @@ public class NmPromotion extends BasePromotion {
 	
 	@Property(name="minusPiece")
 	private int minusPiece;//减M件
-
-	public int getFullPiece() {
-		return fullPiece;
-	}
-
-	public void setFullPiece(int fullPiece) {
-		this.fullPiece = fullPiece;
-	}
-
-	public int getMinusPiece() {
-		return minusPiece;
-	}
-
-	public void setMinusPiece(int minusPiece) {
-		this.minusPiece = minusPiece;
-	}
-	
-	
-	
-	
 }
