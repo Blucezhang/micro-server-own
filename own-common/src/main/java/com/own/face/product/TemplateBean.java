@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class TemplateBean {
+public class  TemplateBean {
 	
 	private Long id;
 	private String name;
