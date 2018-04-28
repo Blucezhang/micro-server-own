@@ -1,6 +1,4 @@
 package com.own.promotion.controller;
-
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,18 +15,13 @@ import com.own.face.promotion.CartBean;
 import com.own.promotion.controller.bean.SellerBean;
 import com.own.promotion.dao.*;
 import com.own.promotion.dao.domain.*;
+import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -37,10 +30,8 @@ public class PromotionController {
 	
 	@Autowired
 	private PromotionDao promotionDao;
-
 	@Autowired
 	private SellerDao sellerDao;
-
 	@Autowired
 	private ProductDao productDao;
 	@Autowired
@@ -50,46 +41,27 @@ public class PromotionController {
 
 	Logger log = Logger.getLogger(PromotionController.class);
 
-	/**
-	 * 查询单条活动信息
-	 * 
-	 * @param id
-	 * @return
-	 */
-	@ResponseBody
-	@RequestMapping(value = "/{id}", method = { RequestMethod.GET })
-	public Promotion findPromotionById(@PathVariable Integer id) {
+	@ApiOperation(value = "查询单条活动信息")
+	@GetMapping("/{id}")
+	public  @ResponseBody Promotion findPromotionById(@PathVariable Integer id) {
 		log.info("查询id为：" + id + "的活动");
 		// return promotionDao.findPromotion(id.longValue());
 		return (Promotion) promotionDao.getFromId(id);
 	}
 
-	/**
-	 * 查询活动列表，支持搜索
-	 * 
-	 * @return
-	 */
-	@ResponseBody
-	@RequestMapping(value = "", method = { RequestMethod.GET })
-	public List<Promotion> findAll() {
+	@ApiOperation(value = "查询活动列表，支持搜索")
+	@GetMapping
+	public @ResponseBody List<Promotion> findAll() {
 		List<Promotion> list = new ArrayList<Promotion>();
 		list = promotionDao.findAllPromotion();
 		return list;
 	}
 
-	/**
-	 * 保存活动信息，此处暂时先实现单品促销，对于别的促销方式，后续采用java引擎规则实现
-	 * 
-	 * @param promotionbean
-	 * @return
-	 */
-	@ResponseBody
-	@RequestMapping(value = "", method = { RequestMethod.POST })
-	public Map<String, Object> save(@RequestBody Map param) {
+	@ApiOperation(value = "保存活动信息，此处暂时先实现单品促销，对于别的促销方式，后续采用java引擎规则实现")
+	@PostMapping
+	public @ResponseBody Map<String, Object> save(@RequestBody Map param) {
 		Integer typeId = Integer.valueOf(FaceUtil.toStringAndTrim(param.get("promotionTypeId")));
-
 		Map<String, Object> result = new HashMap<String, Object>();
-
 		if (typeId == 12) {//折扣
 			Promotion promotion = new Promotion();
 			promotion = (Promotion)FaceUtil.transformMap2Bean(param, promotion);
@@ -182,65 +154,40 @@ public class PromotionController {
 		return result;
 	}
 
-	/**
-	 * 删除数据以及关系
-	 * 
-	 * @param id
-	 * @return
-	 */
-	@ResponseBody
-	@RequestMapping(value = "/{id}", method = { RequestMethod.DELETE })
-	public String deletePromotion(@PathVariable Integer id) {
+
+	@ApiOperation(value = "删除数据以及关系")
+	@DeleteMapping("/{id}")
+	public boolean deletePromotion(@PathVariable Integer id) {
 		log.info("删除节点id为：" + id + "的数据");
 		Object o = promotionDao.deleteRelationships(id);// 删除该数据，并且删除关系
-		return "123";
+		return true;
 	}
 
-	/**
-	 * 修改信息
-	 * 
-	 * @param p
-	 * @return
-	 */
-	@ResponseBody
-	@RequestMapping(value = "", method = { RequestMethod.PUT })
-	public Promotion upPromotion(@RequestBody Promotion p) {
+	@ApiOperation(value = "修改信息")
+	@PutMapping
+	public @ResponseBody Promotion upPromotion(@RequestBody Promotion p) {
 		// promotionDao.updatePromotion(id, map);
 		promotionDao.save(p);
-
 		return p;
 	}
 
-	/**
-	 * 将卖家与活动关联
-	 * 
-	 * @param p
-	 * @return
-	 */
-	@ResponseBody
-	@RequestMapping(value = "/seller", method = { RequestMethod.POST })
-	public Seller save(@RequestBody SellerBean seller) {
+	@ApiOperation(value = "将卖家与活动关联")
+	@PostMapping("/seller")
+	public @ResponseBody Seller save(@RequestBody SellerBean seller) {
 		Seller s = new Seller();
 		s.setSellerName(seller.getSellerName());
 		s.setSellerId(seller.getSellerId());
 		s.setCreateTime(seller.getCreateTime());
-
 		// s = sellerDao.save(s);
-
 		log.info("添加数据结果,id:" + s.getId() + "  sellerName:" + s.getSellerName());
 		sellerDao.createRelationshipJoin(s.getId().intValue(), seller.getPromotionId(), "JOIN");// 关联id和活动id
 
 		return s;
 	}
 
-	/**
-	 * 根据商品信息，查询对应的活动
-	 * 
-	 * @return
-	 */
-	@ResponseBody
-	@RequestMapping(value = "/productPromotion", method = { RequestMethod.GET })
-	public List findPromotionByProductId(@RequestParam String productId) {
+	@ApiOperation(value = "根据商品信息，查询对应的活动")
+	@GetMapping("/productPromotion")
+	public @ResponseBody List findPromotionByProductId(@RequestParam String productId) {
 		List list = new ArrayList<Promotion>();
 
 		list = promotionDao.findProByProductInfo(productId);
@@ -248,68 +195,24 @@ public class PromotionController {
 		return list;
 	}
 
-	/**
-	 * 根据卖家信息，查询对应的活动
-	 * 
-	 * @return
-	 */
-	@ResponseBody
-	@RequestMapping(value = "/typePromotion", method = { RequestMethod.GET })
-	public List<Promotion> findPromotionByTypeId(@RequestParam Long typeId) {
+	@ApiOperation(value = "根据卖家信息，查询对应的活动")
+	@GetMapping("/typePromotion")
+	public @ResponseBody List<Promotion> findPromotionByTypeId(@RequestParam Long typeId) {
 		List<Promotion> list = new ArrayList<Promotion>();
 		return list;
 	}
 
-	/**
-	 * 根据地域信息，查询对应的活动
-	 * 
-	 * @return
-	 */
-	@ResponseBody
-	@RequestMapping(value = "/zonePromotion", method = { RequestMethod.GET })
-	public List<Promotion> findPromotionByZoneId(@RequestParam Long zoneId) {
+	@ApiOperation(value = "根据地域信息，查询对应的活动")
+	@GetMapping("/zonePromotion")
+	public @ResponseBody List<Promotion> findPromotionByZoneId(@RequestParam Long zoneId) {
 		List<Promotion> list = new ArrayList<Promotion>();
 		return list;
 	}
 
-	public void createPromotion(Integer promotionId, Integer promotionTypeId, Integer scopeId, String productJson) {
-		FaceUtil faceUtil = new FaceUtil();
-		if (promotionId != -1) {
-			promotionDao.createRelationship(promotionId, 32, "Data");
-			promotionDao.createRelationshipBelong(promotionId, promotionTypeId, "Belong");
-			promotionDao.createRelationshipBelong(promotionId, scopeId, "Belong");
-		}
 
-		if (!faceUtil.isNullOrEmpty(productJson) && productJson.startsWith("[") && productJson.endsWith("]")) {
-			JSONArray json = productJson != null ? JSONArray.parseArray(productJson) : null;
-			if (!faceUtil.isNullOrEmpty(json) && json.size() > 0) {
-				for (int i = 0; i < json.size(); i++) {
-					JSONObject job = json.getJSONObject(i);
-
-					String productId = job.getString("productId");
-					String productName = job.getString("productName");
-					String productType = job.getString("productType");
-					String productSellerId = job.getString("productSellerId");
-					String price = job.getString("price");
-
-					Product pdt = new Product();
-					pdt.setProductId(productId);
-					pdt.setProductName(productName);
-					pdt.setProductType(productType);
-					pdt.setProductSellerId(productSellerId);
-					pdt.setPrice(price);
-
-					Product pro = productDao.save(pdt);// 创建节点
-					// 与活动建立关系
-					productDao.createRelationshipJoin(pro.getId().intValue(), promotionId, "JOIN");
-				}
-			}
-		}
-	}
-
-	@ResponseBody
-	@RequestMapping(value="/calculates",method={RequestMethod.GET})
-	public CartBean calculates(@RequestParam Map map) throws NumberFormatException, IfException {
+	@ApiOperation(value = "结算方式2")
+	@GetMapping("/calculates")
+	public @ResponseBody CartBean calculates(@RequestParam Map map) throws NumberFormatException, IfException {
 		Map<String,Object> insert = new HashMap<String,Object>();
 		
 		CartBean cb = new CartBean();
@@ -374,17 +277,9 @@ public class PromotionController {
 		return cb;
 	}
 
-	
-	
-	
-	/**
-	 * 结算
-	 * @throws IfException 
-	 * @throws NumberFormatException 
-	 */
-	@ResponseBody
-	@RequestMapping(value="/calculate",method={RequestMethod.GET})
-	public CartBean calculate(@RequestParam Map map) throws NumberFormatException, IfException{
+	@ApiOperation(value = "结算")
+	@GetMapping("/calculate")
+	public @ResponseBody CartBean calculate(@RequestParam Map map) throws NumberFormatException, IfException{
 		Map<String,Object> insert = new HashMap<String,Object>();
 		CartBean cb = new CartBean();
 //		cartb = (CartBean)FaceUtil.transMap2Bean(map,cartb);
@@ -423,7 +318,6 @@ public class PromotionController {
 			}
 			
 		}else if(cb.getPromotionTypeId()==18){
-			
 			SetPromotion setPromotion = (SetPromotion)promotionDao.findNode(Long.parseLong(FaceUtil.toStringAndTrim(cb.getPromotionId())));
 			if(cb.isJoin()){
 				insert.put("cartBean", cb);
@@ -435,7 +329,6 @@ public class PromotionController {
 			}
 			
 		}else if(cb.getPromotionTypeId()==30){//阶梯满减
-			
 			insert.put("cartBean", cb);
 			SaveFullLadder saveFullLadder = (SaveFullLadder)promotionDao.findNode(Long.parseLong(FaceUtil.toStringAndTrim(cb.getPromotionId())));
 			insert.put("SaveFullLadder", saveFullLadder);
@@ -468,11 +361,9 @@ public class PromotionController {
 	 * @return
 	 */
 	public CartBean ruleResult(Map<String,Object> map){
-		
 		KieServices ks = KieServices.Factory.get();
 		KieContainer kContainer = ks.getKieClasspathContainer();
 		KieSession kSession = kContainer.newKieSession("session-promotion");
-
 		Iterator i = map.entrySet().iterator();   
 		while(i.hasNext()){
 			 Entry  entry=(Entry)i.next();   
@@ -480,8 +371,43 @@ public class PromotionController {
 		}
 		kSession.fireAllRules();
 		kSession.dispose();
-		
 		return (CartBean)map.get("cartBean");
 	}
-	
+
+
+	private void createPromotion(Integer promotionId, Integer promotionTypeId, Integer scopeId, String productJson) {
+		FaceUtil faceUtil = new FaceUtil();
+		if (promotionId != -1) {
+			promotionDao.createRelationship(promotionId, 32, "Data");
+			promotionDao.createRelationshipBelong(promotionId, promotionTypeId, "Belong");
+			promotionDao.createRelationshipBelong(promotionId, scopeId, "Belong");
+		}
+
+		if (!faceUtil.isNullOrEmpty(productJson) && productJson.startsWith("[") && productJson.endsWith("]")) {
+			JSONArray json = productJson != null ? JSONArray.parseArray(productJson) : null;
+			if (!faceUtil.isNullOrEmpty(json) && json.size() > 0) {
+				for (int i = 0; i < json.size(); i++) {
+					JSONObject job = json.getJSONObject(i);
+
+					String productId = job.getString("productId");
+					String productName = job.getString("productName");
+					String productType = job.getString("productType");
+					String productSellerId = job.getString("productSellerId");
+					String price = job.getString("price");
+
+					Product pdt = new Product();
+					pdt.setProductId(productId);
+					pdt.setProductName(productName);
+					pdt.setProductType(productType);
+					pdt.setProductSellerId(productSellerId);
+					pdt.setPrice(price);
+
+					Product pro = productDao.save(pdt);// 创建节点
+					// 与活动建立关系
+					productDao.createRelationshipJoin(pro.getId().intValue(), promotionId, "JOIN");
+				}
+			}
+		}
+	}
+
 }
