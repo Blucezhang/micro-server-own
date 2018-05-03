@@ -10,3 +10,25 @@
 
 2018/04/08 整体结构修改，微服务改进
 #own-common 中包含了公共服务、以及对应前端的业务服务（Rest调用不需不关注，只关注Bean,Util即可）
+
+**各个服务启动顺序**
+===
+1. own-eureka-server（EurekaApplication）
+2. own-config （ConfigApplication）
+3. own-api-gateway （OwnGatewayApplication）
+4. 剩下的项目可按照自己的需要随意启动 
+- own-file (FileApplication)
+- own-product (OwnProductApplication)
+- own-promotion (PromotionApplication)
+- own-end-server (SendServerApplication)
+- own-user-party (UserAndPartyApplication)
+- own-workflow (WorkFlowApplication)
+
+**swagger2 api 访问路径**
+====
+- 启动 own-api-gateway （OwnGatewayApplication） 之后，访问http://ip:9632/swagger-ui.html
+
+
+
+__<font color=#00ffff size=12>\!ATTENTION:</font>__ 禁止商用（如果可以），最终解释权归作者所有！
+
