@@ -26,7 +26,7 @@
 
 **swagger2 api 访问路径**
 ====
-- 启动 own-api-gateway （OwnGatewayApplication） 之后，访问http://ip:9632/swagger-ui.html
+- 启动 own-api-gateway （OwnGatewayApplication） 之后，访问http://ip:9632/swagger-ui.html 。如果您没有看到各个服务的api，那么请您启动想要看到项目的服务。
 
 
 
