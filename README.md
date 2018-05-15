@@ -28,7 +28,7 @@
 ====
 - 启动 own-api-gateway （OwnGatewayApplication） 之后，访问http://ip:9632/swagger-ui.html 。如果您没有看到各个服务的api，那么请您启动想要看到项目的服务。
 
-
+**如果你有兴趣的话，join this project.Email:Blucezhang@outlook.com**
 
 __<font color=#00ffff size=12>\!ATTENTION:</font>__ 禁止商用（如果可以），最终解释权归作者所有！
 
