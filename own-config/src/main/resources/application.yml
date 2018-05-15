@@ -12,7 +12,6 @@ spring:
         git:
           uri: https://github.com/Blucezhang/center-config.git
           search-paths: application-*,own-*
----
 spring:
   profiles: dev
 eureka:
@@ -23,25 +22,3 @@ eureka:
   client:
     serviceUrl:
       defaultZone:  http://own:123456@localhost:8002/eureka
-
----
-spring:
-  profiles: test
-eureka:
-  instance:
-    prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 5
-    lease-expiration-duration-in-seconds: 20
-  client:
-    serviceUrl:
-      defaultZone: http://own:123456@eureka:8002/eureka
-
----
-spring:
-  profiles: prd
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    serviceUrl:
-      defaultZone: http://own:123456@eureka:8002/eureka

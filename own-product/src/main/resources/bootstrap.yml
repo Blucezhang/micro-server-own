@@ -11,7 +11,6 @@ spring:
         enabled: true
       profile: ${spring.profiles.active}
 
-
 ---
 spring:
   profiles: dev
@@ -24,14 +23,4 @@ eureka:
     serviceUrl:
       defaultZone:  http://own:123456@localhost:8002/eureka
 
-
----
-spring:
-  profiles: pro
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    serviceUrl:
-      defaultZone: http://own:123456@eureka:8002/eureka
 

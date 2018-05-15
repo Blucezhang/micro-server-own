@@ -23,13 +23,4 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://own:123456@localhost:8002/eureka
-
----
-spring:
-  profiles: prd
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    serviceUrl:
-      defaultZone: http://own:123456@eureka:8002/eureka
+--
