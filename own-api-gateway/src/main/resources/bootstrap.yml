@@ -20,5 +20,8 @@ eureka:
     serviceUrl:
       defaultZone:  http://own:123456@localhost:8002/eureka
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1a047188dbd41374efe6d5c76c26b7ad053fb374
 
