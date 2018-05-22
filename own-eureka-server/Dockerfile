@@ -8,5 +8,5 @@ MAINTAINER Blucezhang <Blucezhang@outlook.com>
 
 VOLUME /tmp
 ADD ./target/own-eureka-server-1.0-ALPHA.jar /app.jar
-ENTRYPOINT [ "java", "-jar","-Xmx200m", "/app.jar" ]
+CMD [ "java", "-jar","-Xmx500m", "/app.jar" ]
 EXPOSE 8002
