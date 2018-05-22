@@ -1,0 +1,6 @@
+version: '2.1'
+services:
+  eureka:
+    restart: always
+    ports:
+      - 8002:8002
