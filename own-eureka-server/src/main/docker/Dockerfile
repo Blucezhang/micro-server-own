@@ -7,6 +7,8 @@ MAINTAINER Blucezhang <Blucezhang@outlook.com>
 
 
 VOLUME /tmp
-ADD ./target/own-eureka-server-1.0-ALPHA.jar /app.jar
-CMD [ "java", "-jar","-Xmx500m", "/app.jar" ]
+ADD own-eureka-server-1.0-ALPHA.jar eureka.jar
+
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","-Xmx200m","/eureka.jar"]
+#CMD [ "java", "-jar","-Xmx500m", "/app.jar" ]
 EXPOSE 8002
