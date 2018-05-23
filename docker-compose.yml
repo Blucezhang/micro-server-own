@@ -62,8 +62,8 @@ services:
       - "netName1"
 
 
-  networks:
-    netName1:
-      driver: bridge
-    netName2:
-      driver: bridge
+networks:
+  netName1:
+    driver: bridge
+  netName2:
+    driver: bridge
