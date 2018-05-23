@@ -1,7 +1,8 @@
 FROM java:8-jre
 MAINTAINER Blucezhang <Blucezhang@outlook.com>
 
-ADD  ../../target/own-promotion-1.0-ALPHA.jar /app/
-CMD ["java","-Xmx200m","-jar","/app/own-promotion-1.0-ALPHA.jar"]
+VOLUME /temp
+ADD  own-promotion-1.0-ALPHA.jar promotion.jar
+ENTRYPOINT ["java","-Xmx200m","-jar","/promotion.jar","-Djava.security.egd=file:/dev/./urandom"]
 
 EXPOSE 6005

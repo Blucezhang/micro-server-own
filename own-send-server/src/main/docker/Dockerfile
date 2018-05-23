@@ -1,7 +1,8 @@
 FROM java:8-jre
 MAINTAINER Blucezhang <Blucezhang@outlook.com>
 
-ADD  ../../target/own-send-server-1.0-ALPHA.jar /app/
-CMD ["java","-Xmx200m","-jar","/app/own-send-server-1.0-ALPHA.jar"]
+VOLUME /temp
+ADD  own-send-server-1.0-ALPHA.jar send.jar
+ENTRYPOINT ["java","-Xmx200m","-jar","/send.jar","-Djava.security.egd=file:/dev/./urandom"]
 
 EXPOSE 6003

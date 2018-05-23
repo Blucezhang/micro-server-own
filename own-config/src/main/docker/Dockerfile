@@ -1,7 +1,9 @@
 FROM java:8-jre
 MAINTAINER Blucezhang <Blucezhang@outlook.com>
 
-ADD ../../target/own-config-1.0-ALPHA.jar /app/
-CMD ["java","-Xmx200m","-jar","/app/own-config-1.0-ALPHA.jar"]
+
+VOLUME /temp
+ADD own-config-1.0-ALPHA.jar config.jar
+ENTRYPOINT ["java","-Xmx200m","-jar","-Djava.security.egd=file:/dev/./urandom","/config.jar"]
 
 EXPOSE 8001
