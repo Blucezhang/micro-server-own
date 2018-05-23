@@ -62,7 +62,7 @@
                         <resource>
                             <targetPath>/</targetPath>
                             <directory>${project.build.directory}</directory>
-                            <include>${project.artifactId}.jar</include>
+                            <include>${project.artifactId}-${project.version}.jar</include>
                         </resource>
                     </resources>
                 </configuration>
