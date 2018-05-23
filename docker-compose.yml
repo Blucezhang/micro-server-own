@@ -1,41 +1,41 @@
 version: '2.1'
 services:
-  own-eureka:
+  eureka:
     restart: always
     ports:
       - 8002:8002
 
-  own-config:
+  config:
     restart: always
     ports:
       - 8001:8001
 
-  own-gateway:
+  gateway:
     restart: always
     ports:
       - 9632:9632
-  own-file:
+  file:
     restart: always
     ports:
       - 6004:6004
       - 3306:3306
-  own-product:
+  product:
     restart: always
     ports:
       - 6007:6007
-  own-promotion:
+  promotion:
     restart: always
     ports:
       - 6005:6005
-  own-send-server:
+  send:
     restart: always
     ports:
       - 6003:6003
-  own-user-part:
+  user:
     restart: always
     ports:
       - 6006:6006
-  own-workflow:
+  workflow:
     restart: always
     ports:
       - 6008:6008
