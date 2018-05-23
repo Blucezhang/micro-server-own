@@ -4,21 +4,33 @@ services:
     restart: always
     ports:
       - 8002:8002
+    networks:
+          - "netName1"
 
   config:
     restart: always
     ports:
       - 8001:8001
+    networks:
+          - "netName1"
+
 
   gateway:
     restart: always
     ports:
       - 9632:9632
+    networks:
+          - "netName1"
+
+
   file:
     restart: always
     ports:
       - 6004:6004
       - 3306:3306
+    networks:
+          - "netName1"
+
   product:
     restart: always
     ports:
@@ -27,15 +39,31 @@ services:
     restart: always
     ports:
       - 6005:6005
+    networks:
+          - "netName1"
+
   send:
     restart: always
     ports:
       - 6003:6003
+    networks:
+          - "netName1"
   user:
     restart: always
     ports:
       - 6006:6006
+    networks:
+          - "netName1"
   workflow:
     restart: always
     ports:
       - 6008:6008
+    networks:
+      - "netName1"
+
+
+  networks:
+    netName1:
+      driver: bridge
+    netName2:
+      driver: bridge
