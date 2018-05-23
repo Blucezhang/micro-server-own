@@ -1,6 +1,7 @@
 version: '2.1'
 services:
   eureka:
+    image: own/eureka
     restart: always
     ports:
       - 8002:8002
@@ -8,6 +9,7 @@ services:
           - "netName1"
 
   config:
+    image: own/config
     restart: always
     ports:
       - 8001:8001
@@ -16,6 +18,7 @@ services:
 
 
   gateway:
+    image: own/gateway
     restart: always
     ports:
       - 9632:9632
@@ -24,18 +27,25 @@ services:
 
 
   file:
+    image: own/file
     restart: always
     ports:
       - 6004:6004
       - 3306:3306
     networks:
-          - "netName1"
+        - "netName1"
 
   product:
+    image: own/product
     restart: always
     ports:
       - 6007:6007
+    networks:
+         - "netName1"
+
+
   promotion:
+    image: own/promotion
     restart: always
     ports:
       - 6005:6005
@@ -43,18 +53,25 @@ services:
           - "netName1"
 
   send:
+    image: own/send
     restart: always
     ports:
       - 6003:6003
     networks:
           - "netName1"
+
+
   user:
+    image: own/user
     restart: always
     ports:
       - 6006:6006
     networks:
           - "netName1"
+
+
   workflow:
+    image: own/workflow
     restart: always
     ports:
       - 6008:6008
