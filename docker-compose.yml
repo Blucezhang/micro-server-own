@@ -1,86 +1,107 @@
-version: '2.1'
+version: '3.3'
 services:
   eureka:
-    image: own/eureka
+    build: ./own-eureka-server/src/main/docker
     restart: always
     ports:
       - 8002:8002
     networks:
-          - "netName1"
+       - backend
+       - frontend
 
   config:
-    image: own/config
+    build: ./own-config/src/main/docker
     restart: always
+    networks:
+      - backend
+      - frontend
     ports:
       - 8001:8001
-    networks:
-          - "netName1"
-
+    depends_on:
+      -eureka
 
   gateway:
-    image: own/gateway
+    build: ./own-api-gateway/src/main/docker
     restart: always
+    networks:
+       - backend
+       - frontend
     ports:
       - 9632:9632
-    networks:
-          - "netName1"
+    depends_on:
+      -eureka
 
 
   file:
-    image: own/file
+    build: ./own-file/src/main/docker
     restart: always
     ports:
       - 6004:6004
       - 3306:3306
     networks:
-        - "netName1"
+      - backend
+      - frontend
+    depends_on:
+      -eureka
 
   product:
-    image: own/product
+    build: ./own-product/src/main/docker
     restart: always
     ports:
       - 6007:6007
     networks:
-         - "netName1"
+      - backend
+      - frontend
+    depends_on:
+      - eureka
 
 
   promotion:
-    image: own/promotion
+    build: ./own-product/src/main/docker
     restart: always
     ports:
       - 6005:6005
     networks:
-          - "netName1"
+      - backend
+      - frontend
+    depends_on:
+      - eureka
 
   send:
-    image: own/send
+    build: ./own-send-server/src/main/docker
     restart: always
     ports:
       - 6003:6003
     networks:
-          - "netName1"
-
+      - backend
+      - frontend
+    depends_on:
+      - eureka
 
   user:
-    image: own/user
+    build: ./own-user-party/src/main/docker
     restart: always
     ports:
       - 6006:6006
     networks:
-          - "netName1"
+      - backend
+      - frontend
+    depends_on:
+      - eureka
 
 
   workflow:
-    image: own/workflow
+    build: ./own-workflow/src/main/docker
     restart: always
     ports:
       - 6008:6008
     networks:
-      - "netName1"
+      - backend
+      - frontend
+    depends_on:
+      - eureka
 
 
 networks:
-  netName1:
-    driver: bridge
-  netName2:
-    driver: bridge
+  frontend:
+  backend:
