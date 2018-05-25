@@ -18,7 +18,7 @@ services:
     ports:
       - 8001:8001
     depends_on:
-      -eureka
+      - eureka
 
   gateway:
     build: ./own-api-gateway/src/main/docker
@@ -29,7 +29,7 @@ services:
     ports:
       - 9632:9632
     depends_on:
-      -eureka
+      - eureka
 
 
   file:
@@ -42,7 +42,7 @@ services:
       - backend
       - frontend
     depends_on:
-      -eureka
+      - eureka
 
   product:
     build: ./own-product/src/main/docker
