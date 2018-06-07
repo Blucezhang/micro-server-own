@@ -1,7 +1,10 @@
 version: '3.3'
 services:
   eureka:
-    build: ./own-eureka-server/src/main/docker
+    #build: ./own-eureka-server/src/main/docker
+    build:
+      context: ../
+
     restart: always
     ports:
       - 8002:8002
