@@ -1,16 +1,10 @@
 package com.own.product.api.gateway.config;
 
-import org.springframework.cloud.netflix.zuul.filters.Route;
 import org.springframework.cloud.netflix.zuul.filters.RouteLocator;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger.web.SwaggerResource;
 import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
@@ -22,11 +16,11 @@ import java.util.List;
  */
 @Primary
 @Component
-public class SaggerProvider extends WebMvcConfigurerAdapter implements SwaggerResourcesProvider {
+public class SwaggerProvider extends WebMvcConfigurerAdapter implements SwaggerResourcesProvider {
 
     private final RouteLocator routeLocator;
 
-    public SaggerProvider(RouteLocator routeLocator) {
+    public SwaggerProvider(RouteLocator routeLocator) {
         this.routeLocator = routeLocator;
     }
 
