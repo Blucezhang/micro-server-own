@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.own.face.util.base.BaseController;
 import com.own.workflow.controller.bean.BizBusinessFlowBean;
 import com.own.workflow.domain.BizBusinessFlowContext;
 import com.own.workflow.domain.BizState;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/flow")
-public class FlowController{
+public class FlowController extends BaseController {
 	
 	@Autowired
 	private FlowSvc flowSvc;

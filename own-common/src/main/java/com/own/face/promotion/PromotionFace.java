@@ -19,10 +19,9 @@ import org.springframework.util.MultiValueMap;
 public class PromotionFace extends FaceBase {
 
 	protected String serviceUrl="//PROMOTIONWJJ/sale";
-	
-	Logger log = Logger.getLogger(PromotionFace.class);
-	
-	
+
+
+	protected org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(this.getClass());
 	/**
 	 * 查询活动信息
 	 * @param id
@@ -39,19 +38,17 @@ public class PromotionFace extends FaceBase {
 	 * @param p
 	 * @return
 	 */
-//	public Promotion savePromotion(Promotion p) throws IfException{
-//		
-//		MultiValueMap<String, Object> headers = new LinkedMultiValueMap<String, Object>();
-//        headers.add("Accept", "application/json");
-//        headers.add("Content-Type", "application/json;charset=utf-8");
-//        HttpEntity request = new HttpEntity(p, headers);
-//        Map<String,Object> param = new HashMap<String,Object>();
-//        param.put("promotionType", "discount");
-//        param.put("bean", p);
-//		
-//        ResponseEntity<Promotion> re = restTemplate.postForEntity(serviceUrl+"/promotion", request, Promotion.class,param);
-//		return re.getBody();
-//	}
+	public Promotion savePromotion(Promotion p) throws IfException{
+		MultiValueMap<String, Object> headers = new LinkedMultiValueMap<String, Object>();
+        headers.add("Accept", "application/json");
+        headers.add("Content-Type", "application/json;charset=utf-8");
+        HttpEntity request = new HttpEntity(p, headers);
+        Map<String,Object> param = new HashMap<String,Object>();
+        param.put("promotionType", "discount");
+        param.put("bean", p);
+       ResponseEntity<Promotion> re = restTemplate.postForEntity(serviceUrl+"/promotion", request, Promotion.class,param);
+		return re.getBody();
+	}
 	
 	/**
 	 * 保存活动数据(单品销售：直降、折扣)
@@ -64,7 +61,6 @@ public class PromotionFace extends FaceBase {
         headers.add("Accept", "application/json");
         headers.add("Content-Type", "application/json;charset=utf-8");
         HttpEntity request = new HttpEntity(map, headers);
-		
         ResponseEntity<Map> re = restTemplate.postForEntity(serviceUrl+"/promotion", request, Map.class);
 		return re.getBody();
 	}
@@ -90,7 +86,6 @@ public class PromotionFace extends FaceBase {
         headers.add("Content-Type", "application/json;charset=utf-8");
         String requestBody = "{\"saleName\":\""+p.getSaleName()+"\"}";
         HttpEntity request = new HttpEntity(requestBody, headers);
-		
 		return put(serviceUrl+"/promotion",request, Promotion.class);
 	}
 	

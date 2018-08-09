@@ -1,5 +1,6 @@
 package com.own.send.server.controller;
 
+import com.own.face.util.base.BaseController;
 import com.own.send.server.domain.CommonInfo;
 import com.own.send.server.service.CommonInfoSvc;
 import io.swagger.annotations.ApiOperation;
@@ -15,11 +16,10 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/Info")
 @Slf4j
-public class CommonInfoController {
+public class CommonInfoController extends BaseController {
 
     @Autowired
     private CommonInfoSvc cifSvc;
-
     /**
      * ,使用post
      *

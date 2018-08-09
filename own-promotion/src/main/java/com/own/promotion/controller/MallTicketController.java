@@ -1,5 +1,6 @@
 package com.own.promotion.controller;
 
+import com.own.face.util.base.BaseController;
 import com.own.promotion.dao.MallTicketDao;
 import com.own.promotion.dao.domain.MallTicket;
 import io.swagger.annotations.ApiOperation;
@@ -12,8 +13,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value="/sale/mallTicket")
-public class MallTicketController{
-	
+public class MallTicketController extends BaseController{
+
 	@Autowired
 	private MallTicketDao mallTicketDao;
 	

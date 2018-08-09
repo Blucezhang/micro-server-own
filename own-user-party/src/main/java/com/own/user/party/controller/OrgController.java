@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.own.face.party.OrgBean;
 import com.own.face.util.Util;
+import com.own.face.util.base.BaseController;
 import com.own.user.party.dao.LoginUserDao;
 import com.own.user.party.dao.OrgDao;
 import com.own.user.party.dao.domain.Organization;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/org")
-public class OrgController {
+public class OrgController extends BaseController {
 	
 	@Autowired
 	private OrgDao orgDao = null;

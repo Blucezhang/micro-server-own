@@ -8,25 +8,20 @@ import java.util.Date;
 public class Jgpush {
 
     private Integer id;
-
     private String title;
     private String content;
     private Integer platform;
     private String receiveId;
     private String sendId;
     private String releaseFun;
-
     private Date sendTime;
     private Integer jpushType;
     private Integer sendStatus;
     private String sendResult;
     private String receiveResult;
-
     private Date receiveTime;
     private Integer receiveStatus;
-
     private Date createTime;
-
     private Date endTime;
     private String userName;
     private String userAccount;

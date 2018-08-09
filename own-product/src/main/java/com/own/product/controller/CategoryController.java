@@ -2,6 +2,7 @@ package com.own.product.controller;
 
 import com.own.face.product.CategoryBean;
 import com.own.face.util.Util;
+import com.own.face.util.base.BaseController;
 import com.own.product.dao.CategoryDao;
 import com.own.product.domain.Category;
 import io.swagger.annotations.ApiOperation;
@@ -18,14 +19,14 @@ import java.util.Map;
 @RestController
 @Slf4j
 @RequestMapping("/category")
-public class CategoryController {
+public class CategoryController extends BaseController {
 
     @Autowired
     private CategoryDao categoryDao;
 
 
     @ApiOperation(value = "根据级别查询类别")
-    @GetMapping("")
+    @GetMapping("/query")
     public @ResponseBody List<Category> queryCategory(@RequestParam Map<String,Object> parms){
         //如果没有传入级别，默认查询第一级
         String level = "1";
@@ -44,7 +45,7 @@ public class CategoryController {
     }
 
     @ApiOperation(value = "添加类别")
-    @PutMapping("")
+    @PutMapping("/add")
     public void addCategory(@RequestBody CategoryBean cb){
         Category c = new Category();
         c.setName(cb.getName());
@@ -69,7 +70,6 @@ public class CategoryController {
           }
       });
     }
-
     @ApiOperation(value = "根据ID删除类别")
     @DeleteMapping("/{id}")
     public void delCategory(@PathVariable Long id){

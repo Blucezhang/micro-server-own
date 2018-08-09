@@ -6,25 +6,24 @@ import java.util.Map;
 
 import com.own.face.core.FaceBase;
 import com.own.face.core.IfException;
-import org.springframework.http.HttpEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 
 public class OrderFace extends FaceBase {
 
+
 	protected String serviceUrl="//ORDER/";
-	
+
+	protected org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(this.getClass());
+
+
 	/**
 	 * 订单查询
 	 * @param id
 	 * @return
 	 */
 	public OrderBean getOrder(String id){
-		 OrderBean o = restTemplate.getForObject (serviceUrl+ "/Order/{id}", OrderBean.class, id);
-		 System.out.println("OrderId "+o.getOrderId());
-		 System.out.println("OrderNo "+o.getOrderNo());
-		 System.out.println("CreateDate "+o.getCreateDate());
+		 OrderBean o = get (serviceUrl+ "/Order/{id}", OrderBean.class, id);
+		 log.info("OrderId "+o.getOrderId()+"OrderNo "+o.getOrderNo()+"CreateDate "+o.getCreateDate());
 		 return o;
 	}
 	
@@ -33,34 +32,30 @@ public class OrderFace extends FaceBase {
 	 */
 	
 	public List getOrderDetial(Map parms){
-	
-		System.out.println(parms);
+		log.info(parms.toString()+"入参");
 		List ss = get (serviceUrl+ "/Order?orderDetailId={orderDetailId}", List.class, parms);
-		
 		return ss;
 	}
 	
 	/**
 	 * 订单查询 - 根据订单状态
-	 * @param id
+	 * @param state
 	 * @return
 	 */
 	public void getOrderByState(int state){
 		Map map = new HashMap();
 		map.put("orderDetailState", state);
-		Map returnMap = restTemplate.getForObject(serviceUrl+ "/Order?orderDetailState={orderDetailState}", Map.class, map);
-		System.out.println(returnMap.get("result"));
+		Map returnMap = get(serviceUrl+ "/Order?orderDetailState={orderDetailState}", Map.class, map);
+		log.info("resutl:{}"+returnMap.get("result"));
 	}
 	
 	/**
 	 * 订单查询 - 根据订单状态  和供应商partyId
-	 * @param id
+	 * @param parms
 	 * @return
 	 */
 	public List getOrderByStateAndPartyId(Map parms){
-		
 		List returnmap = get (serviceUrl+ "/Order?Action={Action}&orderDetailState={orderDetailState}&partyId={partyId}", List.class, parms);
-		
 		return returnmap;
 	}
 	
@@ -74,7 +69,7 @@ public class OrderFace extends FaceBase {
 		map.put("id",id);
 		map.put("productId", productId);
 		map.put("partyId", partyId);
-		Map returnMap = restTemplate.getForObject(serviceUrl+ "/Order/{id}/Buyer?productId={productId}&partyId={partyId}", Map.class, map);
+		Map returnMap =get(serviceUrl+ "/Order/{id}/Buyer?productId={productId}&partyId={partyId}", Map.class, map);
 		return returnMap;
 	}
 	
@@ -88,7 +83,7 @@ public class OrderFace extends FaceBase {
 		map.put("id",id);
 		map.put("productId", productId);
 		map.put("partyId", partyId);
-		Map returnMap = restTemplate.getForObject(serviceUrl+ "/Order/{id}/Seller?productId={productId}&partyId={partyId}", Map.class, map);
+		Map returnMap = get(serviceUrl+ "/Order/{id}/Seller?productId={productId}&partyId={partyId}", Map.class, map);
 		return returnMap;
 	}
 	
@@ -106,14 +101,9 @@ public class OrderFace extends FaceBase {
  	 * @throws IfException
  	 */
  	public OrderBean updOrder(OrderDetailBean od) throws IfException {
- 		MultiValueMap<String, Object> headers = new LinkedMultiValueMap<String, Object>();
-        headers.add("Accept", "application/json");
-        headers.add("Content-Type", "application/json");      
-        HttpEntity request = new HttpEntity(od, headers);             
         Map<String,Object> map = new HashMap<String,Object>();
  		map.put("id", od.getOrderId());
- 		OrderBean returnbean = post (serviceUrl+"/Order/{id}",request,OrderBean.class, map);
-
+ 		OrderBean returnbean = post (serviceUrl+"/Order/{id}",od,OrderBean.class, map);
  		return returnbean;
  	}
 	

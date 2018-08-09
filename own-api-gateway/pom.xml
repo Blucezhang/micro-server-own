@@ -17,7 +17,7 @@
 	<parent>
 		<artifactId>micro-server-own</artifactId>
 		<groupId>com.own</groupId>
-		<version>${own.version}</version>
+		<version>1.0-ALPHA</version>
 	</parent>
 
 	<properties>

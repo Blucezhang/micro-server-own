@@ -3,6 +3,7 @@ package com.own.promotion.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.own.face.util.base.BaseController;
 import com.own.promotion.dao.StoreTicketDao;
 import com.own.promotion.dao.domain.StoreTicket;
 import io.swagger.annotations.ApiOperation;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value="/sale/storeTicket")
-public class StoreTicketController{
+public class StoreTicketController extends BaseController {
 	@Autowired
 	private StoreTicketDao storeTicketDao;
 	

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.face.party.FunBean;
+import com.own.face.util.base.BaseController;
 import com.own.user.party.dao.FunDao;
 import com.own.user.party.dao.domain.Fun;
 import io.swagger.annotations.ApiOperation;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @EnableAutoConfiguration  
 @RestController
-public class FunController{
+public class FunController extends BaseController {
 	
 	@Autowired
 	private FunDao funDao = null;

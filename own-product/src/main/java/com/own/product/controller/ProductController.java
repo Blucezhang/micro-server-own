@@ -4,6 +4,7 @@ import com.own.face.core.FaceUtil;
 import com.own.face.product.ProductBean;
 import com.own.face.product.TemplateBean;
 import com.own.face.util.Util;
+import com.own.face.util.base.BaseController;
 import com.own.product.dao.ProductDao;
 import com.own.product.domain.Product;
 import com.own.product.domain.Template;
@@ -25,7 +26,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/product")
-public class ProductController {
+public class ProductController extends BaseController {
 
     @Autowired
     private ProductDao productDao = null;

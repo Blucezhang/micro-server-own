@@ -3,6 +3,7 @@ package com.own.promotion.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.own.face.util.base.BaseController;
 import com.own.promotion.dao.ScopeDao;
 import com.own.promotion.dao.domain.Scope;
 import io.swagger.annotations.ApiOperation;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value="/sale/scope")
-public class ScopeController {
+public class ScopeController extends BaseController {
 	
 	@Autowired
 	private ScopeDao scopeDao;

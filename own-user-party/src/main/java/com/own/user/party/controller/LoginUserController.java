@@ -7,6 +7,7 @@ import java.util.Map;
 import com.own.face.party.LoginUserBean;
 import com.own.face.party.UserBean;
 import com.own.face.util.Util;
+import com.own.face.util.base.BaseController;
 import com.own.user.party.dao.LoginUserDao;
 import com.own.user.party.dao.domain.LoginUser;
 import io.swagger.annotations.ApiOperation;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/login")
-public class LoginUserController {
+public class LoginUserController extends BaseController {
 
 	@Autowired
 	private LoginUserDao loginUserDao = null;

@@ -10,16 +10,18 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 
-
 @Service
 public class PartyFace extends FaceBase {
+
+
+
 
 	protected String serviceUrl = "//PARTY/";
 
 	/**
 	 * 根据PersonId查询用户的常用信息
 	 * 
-	 * @param personId
+	 * @param personBean
 	 * @return
 	 */
 	public Map<String, Object> getPersonById(PersonBean personBean) {
@@ -54,9 +56,7 @@ public class PartyFace extends FaceBase {
 		} else {
 			System.out.println("PartyFace result is null !");
 		}
-
 		String str = get(serviceUrl + "/Org/msg",String.class, orgBean);
-
 		System.out.println("string:" + str);
 
 		if (orgnization == null) {
@@ -69,8 +69,7 @@ public class PartyFace extends FaceBase {
 
 	/**
 	 * 修改用户基本信息
-	 * @param personid
-	 * @param shipaddress
+	 * @param personBean
 	 * @return
 	 * @throws JsonProcessingException 
 	 */
@@ -81,8 +80,7 @@ public class PartyFace extends FaceBase {
 	
 	/**
 	 * 登录验证
-	 * @param loginUserName
-	 * @param password
+	 * @param loginUserBean
 	 * @return
 	 * @throws JsonProcessingException 
 	 */
@@ -104,7 +102,7 @@ public class PartyFace extends FaceBase {
 	
 	/**
 	 * 根据Id获取LoginUser详细信息
-	 * @param id
+	 * @param loginUserBean
 	 * @return
 	 */
 	public Map<String, Object> LoginUserDetail(LoginUserBean loginUserBean) {
@@ -125,7 +123,7 @@ public class PartyFace extends FaceBase {
 	/**
 	 * 创建（关联）登录用户(企业)
 	 * 
-	 * @param userBean
+	 * @param loginUserBean
 	 * @return
 	 */
 	public LoginUserBean CreateLoginUser(LoginUserBean loginUserBean) {
@@ -135,9 +133,7 @@ public class PartyFace extends FaceBase {
 	/**
 	 * 根据LoginUserName修改密码
 	 * 
-	 * @param getLoginUserName
-	 * @param getPassword
-	 * @param getNewpassword
+	 * @param userBean
 	 */
 	public void updataPassword(UserBean userBean) {
 		post(serviceUrl + "/updatePassword", userBean, null, null);
@@ -176,7 +172,6 @@ public class PartyFace extends FaceBase {
 	/**
 	 * 根据ID修改FunBean
 	 * 
-	 * @param id
 	 * @param funBean
 	 */
 	public Object updateFun(FunBean funBean) {
@@ -211,7 +206,6 @@ public class PartyFace extends FaceBase {
 	 * 根据ID修改角色信息
 	 * 
 	 * @param roleBean
-	 * @param id
 	 * @return
 	 */
 	public Map<String, Object> updataRole(RoleBean roleBean) {

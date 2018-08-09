@@ -1,5 +1,6 @@
 package com.own.send.server.controller;
 
+import com.own.face.util.base.BaseController;
 import com.own.send.server.domain.CommonInfo;
 import com.own.send.server.domain.Sms;
 import com.own.send.server.prop.ConfigProperty;
@@ -24,7 +25,7 @@ import java.util.Properties;
 @RestController
 @RequestMapping(value = "/Info")
 @Slf4j
-public class SmsController {
+public class SmsController extends BaseController {
 
     @Autowired
     private SmsSvc smsSvc;
@@ -32,6 +33,8 @@ public class SmsController {
     private CommonInfoSvc cifSvc;
     @Autowired
     public ConfigProperty configProperty;
+
+
 
     @ApiOperation(value = "查询短信列表（搜索功能，无搜索条件时，查所有）")
     @GetMapping("/sms")

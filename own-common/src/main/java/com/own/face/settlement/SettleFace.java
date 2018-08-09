@@ -15,10 +15,12 @@ public class SettleFace extends FaceBase {
 
 
  	protected String serviceUrl="//SETTLEMENT/";
+
+	protected org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(this.getClass());
       
  	/**
  	 * 支付交易
- 	 * @param c
+ 	 * @param s
  	 * @throws IfException
  	 */
  	public SettlementBean addSettlement(SettlementBean s) throws IfException {
@@ -31,7 +33,6 @@ public class SettleFace extends FaceBase {
  	 * @throws IfException
  	 */
  	public void addAccount(AcctBean a) throws IfException{
-
  		restTemplate.put(serviceUrl+"/Account", a);
  	}
  	
@@ -41,17 +42,13 @@ public class SettleFace extends FaceBase {
  		List returnlist = get (serviceUrl+"/Account?partyId={partyId}", List.class, map);
  		return returnlist;
  	}
+
  	public AcctBean PayToSeller(AcctBean ab) throws IfException{
- 		
- 		MultiValueMap<String, Object> headers = new LinkedMultiValueMap<String, Object>();
-        headers.add("Accept", "application/json");
-        headers.add("Content-Type", "application/json");
         String requestBody = "{\"acctId\":\""+ab.getAcctId()+ "\",\"amount\":\"" +ab.getAmount()+"\"}";
-        HttpEntity request = new HttpEntity(requestBody, headers);
         Map<String,Object> map = new HashMap<String,Object>();
  		map.put("acctId", ab.getAcctId());
  		map.put("Action", "Buyer");
- 		AcctBean returnbean = restTemplate.postForObject(serviceUrl+"/Account/{acctId}?Action={Action}",request,AcctBean.class, map);
+		AcctBean returnbean =  post(serviceUrl+"/Account/{acctId}?Action={Action}",requestBody,AcctBean.class,map);
  		return returnbean;
  	}
     

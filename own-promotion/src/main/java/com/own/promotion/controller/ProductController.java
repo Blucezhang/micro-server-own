@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.own.face.util.base.BaseController;
 import com.own.promotion.dao.ProductDao;
 import com.own.promotion.dao.domain.Product;
 import io.swagger.annotations.ApiOperation;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value="/sale/product")
-public class ProductController {
+public class ProductController extends BaseController {
 	
 	@Autowired
 	private ProductDao productDao;

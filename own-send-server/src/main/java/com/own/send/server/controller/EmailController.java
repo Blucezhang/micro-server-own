@@ -1,5 +1,6 @@
 package com.own.send.server.controller;
 
+import com.own.face.util.base.BaseController;
 import com.own.send.server.domain.CommonInfo;
 import com.own.send.server.domain.Email;
 import com.own.send.server.prop.ConfigProperty;
@@ -22,7 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value="/Info")
 @Slf4j
-public class EmailController {
+public class EmailController extends BaseController {
 
     @Autowired
     private EmailSvc emailSvc;

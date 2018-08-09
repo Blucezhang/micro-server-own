@@ -12,6 +12,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.own.face.core.FaceUtil;
 import com.own.face.core.IfException;
 import com.own.face.promotion.CartBean;
+import com.own.face.util.base.BaseController;
 import com.own.promotion.controller.bean.SellerBean;
 import com.own.promotion.dao.*;
 import com.own.promotion.dao.domain.*;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/sale/promotion")
-public class PromotionController {
+public class PromotionController  extends BaseController {
 	
 	@Autowired
 	private PromotionDao promotionDao;

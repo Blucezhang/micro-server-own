@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.face.party.PersonBean;
+import com.own.face.util.base.BaseController;
 import com.own.user.party.dao.LoginUserDao;
 import com.own.user.party.dao.OrgDao;
 import com.own.user.party.dao.PersonDao;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/per")
-public class PerController {
+public class PerController extends BaseController {
 
 	@Autowired
 	private PersonDao personDao = null;

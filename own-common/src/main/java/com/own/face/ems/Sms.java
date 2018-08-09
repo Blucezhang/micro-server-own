@@ -10,7 +10,6 @@ public class Sms {
 	private String mobile;
 	private String title;
 	private String content;
-	
 	private String sendName;
 	private String sendMobile;
 	private String receiveName;
@@ -25,7 +24,6 @@ public class Sms {
 	private String thirdResult;
 	private Date createTime;
 	private Date endTime;
-	
 	private String userName;
 	private String userAccount;
 	private String sendXML;

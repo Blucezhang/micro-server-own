@@ -3,6 +3,7 @@ package com.own.promotion.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.own.face.util.base.BaseController;
 import com.own.promotion.dao.PromotionTypeDao;
 import com.own.promotion.dao.domain.PromotionType;
 import io.swagger.annotations.Api;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value="/sale/promotionType")
-public class PromotionTypeController {
+public class PromotionTypeController extends BaseController {
 	@Autowired
 	private PromotionTypeDao promotionTypeDao;
 	

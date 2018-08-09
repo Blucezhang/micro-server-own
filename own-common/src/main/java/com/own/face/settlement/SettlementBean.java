@@ -7,7 +7,6 @@ import java.util.Date;
 
 @Data
 public class SettlementBean {
-	
 	private Long paymentId;
 	private Long acctId;
 	private String contractNo;
@@ -18,5 +17,4 @@ public class SettlementBean {
 	private BigDecimal payAmt;
 	private Date payDate;
 	private Long operator;
-
 }

@@ -1,5 +1,6 @@
 package com.own.send.server.controller;
 
+import com.own.face.util.base.BaseController;
 import com.own.send.server.domain.Jgpush;
 import com.own.send.server.prop.ConfigProperty;
 import com.own.send.server.service.JgpushSvc;
@@ -18,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/Info")
 @Slf4j
-public class JgpushController {
+public class JgpushController extends BaseController {
 
     @Autowired
     private JgpushSvc jgpushSvc;

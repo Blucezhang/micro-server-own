@@ -3,6 +3,7 @@ package com.own.user.party.controller;
 import java.util.List;
 
 import com.own.face.party.RoleBean;
+import com.own.face.util.base.BaseController;
 import com.own.user.party.dao.RoleDao;
 import com.own.user.party.dao.domain.Role;
 import io.swagger.annotations.ApiOperation;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/role")
-public class RoleController {
+public class RoleController extends BaseController {
 
 	@Autowired
 	private RoleDao roleDao = null;
