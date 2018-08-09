@@ -14,6 +14,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.own.face.util.base.BaseController;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,13 +23,11 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 @RestController
 @RequestMapping("/file")
-public class FileController {
+public class FileController extends BaseController {
 
-	/*@Autowired
-	//public Config config;*/
 
-	private static String tTmpInfoFilePath = "abc";
-	private static String tRealInfofilePath = "dcb";
+	private static final String tTmpInfoFilePath = "/opt/temp/";
+	private static final String tRealInfofilePath = "/opt/real/";
 
 	@ApiOperation(value = "图片上传接口")
 	@PostMapping("/picture")
