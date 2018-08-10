@@ -96,7 +96,7 @@ public class FaceBase implements IErrCode {
 	/**
 	 * 删除
 	 * @param url
-	 * @param urlVariables
+	 * @param map
 	 */
 	protected void delete(String url, Map<String, ?> map) {
 		restTemplate.delete(url, map);

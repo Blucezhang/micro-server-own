@@ -6,6 +6,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpEntity;
@@ -20,9 +21,8 @@ import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 public class RestTemplateExt {
-	
-	private Log logger = LogFactory.getLog(getClass());
 	
 	private RestTemplate restTemplate;
 
@@ -48,13 +48,10 @@ public class RestTemplateExt {
 	 * Request callback implementation that writes the given object to the request stream.
 	 */
 	private class HttpEntityRequestCallback extends AcceptHeaderRequestCallback {
-
 		private final HttpEntity<?> requestEntity;
-
 		private HttpEntityRequestCallback(Object requestBody) {
 			this(requestBody, null);
 		}
-
 		private HttpEntityRequestCallback(Object requestBody, Type responseType) {
 			super(responseType);
 			if (requestBody instanceof HttpEntity) {
@@ -92,15 +89,14 @@ public class RestTemplateExt {
 						if (!requestHeaders.isEmpty()) {
 							httpRequest.getHeaders().putAll(requestHeaders);
 						}
-						if (logger.isDebugEnabled()) {
+						if (log.isDebugEnabled()) {
 							if (requestContentType != null) {
-								logger.debug("Writing [" + requestBody + "] as \"" + requestContentType +
+								log.debug("Writing [" + requestBody + "] as \"" + requestContentType +
 										"\" using [" + messageConverter + "]");
 							}
 							else {
-								logger.debug("Writing [" + requestBody + "] using [" + messageConverter + "]");
+								log.debug("Writing [" + requestBody + "] using [" + messageConverter + "]");
 							}
-
 						}
 						((HttpMessageConverter<Object>) messageConverter).write(
 								requestBody, requestContentType, httpRequest);
@@ -121,9 +117,7 @@ public class RestTemplateExt {
 	 * Request callback implementation that prepares the request's accept headers.
 	 */
 	private class AcceptHeaderRequestCallback implements RequestCallback {
-
 		private final Type responseType;
-
 		private AcceptHeaderRequestCallback(Type responseType) {
 			this.responseType = responseType;
 		}
@@ -151,8 +145,8 @@ public class RestTemplateExt {
 				}
 				if (!allSupportedMediaTypes.isEmpty()) {
 					MediaType.sortBySpecificity(allSupportedMediaTypes);
-					if (logger.isDebugEnabled()) {
-						logger.debug("Setting request Accept header to " + allSupportedMediaTypes);
+					if (log.isDebugEnabled()) {
+						log.debug("Setting request Accept header to " + allSupportedMediaTypes);
 					}
 					request.getHeaders().setAccept(allSupportedMediaTypes);
 				}

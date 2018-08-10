@@ -7,9 +7,9 @@ import lombok.Data;
  */
 @Data
 public class Orgnization {
+
     private Long id = null;
     private String name = null;
     private Integer level;
-
 }
  

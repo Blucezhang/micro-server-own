@@ -1,6 +1,7 @@
 package com.own.face.util.base;
 
-public class BaseController {
+import lombok.extern.slf4j.Slf4j;
 
-    protected org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(this.getClass());
+@Slf4j
+public class BaseController {
 }

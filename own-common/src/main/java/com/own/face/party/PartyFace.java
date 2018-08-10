@@ -49,14 +49,14 @@ public class PartyFace extends FaceBase {
 	public Orgnization getOrgById(OrgBean orgBean) throws IfException {
 		Orgnization orgnization = get(serviceUrl+ "/Org/{parOrgId}", Orgnization.class, orgBean);// 注意org的大小写问题，经调试一会大写可行，一会小写可行
 		if (orgnization != null) {
-			System.out.println("调用接口返回结果：id:" + orgnization.getId()
+			log.info("调用接口返回结果：id:" + orgnization.getId()
 					+ "   name:" + orgnization.getName() + "  level:"
 					+ orgnization.getLevel());
 		} else {
-			System.out.println("PartyFace result is null !");
+			log.info("PartyFace result is null !");
 		}
 		String str = get(serviceUrl + "/Org/msg",String.class, orgBean);
-		System.out.println("string:" + str);
+		log.info("string:" + str);
 
 		if (orgnization == null) {
 			throw new IfException(CAN_NOT_FIND_ORGNIZATION, "找不到对应的组织！！！");

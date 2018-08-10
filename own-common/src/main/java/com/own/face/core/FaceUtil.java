@@ -1,5 +1,7 @@
 package com.own.face.core;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -7,6 +9,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class FaceUtil {
 	
 	/**
@@ -20,20 +23,17 @@ public class FaceUtil {
         try {
             BeanInfo beanInfo = Introspector.getBeanInfo(obj.getClass());  
             PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();  
-  
-            for (PropertyDescriptor property : propertyDescriptors) {  
+            for (PropertyDescriptor property : propertyDescriptors) {
                 String key = property.getName();  
-  
-                if (map.containsKey(key)) {  
+                if (map.containsKey(key)) {
                     Object value = map.get(key);  
                     // 得到property对应的setter方法  
                     Method setter = property.getWriteMethod();  
                     setter.invoke(obj, value);  
                 }  
-  
-            }  
+            }
         } catch (Exception e) {  
-            System.out.println("transMap2Bean Error " + e);  
+            log.error("transMap2Bean Error " + e);
         }
 		return obj;  
     }  
@@ -51,36 +51,28 @@ public class FaceUtil {
         try {
             BeanInfo beanInfo = Introspector.getBeanInfo(obj.getClass().getSuperclass());  
             PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();  
-            
-            for (PropertyDescriptor property : propertyDescriptors) {  
+            for (PropertyDescriptor property : propertyDescriptors) {
                 String key = property.getName();  
-  
-                if (map.containsKey(key)) {  
+                if (map.containsKey(key)) {
                     Object value = map.get(key);  
                     // 得到property对应的setter方法  
                     Method setter = property.getWriteMethod();  
                     setter.invoke(obj, value);  
                 }  
-  
-            }  
-            
-            BeanInfo beanInfo1 = Introspector.getBeanInfo(obj.getClass());  
+            }
+            BeanInfo beanInfo1 = Introspector.getBeanInfo(obj.getClass());
             PropertyDescriptor[] propertyDescriptors1 = beanInfo1.getPropertyDescriptors();  
-            
-            for (PropertyDescriptor property : propertyDescriptors1) {  
+            for (PropertyDescriptor property : propertyDescriptors1) {
                 String key = property.getName();  
-  
-                if (map.containsKey(key)) {  
+                if (map.containsKey(key)) {
                     Object value = map.get(key);  
                     // 得到property对应的setter方法  
                     Method setter = property.getWriteMethod();  
                     setter.invoke(obj, value);  
                 }  
-  
-            }  
-            
-        } catch (Exception e) {  
-            System.out.println("transMap2Bean Error " + e);  
+            }
+        } catch (Exception e) {
+           log.error("transMap2Bean Error " + e);
         }
 		return obj;  
     } 
@@ -103,22 +95,18 @@ public class FaceUtil {
             PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();  
             for (PropertyDescriptor property : propertyDescriptors) {  
                 String key = property.getName();  
-  
-                // 过滤class属性  
+                // 过滤class属性
                 if (!key.equals("class")) {  
                     // 得到property对应的getter方法  
                     Method getter = property.getReadMethod();  
                     Object value = getter.invoke(obj);  
-  
-                    map.put(key, value);  
+                    map.put(key, value);
                 }  
-  
-            }  
+            }
         } catch (Exception e) {  
-            System.out.println("transBean2Map Error " + e);  
+            log.error("transBean2Map Error " + e);
         }  
-  
-        return map;  
+        return map;
     }
     
     /**
@@ -137,8 +125,7 @@ public class FaceUtil {
             PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();  
             for (PropertyDescriptor property : propertyDescriptors) {  
                 String key = property.getName();  
-  
-                // 过滤class属性  
+                // 过滤class属性
                 if (!key.equals("class")) {  
                     // 得到property对应的getter方法  
                     Method getter = property.getReadMethod();  
@@ -147,13 +134,11 @@ public class FaceUtil {
                     	map.put(key, value);  
                     }
                 }  
-  
-            }  
+            }
         } catch (Exception e) {  
-            System.out.println("transBean2Map Error " + e);  
+            log.error("transBean2Map Error " + e);
         }  
-  
-        return map;  
+        return map;
     }  
     
     
