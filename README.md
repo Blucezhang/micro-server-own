@@ -39,7 +39,6 @@
 
 - mysql->username:root password:
 - neo4j->username:neo4j password:123456
-
 * 如果您不会使用neo4j ，这里不详述。请参照 [neo4j官网](https://neo4j.com/product/)以及相关doc,使用社区版.
 
 __<font color=#00ffff size=12>\!ATTENTION:</font>__ 禁止商用（如果可以），最终解释权归作者所有！  
