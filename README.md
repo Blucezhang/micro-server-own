@@ -18,8 +18,10 @@
 ===
 1. own-eureka-server（EurekaApplication）
 2. own-config （ConfigApplication）
-3. own-api-gateway （OwnGatewayApplication）
-4. 剩下的项目可按照自己的需要随意启动 
+3. own-api-gateway （OwnGatewayApplication）  
+
+<br> 剩下的项目可按照自己的需要随意启动   
+
 - own-file (FileApplication)
 - own-product (OwnProductApplication)
 - own-promotion (PromotionApplication)
@@ -29,17 +31,17 @@
 
 **swagger2 api 访问路径**
 ====
-- 启动 own-api-gateway （OwnGatewayApplication） 之后，访问http://ip:9632/swagger-ui.html 。如果您没有看到各个服务的api，那么请您启动想要看到项目的服务。
+- 启动 own-api-gateway （OwnGatewayApplication） 之后,访问http://ip:9632/swagger-ui.html 
+- 如果您没有看到各个服务的api，那么请您启动想要看到项目的服务。
 
-**如果你有兴趣的话，join this project.Email:Blucezhang@outlook.com**
-
-__<font color=#00ffff size=12>\!ATTENTION:</font>__ 禁止商用（如果可以），最终解释权归作者所有！
-
-**如果您发现Jar包下载有问题，请你及时联系我，因本人私服不是很稳定（服务器的原因...)**
 ==================================================================================================
 **数据库管理**
 ==================================================================================================
 - mysql->username:root password:
 - neo4j->username:neo4j password:123456
 
-* 如果您不会使用neo4j ，这里不详述。请参照 [neo4j官网](https://neo4j.com/product/)以及相关doc，使用社区版的就可以（如果您钱够多，那么请使用商业版）。
+* 如果您不会使用neo4j ，这里不详述。请参照 [neo4j官网](https://neo4j.com/product/)以及相关doc,使用社区版.
+
+__<font color=#00ffff size=12>\!ATTENTION:</font>__ 禁止商用（如果可以），最终解释权归作者所有！  
+
+**如果你有兴趣的话，join this project.Email:Blucezhang@outlook.com**
