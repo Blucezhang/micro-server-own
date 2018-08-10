@@ -7,6 +7,7 @@ import com.own.face.util.base.BaseController;
 import com.own.user.party.dao.RoleDao;
 import com.own.user.party.dao.domain.Role;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Blucezhang
  *
  */
+@Slf4j
 @RestController
 @RequestMapping("/role")
 public class RoleController extends BaseController {
@@ -105,7 +107,7 @@ public class RoleController extends BaseController {
 	/**
 	 * 角色添加功能
 	 * funids roleid
-	 * @param params
+	 * @param roleBean
 	 */
 	@RequestMapping(value="/Role/addFun",method=RequestMethod.PUT)
 	public void createRelationShipRoleAndFun(@RequestBody RoleBean roleBean){

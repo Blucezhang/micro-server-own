@@ -16,14 +16,13 @@ import java.util.Map;
 /**
  * Created by Bluce on 2018/4/4.
  */
-@RestController
 @Slf4j
+@RestController
 @RequestMapping("/category")
 public class CategoryController extends BaseController {
 
     @Autowired
     private CategoryDao categoryDao;
-
 
     @ApiOperation(value = "根据级别查询类别")
     @GetMapping("/query")
@@ -41,6 +40,7 @@ public class CategoryController extends BaseController {
     @GetMapping("/{id}")
     public  @ResponseBody Category queryCategoryById(@PathVariable Long id){
         Category c = categoryDao.queryCategoryById(id);
+        log.info("category:{}",c);
         return c;
     }
 

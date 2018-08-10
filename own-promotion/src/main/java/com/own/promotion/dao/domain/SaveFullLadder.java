@@ -9,7 +9,6 @@ import lombok.Data;
 @Data
 public class SaveFullLadder extends BasePromotion {
 	
-	private static final long serialVersionUID = 3057234019629261790L;
 	private Integer baseCoutOneLevel;//一级 满多少
 	private Integer baseCutOneLevel;//一级 减多少
 	private Integer baseCoutTwoLevel;//二级 满多少

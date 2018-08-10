@@ -6,16 +6,16 @@ import java.util.Map;
 
 import com.own.face.core.FaceBase;
 import com.own.face.core.IfException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 
+
+@Slf4j
+@Service
 public class OrderFace extends FaceBase {
 
-
 	protected String serviceUrl="//ORDER/";
-
-	protected org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(this.getClass());
-
-
 	/**
 	 * 订单查询
 	 * @param id

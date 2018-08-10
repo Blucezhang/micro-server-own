@@ -10,7 +10,6 @@ public class NmPromotion extends BasePromotion {
 	
 	@Property(name="fullPiece")
 	private int fullPiece; //满N件
-	
 	@Property(name="minusPiece")
 	private int minusPiece;//减M件
 }

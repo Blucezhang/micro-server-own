@@ -7,21 +7,18 @@ import java.util.Map;
 
 import com.own.face.core.FaceBase;
 import com.own.face.core.IfException;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-
+@Slf4j
 @Service
 public class PromotionFace extends FaceBase {
 
 	protected String serviceUrl="//PROMOTIONWJJ/sale";
-
-
-	protected org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(this.getClass());
 	/**
 	 * 查询活动信息
 	 * @param id

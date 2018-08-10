@@ -10,7 +10,6 @@ public interface PersonDao extends BaseDao<Person>  {
 	
 	/**
 	 * 通过类名查询所有用户
-	 * @param attributeName
 	 * @return
 	 */
 	@Query("MATCH (n:Person {}) return n")
@@ -35,11 +34,9 @@ public interface PersonDao extends BaseDao<Person>  {
      * 创建两个节点之间的关系,节点关系由startNodeId指向endNodeId
      * @param startNodeId 节点id
      * @param endNodeId 节点id
-     * @param relationShipType 关系类型
      * @return
      */
     @Query("START startNode=node({0}),endNode=node({1}) CREATE (endNode)-[:CONTAIN]->(startNode)")
-    //@Query("MATCH (p:Person { name: {0} }), (o:Organization { name: {1} }) CREATE (p)-[:{2}]->(o)")
     public void createRelationshipContain(Long startNodeId, Long endNodeId);
 	
     /**

@@ -12,11 +12,12 @@ import com.own.user.party.dao.PersonDao;
 import com.own.user.party.dao.domain.LoginUser;
 import com.own.user.party.dao.domain.Person;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.*;
 
 
+@Slf4j
 @RestController
 @RequestMapping("/per")
 public class PerController extends BaseController {

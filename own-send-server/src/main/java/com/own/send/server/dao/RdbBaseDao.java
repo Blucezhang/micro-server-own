@@ -120,12 +120,6 @@ public class RdbBaseDao {
         }
     }
 
-    /**
-     * @param sql
-     * @param paramsMap
-     * @param pageable
-     * @return
-     */
     public Page<?> findAllByNativeSql(String sql, String countSql, Map<String, ?> paramsMap, Pageable pageable) {
         Integer count = 0;
         if (countSql != null && !"".equals(countSql)) {
@@ -139,8 +133,6 @@ public class RdbBaseDao {
         }
 
         Query query = em.createNativeQuery(sql);
-//		Query query = em.createNativeQuery(sql,"java.util.HashMap").unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);  
-
         if (paramsMap != null) {
             for (Entry<String, ?> entry : paramsMap.entrySet()) {
                 query.setParameter(entry.getKey(), entry.getValue());
@@ -157,9 +149,6 @@ public class RdbBaseDao {
         return page;
     }
 
-    /**
-     * 处理结果集（由于原生sql返回的是数组，这里将结果集转换成map）
-     */
     private List<Map<String, Object>> genarateResultList(String sql, List<Object[]> list) {
         String sqlUpper = sql.toUpperCase();
         String[] keys = sqlUpper.substring(sqlUpper.indexOf("SELECT") + 1, sqlUpper.indexOf("WHERE")).split(",");
@@ -179,8 +168,6 @@ public class RdbBaseDao {
 
 
     public int exeSql(String sql, Map<String, ?> paramsMap) {
-        //执行hsql
-
         Query query = em.createNamedQuery(sql);
         if (paramsMap != null) {
             for (Entry<String, ?> entry : paramsMap.entrySet()) {

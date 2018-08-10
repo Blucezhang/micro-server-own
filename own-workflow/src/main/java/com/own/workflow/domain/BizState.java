@@ -15,27 +15,22 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+@Data
 @Entity
 @Table(name="Biz_State")
-@Data
 public class BizState implements Serializable, IDomainBase {
-
-	private static final long serialVersionUID = 3239791447897868700L;
 
 	@Transient
 	public Object getObjectId() {
-
 		return this.stateId;
-		}
+	}
 
 	@Id
 	@Column(name="stateId", unique=true, nullable=false)
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long stateId;
-
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date stateTime;
-
 	private Long processId;
 	private Integer exeNum;
 	private Integer agreeNum;

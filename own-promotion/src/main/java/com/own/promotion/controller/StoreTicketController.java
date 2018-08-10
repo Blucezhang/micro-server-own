@@ -7,19 +7,18 @@ import com.own.face.util.base.BaseController;
 import com.own.promotion.dao.StoreTicketDao;
 import com.own.promotion.dao.domain.StoreTicket;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping(value="/sale/storeTicket")
 public class StoreTicketController extends BaseController {
 	@Autowired
 	private StoreTicketDao storeTicketDao;
 	
-	Logger log = Logger.getLogger(StoreTicketController.class);
-	
-
 	@ApiOperation(value = "查询单条商城券信息")
 	@GetMapping("/{id}")
 	public @ResponseBody StoreTicket findStoreTicketById(@PathVariable Integer id){

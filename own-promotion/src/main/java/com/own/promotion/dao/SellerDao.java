@@ -16,8 +16,6 @@ public interface SellerDao extends BaseDao<Seller>{
 	@Query(" create (n:Seller{0}) return n; ")
 	public Map createSeller(Map map);
 	
-	
-	
 	/**
 	 * 查询所有参加活动的卖家
 	 * @return

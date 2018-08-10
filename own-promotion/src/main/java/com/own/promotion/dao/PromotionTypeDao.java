@@ -16,8 +16,6 @@ public interface PromotionTypeDao extends BaseDao<PromotionType>{
 	@Query(" create (n:PromotionType{0}) return n; ")
 	public Map createPromotionType(Map map);
 	
-	
-	
 	/**
 	 * 查询所有信息
 	 * @return

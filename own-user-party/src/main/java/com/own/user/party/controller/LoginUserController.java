@@ -11,6 +11,7 @@ import com.own.face.util.base.BaseController;
 import com.own.user.party.dao.LoginUserDao;
 import com.own.user.party.dao.domain.LoginUser;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Blucezhang
  */
 
+@Slf4j
 @RestController
 @RequestMapping("/login")
 public class LoginUserController extends BaseController {

@@ -9,6 +9,7 @@ import com.own.face.util.base.BaseController;
 import com.own.user.party.dao.FunDao;
 import com.own.user.party.dao.domain.Fun;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,9 @@ import org.springframework.web.bind.annotation.*;
  * @author Blucezhang
  *
  */
-@EnableAutoConfiguration  
+@Slf4j
 @RestController
+@RequestMapping("/Fun")
 public class FunController extends BaseController {
 	
 	@Autowired

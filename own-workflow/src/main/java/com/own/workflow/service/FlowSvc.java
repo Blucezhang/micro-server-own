@@ -10,6 +10,7 @@ import com.own.workflow.controller.bean.BizBusinessFlowBean;
 import com.own.workflow.domain.BizBusinessFlowContext;
 import com.own.workflow.domain.BizState;
 import com.own.workflow.domain.FlowView;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 /**
  * View_ProcOper中同一个Process应该具有多条记录，每个人一条记录
  */
+@Slf4j
 @Service
 public class FlowSvc {
 
@@ -34,17 +36,17 @@ public class FlowSvc {
 	/**
 	 * 根据调用的功能名称设置下一个状态
 	 * 
-	 * @param processId
+	 * @param params
 	 * @param params
 	 */
 	public Object doFlow(Map params) {
 
 		if (params.get("processId") == null){
-			System.out.println("流程处理的Id不能为空！！！");
+			log.info("流程处理的Id不能为空！！！");
 		}
 			// throw new IFException("流程处理的Id不能为空！！！");
 		if(params.get("funName")==null){
-			System.out.println("工作流名称不能为空");
+			log.info("工作流名称不能为空");
 		}
 		// 1.获取处理流程的当前状态
 		FlowView bizView = getUniqueFlowView(Long.parseLong(params.get("processId").toString()), params.get("funName").toString().trim());
@@ -68,7 +70,7 @@ public class FlowSvc {
 
 		if (recNum != 1)
 			// throw new IFException("变更流程状态失败！！！");
-			System.out.println("流程处理的Id不能为空！！！");
+			log.info("流程处理的Id不能为空！！！");
 
 		BizState state = new BizState();
 		state.setCurrFlag(true);
@@ -103,7 +105,7 @@ public class FlowSvc {
 
 	/**
 	 * 根据用户LoginId查询用户所有的应该执行的交易
-	 * @param loginId
+	 * @param params
 	 * @return
 	 */
 	public List<?> getUserTransByLoginId(Map params) {
@@ -134,14 +136,12 @@ public class FlowSvc {
 
 	/**
 	 * 添加交易实体类
-	 * @param maps
+	 * @param FlowBean
 	 * @return
 	 */
 	public Object saveAllBusinessProcessMater(BizBusinessFlowBean FlowBean) {
-
 		BizBusinessFlowContext bizContext = new BizBusinessFlowContext();
 		Map<String, Object> entityValue = new HashMap<String, Object>();
-
 		bizContext.setBizTypeId(FlowBean.getBizTypeId());
 		bizContext.setProcessId(FlowBean.getProcessId());
 		entityValue.put("List", FlowBean);

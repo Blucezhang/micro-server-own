@@ -3,6 +3,7 @@ package com.own.product.dao;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.GraphRepository;
 
+
 public interface BaseDao<T> extends GraphRepository<T> {
 	
 	/**

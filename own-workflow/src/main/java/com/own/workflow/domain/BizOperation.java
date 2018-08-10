@@ -14,28 +14,21 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
- 
 
+@Data
 @Entity
 @Table(name="Biz_Operation")
-@Data
 public class BizOperation implements Serializable {
-
-	private static final long serialVersionUID = -4067422147574393393L;
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private String operationId;
-
 	private Long functionId;
 	private Long processId;
-
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date createTime;
-
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date exeTime;
-
 	private String operRole;
 	private String exeFlag;
 	private Long orginOrg;

@@ -12,6 +12,4 @@ rule "run"
         c.setPoint(c.getPoint()+10);  
         c.setBuyNums(c.getBuyNums()*2);  
         c.setBuyMoney(c.getBuyMoney()*2);    
-          
-        
-end  
+end

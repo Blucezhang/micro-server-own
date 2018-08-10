@@ -4,23 +4,20 @@ import com.own.face.util.base.BaseController;
 import com.own.promotion.dao.MallTicketDao;
 import com.own.promotion.dao.domain.MallTicket;
 import io.swagger.annotations.ApiOperation;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping(value="/sale/mallTicket")
 public class MallTicketController extends BaseController{
 
 	@Autowired
 	private MallTicketDao mallTicketDao;
-	
-	Logger log = Logger.getLogger(MallTicketController.class);
-	
-
 	@ApiOperation(value = "查询单条商城券信息")
 	@GetMapping("/{id}")
 	public @ResponseBody MallTicket findMallTicketById(@PathVariable Integer id){

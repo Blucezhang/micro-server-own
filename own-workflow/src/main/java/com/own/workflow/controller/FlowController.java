@@ -10,12 +10,14 @@ import com.own.workflow.domain.BizBusinessFlowContext;
 import com.own.workflow.domain.BizState;
 import com.own.workflow.service.FlowSvc;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * @author BluceZhang
  */
+@Slf4j
 @RestController
 @RequestMapping("/flow")
 public class FlowController extends BaseController {
@@ -26,7 +28,7 @@ public class FlowController extends BaseController {
 	@ApiOperation(value = "根据LoginId查询用户所有的交易")
 	@GetMapping("/workflow")
 	public Map<String,String> getUserWorkFlowTransByLoginId(@RequestParam Map params){
-		System.out.println(params.get("LoginId")+"LoginId");
+		log.info(params.get("LoginId")+"LoginId");
 		Map<String, String> result = new HashMap<String,String>();
 		List<?> transList = flowSvc.getUserTransByLoginId(params);
 		result.put("TransByLoginId", transList.toString());

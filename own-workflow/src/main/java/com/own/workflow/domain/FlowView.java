@@ -21,7 +21,6 @@ public class FlowView implements Serializable,IDomainBase {
 	@Column(name = "convertId", unique = true, nullable = false)
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long convertId;
-
  	private Long processId;
  	private Long prodId;
 	private Integer bizType;

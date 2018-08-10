@@ -14,8 +14,7 @@ public interface MallTicketDao extends BaseDao<MallTicket>{
 	 */
 	@Query(" create (n:MallTicket{0}) return n; ")
 	public Map createMallTicket(Map map);
-	
-	
+
 	
 	/**
 	 * 查询所有商城券

@@ -6,12 +6,14 @@ import java.util.Map;
 
 import com.own.workflow.dao.RdbBaseDao;
 import com.own.workflow.domain.IDomainBase;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class RdbSvc{
  	 
@@ -36,7 +38,7 @@ public class RdbSvc{
 			objPo = (IDomainBase)baseDao.find(obj,objPo.getObjectId());
 			if(objPo==null)
 				//throw new IFException("要更新的实体记录不存在！");
-				System.out.println("要更新的实体记录不存在！");
+				log.info("要更新的实体记录不存在！");
 			BeanUtils.copyProperties(obj,objPo);
 			baseDao.save(objPo);
 			return objPo;
@@ -55,7 +57,7 @@ public class RdbSvc{
 		Object objPo = baseDao.find(obj, ((IDomainBase)obj).getObjectId());
 		if(objPo==null)
 			//throw new IFException("要更新的实体记录不存在！");
-		System.out.println("要更新的实体记录不存在！");
+		log.info("要更新的实体记录不存在！");
 		BeanUtils.copyProperties(obj,objPo);
 		
 		baseDao.save(objPo);
@@ -69,41 +71,33 @@ public class RdbSvc{
 	 */
 	public <T> void delete(Object obj){
 		if(!(obj instanceof IDomainBase))
-				//throw new IFException("该实体没有继承IDomainBase！！！");
-		System.out.println("该实体没有继承IDomainBase！！！");
+		log.info("该实体没有继承IDomainBase！！！");
 		Object key = ((IDomainBase)obj).getObjectId();
 		Object object = baseDao.find(obj, key);
 		if(obj==null)
-			//throw new IFException("要删除的实体不存在或已被删除！");
-			System.out.println("要删除的实体不存在或已被删除！");
+			log.info("要删除的实体不存在或已被删除！");
 		baseDao.remove(object);
 	}
 	
 	/**
 	 * 通用的查询指定实体方法
-	 * @param clazz 实体类型
+	 * @param obj 实体类型
 	 * @param primaryKey 实体主键
 	 * @return
 	 */
 	public Object find(Object obj){
 		if(!(obj instanceof IDomainBase))
-			//throw new IFException("该实体没有继承IDomainBase！！！");
-			System.out.println("该实体没有继承IDomainBase！！！");
+			log.info("该实体没有继承IDomainBase！！！");
 		Object key = ((IDomainBase)obj).getObjectId();
 		Object returnO = baseDao.find(obj, key);
-		
-		//if(returnO==null)
-		//	throw new IFException("找不到该实体的实例!!!");
 		return returnO;
 	}
 	
 	//根据实体和key进行查找
 	public Object find(Object obj,Object key){
 		if(!(obj instanceof IDomainBase))
-				//throw new IFException("该实体没有继承IDomainBase！！！");
-			System.out.println("该实体没有继承IDomainBase！！！");
+			log.info("该实体没有继承IDomainBase！！！");
   		Object returnO = baseDao.find(obj, key);
-  
 		return returnO;
 	}
 	
@@ -151,13 +145,11 @@ public class RdbSvc{
  	
 	@Transactional
 	public int exeSql(String sql,Map params){
-		
 		int count = baseDao.exeNativeUpdate(sql, params);
 		return count;
 	}
 	
 	public Object findObject(String jsql,Map paramMap){
-		
 		return baseDao.findObject(jsql, paramMap);
 	}
 	

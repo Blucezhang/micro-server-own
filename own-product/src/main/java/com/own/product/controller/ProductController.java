@@ -37,6 +37,7 @@ public class ProductController extends BaseController {
     @GetMapping("/Product/{id}")
     public @ResponseBody Product getProduct(@PathVariable Long id) {
         Product product = productDao.queryProductById(id);
+        log.info("product:{}",product.toString());
         return product;
     }
 
@@ -56,6 +57,7 @@ public class ProductController extends BaseController {
             }
             String cypher = createQueryCypher(categoryIds, partyId, "product");
             iterable = template.queryForObjects(Product.class, cypher, new HashMap());
+            log.info("iterable:{}",iterable);
         }
         //根据产品id查询
         else if (!Util.isNullOrEmpty(parms.get("productId"))) {
@@ -115,6 +117,7 @@ public class ProductController extends BaseController {
             sb.append(" where p.partyId=" + partyId);
         }
         sb.append(" return p ");
+        log.info("sb:{}",sb.toString());
         return sb.toString();
     }
 
@@ -131,7 +134,7 @@ public class ProductController extends BaseController {
     }
 
     @ApiOperation(value = "添加产品")
-    @PutMapping("")
+    @PutMapping("/addProduct")
     public Product addProduct(@RequestBody ProductBean productBean) {
         Product product = new Product();
         product.setName(productBean.getName());
@@ -150,6 +153,7 @@ public class ProductController extends BaseController {
                 productDao.createRelation(product.getId(), productTypeId);
             }
         }
+        log.info("addProduct pro:{}",product);
         return product;
     }
 
@@ -159,7 +163,6 @@ public class ProductController extends BaseController {
         Product product = productDao.queryProductById(id);
         product.setName(productBean.getName());
         product.setContent(productBean.getContent());
-
         product.setPartyId(productBean.getPartyId());
         product.setOriginalPrice(productBean.getOriginalPrice());
         product.setPromotionPrice(productBean.getPromotionPrice());
@@ -167,7 +170,6 @@ public class ProductController extends BaseController {
         product.setSalesNum(productBean.getSalesNum());
         product.setCategoryId(productBean.getCategoryId());
         product.setBrandId(productBean.getBrandId());
-
         return productDao.save(product);
     }
 
@@ -176,6 +178,8 @@ public class ProductController extends BaseController {
     public void delProduct(@PathVariable Long id) {
         productDao.deleteProduct(id);
     }
+
+
 
     @ApiOperation(value = "根据ID查询产品模板")
     @GetMapping("/template/{id}")
@@ -201,6 +205,7 @@ public class ProductController extends BaseController {
         } else {
             iterable = productDao.queryTemplate();
         }
+        log.info("queryTemplate methed return iterable:{}",iterable);
         return iterable;
     }
 
@@ -215,6 +220,7 @@ public class ProductController extends BaseController {
                 productDao.createTemplateRelation(template.getId(), productTypeId);
             }
         }
+        log.info("createTemplate return Obj:{}",template);
         return template;
     }
 
@@ -225,6 +231,7 @@ public class ProductController extends BaseController {
         templateEntity.setName(templateBean.getName());
         templateEntity.setContent(templateBean.getContent());
         template.save(templateEntity);
+        log.info("updTemplate return Obj:{}",templateEntity.toString());
         return templateEntity;
     }
 

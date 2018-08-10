@@ -13,12 +13,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+@Data
 @Entity
 @Table(name="Biz_Type")
-@Data
 public class BizType implements Serializable {
 
-	private static final long serialVersionUID = 4131056358436993259L;
 
 	@Id
 	@Column(name = "bizTypeId", unique = true, nullable = false)

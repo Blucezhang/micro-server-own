@@ -17,6 +17,7 @@ import com.own.promotion.controller.bean.SellerBean;
 import com.own.promotion.dao.*;
 import com.own.promotion.dao.domain.*;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Logger;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
@@ -24,7 +25,7 @@ import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-
+@Slf4j
 @RestController
 @RequestMapping(value = "/sale/promotion")
 public class PromotionController  extends BaseController {
@@ -39,8 +40,6 @@ public class PromotionController  extends BaseController {
 	private MallTicketDao mallTicketDao;
 	@Autowired
 	private StoreTicketDao storeTicketDao;
-
-	Logger log = Logger.getLogger(PromotionController.class);
 
 	@ApiOperation(value = "查询单条活动信息")
 	@GetMapping("/{id}")

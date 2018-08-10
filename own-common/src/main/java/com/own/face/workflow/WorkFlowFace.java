@@ -6,16 +6,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.face.core.FaceBase;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class WorkFlowFace extends FaceBase {
 
 	private String ServiceUrl = "http://WORKFLOW/";
-
-
-	protected org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(this.getClass());
-
 
 	/**
 	 * getAllWorkFlowByLoginId

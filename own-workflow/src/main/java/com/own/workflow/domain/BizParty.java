@@ -9,10 +9,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
- 
+
+@Data
 @Entity
 @Table(name="Biz_Party")
-@Data
 public class BizParty implements Serializable {
 
 	private static final long serialVersionUID = -9129050135050885452L;

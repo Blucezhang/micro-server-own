@@ -16,8 +16,6 @@ public interface StoreTicketDao extends BaseDao<StoreTicket>{
 	@Query(" create (n:StoreTicket{0}) return n; ")
 	public Map createStoreTicket(Map map);
 	
-	
-	
 	/**
 	 * 查询所有店铺券信息
 	 * @return

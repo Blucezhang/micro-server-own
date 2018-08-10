@@ -7,18 +7,16 @@ import com.own.promotion.dao.domain.Product;
 import com.own.promotion.dao.domain.Scope;
 import org.springframework.data.neo4j.annotation.Query;
 public interface ProductDao extends BaseDao<Product>{
+
 	/**
 	 * 此处的商品是指参加活动的商品，下同
 	 */
-	
 	/**
 	 * 创建商品数据
 	 * {0} 代表传入的参数
 	 */
 	@Query(" create (n:Product{0}) return n; ")
 	public Map createProduct(Map map);
-	
-	
 	
 	/**
 	 * 查询所有商品信息
@@ -54,14 +52,5 @@ public interface ProductDao extends BaseDao<Product>{
 	@Query("START startNode=node({0}),endNode=node({1}) CREATE (startNode)-[:JOIN]->(endNode)")
 	public void createRelationshipJoin(Integer startNodeId, Integer endNodeId, String relationShipType);
 	
-//	/**
-//	 * 为活动添加不参加商品
-//	 * relationship:DISJOIN
-//	 */
-//	@Query("START startNode=node({0}),endNode=node({1}) CREATE (startNode)-[:DISJOIN]->(endNode)")
-//	public void createRelationshipDisjoin(Integer startNodeId,Integer endNodeId,String relationShipType);
-	
-	
-	 
-	 
+
 }

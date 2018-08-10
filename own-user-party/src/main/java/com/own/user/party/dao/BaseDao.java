@@ -41,7 +41,6 @@ public interface BaseDao<T> extends GraphRepository<T> {
      * @return
      */
     @Query("START startNode=node({0}),endNode=node({1}) CREATE (startNode)-[:CONTAIN]->(endNode)")
-	//@Query("MATCH (p:Person { name: {0} }), (o:Organization { name: {1} }) CREATE (p)-[:{2}]->(o)")
     public void createRelationship(Integer startNodeId, Integer endNodeId, String relationShipType);
     
     /**

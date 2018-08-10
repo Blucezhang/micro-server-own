@@ -7,18 +7,17 @@ import java.util.Map;
 
 import com.own.face.core.FaceBase;
 import com.own.face.core.IfException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 
 
-
+@Slf4j
 @Service
 public class ProductFace extends FaceBase {
 
  	protected String serviceUrl="//PRODUCT/";
 
-	protected org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(this.getClass());
  	/**
  	 * 查询产品
  	 * @param id

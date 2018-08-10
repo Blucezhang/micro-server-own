@@ -14,12 +14,11 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+@Data
 @Entity
 @Table(name="Biz_Relation")
-@Data
 public class BizRelation implements Serializable {
 
-	private static final long serialVersionUID = -3921977620097393758L;
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -27,6 +26,4 @@ public class BizRelation implements Serializable {
 	private Long firstProcessId;
 	private Long secondProcessId;
 	private Integer bizRelationTypeId;
-
-  
 }

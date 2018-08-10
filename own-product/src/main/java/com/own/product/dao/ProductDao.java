@@ -28,9 +28,7 @@ public interface ProductDao extends BaseDao<Product>{
 	
 	@Query("create(n:Product {0}) return n")
 	public Product createProduct(Map map);
-	/* Product End */
-	
-	/* Template Start */
+
 	@Query("create(n:Template {0}) return n")
 	public Template createTemplate(Map map);
 	
@@ -42,5 +40,4 @@ public interface ProductDao extends BaseDao<Product>{
 	
 	@Query("start startNode=node({0}),endNode=node({1}) create(endNode)-[r:template]->(startNode)")
 	public void createTemplateRelation(Long startId, Long endId);
-	/* Template End */
 }

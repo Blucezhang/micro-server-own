@@ -6,18 +6,16 @@ import java.util.Map;
 
 import com.own.face.core.FaceBase;
 import com.own.face.core.IfException;
-import org.springframework.http.HttpEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
-
+@Slf4j
+@Service
 public class SettleFace extends FaceBase {
 
 
  	protected String serviceUrl="//SETTLEMENT/";
 
-	protected org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(this.getClass());
-      
  	/**
  	 * 支付交易
  	 * @param s

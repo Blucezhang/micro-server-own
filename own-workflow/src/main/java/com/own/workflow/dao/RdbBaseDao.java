@@ -10,6 +10,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author BluceZhang
  */
+@Slf4j
 @Repository
 public class RdbBaseDao{
 
@@ -27,27 +29,22 @@ public class RdbBaseDao{
 	protected EntityManager em;  
 
 	public <T> T save(T obj){
+		log.info("RdbBaseDao methed save{}",obj);
 		em.persist(obj);
 		return obj;
 	}
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#findCommonEntry(java.lang.Class, java.lang.Object)
-	 */
-	 
+
 	public Object  find(Object obj,Object key){
+		log.info("RdbBaseDao methed find{}{}",key,obj);
 		Class<? extends Object> clazz = obj.getClass();
 	 		return em.find(clazz, key);
 	}
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#removeCommonEntry(java.lang.Object)
-	 */
+
 	public void remove(Object obj){
 		em.remove(obj);
 	}
 	
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#findAllByConditions(java.lang.String, java.util.Map, org.springframework.data.domain.Pageable)
-	 */
+
 	public Page<?> findPage(String jsql, String countJsql, Map<String, ?> paramsMap, Pageable pageable){
 		Integer count = 0;
 		if(countJsql!=null&&!"".equals(countJsql)){
@@ -75,10 +72,6 @@ public class RdbBaseDao{
 		return page;
 	}
 	
-	
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#findAllByConditions(java.lang.String, java.util.Map, org.springframework.data.domain.Pageable)
-	 */
 	public Page<?> findAll2Page(String jsql,Map<String, ?> paramsMap){
 		 
 		Query query = em.createQuery(jsql);  
@@ -121,32 +114,20 @@ public class RdbBaseDao{
 		return query.getSingleResult();
  	}
 	
-	
-	
-	
-	
 
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#findAllByConditions(java.lang.String, java.lang.String, org.springframework.data.domain.Pageable)
-	 */
 	public Page<?> findAllByConditions(String jsql, String countJsql,Pageable pageable) {
-		
 		return findPage(jsql, countJsql, null, pageable);
 	}
 
-	/* (non-Javadoc)
-	 * @see rdb.dao.base.IBaseDao#exeNativeUpdate(java.lang.String, java.util.Map)
-	 */
+
 	public int exeNativeUpdate(String sql, Map<String, ?> paramsMap) {
 		Query query = em.createNativeQuery(sql);  
-		if(paramsMap!=null){
-			for (Entry<String, ?> entry: paramsMap.entrySet()) {
+		if(paramsMap!=null) {
+			for (Entry<String, ?> entry : paramsMap.entrySet()) {
 				query.setParameter(entry.getKey(), entry.getValue());
 			}
 		}
-		
 		int rec = 0;
-		
 		try{
 			rec = query.executeUpdate();
 		}catch(Exception e){
@@ -155,13 +136,7 @@ public class RdbBaseDao{
  		    return rec;
 		}
  	}
-	
-	/**
-	 * @param sql
-	 * @param paramsMap
-	 * @param pageable
-	 * @return
-	 */
+
 	public Page<?> findAllByNativeSql(String sql,String countSql, Map<String, ?> paramsMap, Pageable pageable){
 		Integer count = 0;
 		if(countSql!=null&&!"".equals(countSql)){
@@ -175,8 +150,6 @@ public class RdbBaseDao{
 		}
 		
 		Query query = em.createNativeQuery(sql);  
-//		Query query = em.createNativeQuery(sql,"java.util.HashMap").unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);  
-
 		if(paramsMap!=null){
 			for (Entry<String, ?> entry: paramsMap.entrySet()) {
 				query.setParameter(entry.getKey(), entry.getValue());
@@ -214,9 +187,7 @@ public class RdbBaseDao{
 
   	 
 	public int exeSql(String sql, Map<String,?> paramsMap) {
-		//执行hsql
-	 		 
-			Query query = em.createNamedQuery(sql);  
+			Query query = em.createNamedQuery(sql);
 			if(paramsMap!=null){
 				for (Entry<String, ?> entry: paramsMap.entrySet()) {
 					query.setParameter(entry.getKey(), entry.getValue());

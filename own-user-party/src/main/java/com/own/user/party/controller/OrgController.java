@@ -11,12 +11,11 @@ import com.own.user.party.dao.LoginUserDao;
 import com.own.user.party.dao.OrgDao;
 import com.own.user.party.dao.domain.Organization;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-/**
- *
- */
+@Slf4j
 @RestController
 @RequestMapping("/org")
 public class OrgController extends BaseController {

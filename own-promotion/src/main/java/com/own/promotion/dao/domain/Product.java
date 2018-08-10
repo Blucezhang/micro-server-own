@@ -9,6 +9,7 @@ import org.neo4j.ogm.annotation.NodeEntity;
 @Data
 @NodeEntity
 public class Product {
+
 	@GraphId
 	private Long id;
 	private String productId;//商品id

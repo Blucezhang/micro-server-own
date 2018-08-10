@@ -7,18 +7,18 @@ import com.own.face.util.base.BaseController;
 import com.own.promotion.dao.ScopeDao;
 import com.own.promotion.dao.domain.Scope;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-
+@Slf4j
 @RestController
 @RequestMapping(value="/sale/scope")
 public class ScopeController extends BaseController {
 	
 	@Autowired
 	private ScopeDao scopeDao;
-	Logger log = Logger.getLogger(ScopeController.class);
 
 	@ApiOperation(value = "查询单条scope信息")
 	@GetMapping("/{id}")

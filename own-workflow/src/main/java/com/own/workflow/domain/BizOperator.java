@@ -9,9 +9,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+@Data
 @Entity
 @Table(name="Biz_Operator")
-@Data
 public class BizOperator implements Serializable,IDomainBase {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

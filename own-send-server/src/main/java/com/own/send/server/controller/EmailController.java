@@ -20,9 +20,9 @@ import java.util.Map;
 /**
  * Created by Bluce on 2018/4/4.
  */
+@Slf4j
 @RestController
 @RequestMapping(value="/Info")
-@Slf4j
 public class EmailController extends BaseController {
 
     @Autowired
@@ -31,8 +31,6 @@ public class EmailController extends BaseController {
     private CommonInfoSvc cifSvc;
     @Autowired
     public ConfigProperty configProperty;
-
-
 
     @ApiOperation(value = "根据id查询email信息") @GetMapping("/email/{id}")
     public @ResponseBody Email getEmail(@PathVariable int id){
@@ -68,12 +66,12 @@ public class EmailController extends BaseController {
     @PostMapping("/email")
     public String sendEmail(@RequestBody Map param) throws Throwable{//use this method to get param value
         Email mail = (Email)param.get("Email");
-        System.out.println("传入email:"+mail.getTitle());
+       log.info("传入email:{}",mail.getTitle());
         String result = "";
         String emailAccount = param.get("emailAccount")!=null?param.get("emailAccount").toString():null;//email 账号
         String title =  param.get("title")!=null?param.get("title").toString():null;
         String content =  param.get("content")!=null?param.get("content").toString():null;
-        System.out.println("邮箱账号："+emailAccount+" 邮件标题："+title+" 邮件内容："+content);
+        log.info("邮箱账号："+emailAccount+" 邮件标题："+title+" 邮件内容："+content);
         if(null!=emailAccount && null!=title && null!=content){
             Email email = new Email();
             SendMail sm = new SendMail();
@@ -116,7 +114,6 @@ public class EmailController extends BaseController {
                 }else{
                     log.error("保存公共信息表失败!");
                 }
-
                 result = "success";
             }else{
                 result = "failed";
@@ -147,7 +144,6 @@ public class EmailController extends BaseController {
     @ApiOperation(value = "mvc 测试")
     @GetMapping("/email/test")
     public ModelAndView getEmailTest(){
-        // index match html file name ,not contain suffix
         ModelAndView mv = new ModelAndView("index");
         System.out.println("Internet the index page !");
         return mv;

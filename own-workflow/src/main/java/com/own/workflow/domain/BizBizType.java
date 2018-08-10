@@ -13,12 +13,11 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+@Data
 @Entity
 @Table(name="Biz_BizType")
-@Data
 public class BizBizType implements Serializable {
 
-	private static final long serialVersionUID = 322594978128004935L;
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -27,7 +26,6 @@ public class BizBizType implements Serializable {
 	private Long bizTypeId;
 	private String note;
 	private Boolean currFlag;
-
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date updateTime;
 }

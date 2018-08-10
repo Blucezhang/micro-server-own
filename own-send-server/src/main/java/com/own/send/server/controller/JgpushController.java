@@ -16,9 +16,9 @@ import java.util.List;
 /**
  * Created by Bluce on 2018/4/4.
  */
+@Slf4j
 @RestController
 @RequestMapping(value = "/Info")
-@Slf4j
 public class JgpushController extends BaseController {
 
     @Autowired
@@ -26,16 +26,15 @@ public class JgpushController extends BaseController {
     @Autowired
     public ConfigProperty configProperty;
 
-
     @ApiOperation(value = "根据id查询极光信息")
-   @GetMapping("/jgpush/{id}")
+    @GetMapping("/jgpush/{id}")
     public Jgpush findJgpush(@PathVariable Integer id) {
         return jgpushSvc.findJgpushById(id);
     }
 
 
     @ApiOperation(value = "推送极光消息")
-   @PostMapping("/jgpush")
+    @PostMapping("/jgpush")
     public String sendJgpush(@RequestBody Jgpush jp) {
         //获取配置信息
         String appKey = configProperty.getAppKey();

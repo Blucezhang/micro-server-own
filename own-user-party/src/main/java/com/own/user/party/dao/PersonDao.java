@@ -12,7 +12,6 @@ public interface PersonDao extends BaseDao<Person>  {
 	
 	/**
 	 * 通过类名查询所有用户
-	 * @param attributeName
 	 * @return
 	 */
 	@Query("MATCH (n:Person {}) return n")
@@ -20,7 +19,6 @@ public interface PersonDao extends BaseDao<Person>  {
 	
 	/**
 	 * 根据节点实体类名和节点name属性查询信息
-	 * @param attributeName 节点属性key
 	 * @return T
 	 */
 	@Query("MATCH (n:Person { name:{0},phone:{1},email:{2}}) return n")

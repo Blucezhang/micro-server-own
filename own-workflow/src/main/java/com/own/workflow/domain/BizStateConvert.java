@@ -13,9 +13,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+@Data
 @Entity
 @Table(name="Biz_StateConvert")
-@Data
 public class BizStateConvert implements Serializable,IDomainBase {
 	@Id
 	@Column(name = "ConvertId", unique = true, nullable = false)

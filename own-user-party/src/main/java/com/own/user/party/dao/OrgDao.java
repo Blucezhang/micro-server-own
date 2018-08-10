@@ -27,7 +27,6 @@ public interface OrgDao extends BaseDao<Organization> {
 	
 	/**
 	 * 查询组织机构最高级
-	 * @param attributeName
 	 * @return
 	 */
 	@Query("MATCH (n:Table {table:'par_org'})-[r:data]->(o) return o")

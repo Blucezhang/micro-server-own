@@ -12,7 +12,6 @@ public interface OrgDao extends BaseDao<Organization> {
 	
 	/**
 	 * 创建数据
-	 * @param Map
 	 */
 	@Query("create (n {0}) return n")
     public Map createOrg(Map o);
@@ -26,7 +25,6 @@ public interface OrgDao extends BaseDao<Organization> {
 	
 	/**
 	 * 查询组织机构最高级
-	 * @param attributeName
 	 * @return
 	 */
 	@Query("MATCH (n:Table {table:'par_org'})-[r:data]->(o) return o")
@@ -52,8 +50,6 @@ public interface OrgDao extends BaseDao<Organization> {
 	 * 创建组织机构节点关系
 	 * @param id
 	 */
-	/*@Query("START n=node({0}) MATCH(o:Table {table:'par_org'}) create (o)-[r:{1}]->(n)")
-	public void createRelationShipData(Long id,RelTypes knows);*/
 	@Query("START n=node({0}) MATCH(o:Table {table:'par_org'}) create (o)-[r:data]->(n)")
 	public void createRelationShipData(Long id);
  

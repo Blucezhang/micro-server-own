@@ -23,7 +23,6 @@ public interface ScopeDao extends BaseDao<Scope>{
 	@Query(" match (n:Scope) return n ;")
 	public List<Scope> findAllScope();
 	
-	
 	/**
 	 * 查询范围
 	 * @param id

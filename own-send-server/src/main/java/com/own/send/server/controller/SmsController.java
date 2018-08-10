@@ -22,9 +22,9 @@ import java.util.Properties;
 /**
  * Created by Bluce on 2018/4/4.
  */
+@Slf4j
 @RestController
 @RequestMapping(value = "/Info")
-@Slf4j
 public class SmsController extends BaseController {
 
     @Autowired
@@ -86,20 +86,19 @@ public class SmsController extends BaseController {
                     Properties props = PropertiesLoaderUtils.loadAllProperties("Properties/Action.properties");
 
                     Sms msg = new Sms();
-                    System.out.println("手机号：" + mobile + " 短信内容：" + content + " 发送短信url：" + props.getProperty("sms.serviceURL"));
+                    log.info("手机号：" + mobile + " 短信内容：" + content + " 发送短信url：" + props.getProperty("sms.serviceURL"));
                     if (mobile != null && content != null) {
 
                         //短信发送测试成功，暂时注释掉
                         MsgResult msgresult = sendsms.sendSms(mobile, content, serviceURL, sn, pwd);
 
                         //返回结果：errMsg:null,sysSuccMsg:null,state:succ
-                        System.out.println("失败信息：" + msgresult.getErrMsg() + " 成功信息： " + msgresult.getSysSuccMsg() + " state:" + msgresult.getState());
+                       log.info("失败信息：" + msgresult.getErrMsg() + " 成功信息： " + msgresult.getSysSuccMsg() + " state:" + msgresult.getState());
                         //将信息入库
                         msg.setReceiveMobile(mobile);
                         msg.setContent(content);
                         msg.setCreateTime(new Date());
                         msg.setThirdResult(msgresult.getState());
-//						msg.setThirdResult("succ");
                         msg.setEndTime(new Date());
                         msg.setSendXML("xml");
                         msg.setReceiveXML("xml");
@@ -110,7 +109,6 @@ public class SmsController extends BaseController {
                         msg = smsSvc.save(msg);
                         if (null != msg.getId() && 0 < msg.getId()) {
                             log.info("保存成功,返回id：" + msg.getId());//此时会生成新的id并返回
-//							result = result.getState();
                             //此时要保存公共信息表
                             CommonInfo cif = new CommonInfo();
                             cif.setReceiveAccount(mobile);
@@ -126,7 +124,6 @@ public class SmsController extends BaseController {
                             } else {
                                 log.error("保存公共信息表失败!");
                             }
-
                             result = "success";
                         } else {
                             result = "failed";
@@ -140,14 +137,12 @@ public class SmsController extends BaseController {
                 } else if ("receive".equals(Action)) {
                     log.info("接收信息.....");
                     Sms msg = new Sms();
-                    System.out.println("手机号：" + mobile + " 短信内容：" + content);
+                  log.info("手机号：" + mobile + " 短信内容：" + content);
                     if (mobile != null && content != null) {
                         //将信息入库
                         msg.setSendMobile(mobile);
                         msg.setContent(content);
                         msg.setCreateTime(new Date());
-//						msg.setThirdResult(result.getState());
-//						msg.setThirdResult("succ");
                         msg.setEndTime(new Date());
                         msg.setSendXML("xml");
                         msg.setReceiveXML("xml");

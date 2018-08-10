@@ -8,17 +8,17 @@ import com.own.promotion.dao.PromotionTypeDao;
 import com.own.promotion.dao.domain.PromotionType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping(value="/sale/promotionType")
 public class PromotionTypeController extends BaseController {
 	@Autowired
 	private PromotionTypeDao promotionTypeDao;
-	
-	Logger log = Logger.getLogger(PromotionTypeController.class);
 
 	@ApiOperation(value = "查询单条活动信息")
 	@GetMapping("/{id}")
