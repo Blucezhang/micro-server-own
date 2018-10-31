@@ -3,13 +3,12 @@ package com.own.user.party.controller;
 import java.util.List;
 
 import com.own.face.party.RoleBean;
-import com.own.face.util.base.BaseController;
+
+import com.own.face.util.Resp;
 import com.own.user.party.dao.RoleDao;
 import com.own.user.party.dao.domain.Role;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/role")
-public class RoleController extends BaseController {
+public class RoleController {
 
 	@Autowired
 	private RoleDao roleDao = null;
@@ -30,9 +29,9 @@ public class RoleController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(value="/Role",method=RequestMethod.GET)
-	public List<Role> getAllRole(){
+	public Resp getAllRole(){
 		List<Role> roleList = roleDao.getAllRole();
-		return roleList;
+		return new Resp(roleList);
 	}
 
 	/**
@@ -48,7 +47,6 @@ public class RoleController extends BaseController {
 			role.setOrgId(roleBean.getOrgId());
 		role.setPartmentId(roleBean.getPartmentId());
 		roleDao.save(role);
-
 		roleDao.createRelationShipWithRole(role.getRole());
 
 		//添加功能

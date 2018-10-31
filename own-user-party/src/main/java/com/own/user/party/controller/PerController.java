@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.face.party.PersonBean;
-import com.own.face.util.base.BaseController;
+import com.own.face.util.Resp;
 import com.own.user.party.dao.LoginUserDao;
 import com.own.user.party.dao.OrgDao;
 import com.own.user.party.dao.PersonDao;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/per")
-public class PerController extends BaseController {
+public class PerController  {
 
 	@Autowired
 	private PersonDao personDao = null;
@@ -31,16 +31,17 @@ public class PerController extends BaseController {
 
 	@ApiOperation(value = "查询所有的person用户")
 	@GetMapping("/Person")
-	public@ResponseBody List<Person> queryAllPerson(){
+	public@ResponseBody
+	Resp queryAllPerson(){
 		List<Person>  persons = personDao.queryPerson();
- 		return persons;
+ 		return new Resp(persons);
  	}
 
 	@ApiOperation(value = "根据id查询person信息")
 	@GetMapping("/Person/{personid}")
-	public @ResponseBody Person getPerson(@PathVariable Integer personid){
+	public @ResponseBody Resp getPerson(@PathVariable Integer personid){
 		Person person = (Person) personDao.getFromId(personid);
- 		return person;
+ 		return new Resp(person);
  	}
 
 	@ApiOperation(value = "创建person信息")
@@ -69,7 +70,7 @@ public class PerController extends BaseController {
 
 	@ApiOperation(value = "根据id修改person信息")
 	@PostMapping("/Person/{id}")
-	public @ResponseBody Map updPerson(@PathVariable Integer id,@RequestBody PersonBean pb){
+	public @ResponseBody Resp updPerson(@PathVariable Integer id,@RequestBody PersonBean pb){
 		Person person = (Person) personDao.getFromId(id);
 		if(pb.getEmail()!=null)
 		person.setEmail(pb.getEmail());
@@ -82,8 +83,7 @@ public class PerController extends BaseController {
 		if(pb.getShipaddress()!=null)
 		person.setShipaddres(pb.getShipaddress());
 		Map map=new HashMap<>();
-		map.put("person",  personDao.save(person));
-		return map;
+		return new Resp(personDao.save(person));
  	}
 
 	@ApiOperation(value = "根据id删除person信息")

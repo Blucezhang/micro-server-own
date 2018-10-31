@@ -1,6 +1,6 @@
 package com.own.send.server.controller;
 
-import com.own.face.util.base.BaseController;
+import com.own.face.util.Resp;
 import com.own.send.server.domain.CommonInfo;
 import com.own.send.server.domain.Sms;
 import com.own.send.server.prop.ConfigProperty;
@@ -25,7 +25,7 @@ import java.util.Properties;
 @Slf4j
 @RestController
 @RequestMapping(value = "/Info")
-public class SmsController extends BaseController {
+public class SmsController {
 
     @Autowired
     private SmsSvc smsSvc;
@@ -34,11 +34,9 @@ public class SmsController extends BaseController {
     @Autowired
     public ConfigProperty configProperty;
 
-
-
     @ApiOperation(value = "查询短信列表（搜索功能，无搜索条件时，查所有）")
     @GetMapping("/sms")
-    public List getMessageList(@RequestParam Integer id, String title, String content) {
+    public Resp getMessageList(@RequestParam Integer id, String title, String content) {
         log.info("获取短信列表信息.....id:" + id + " title:" + title + "  content:" + content);
         StringBuffer sb = new StringBuffer();
         if (id != null && !"".equals(id)) {
@@ -54,7 +52,7 @@ public class SmsController extends BaseController {
 
         List list = smsSvc.getSms(sb.toString());
         log.info("查询集合长度：" + list.size());
-        return list;
+        return new Resp(list);
 
     }
 
@@ -65,8 +63,7 @@ public class SmsController extends BaseController {
      */
     @ApiOperation(value = "发送短信")
    @PostMapping("/sms")
-    public String sendSms(@RequestBody Map param) throws Throwable {//use this method to get param value
-
+    public Resp sendSms(@RequestBody Map param) throws Throwable {//use this method to get param value
         String Action = param.get("Action") != null ? param.get("Action").toString() : null;
         String mobile = param.get("mobile") != null ? param.get("mobile").toString() : null;
         String content = param.get("content") != null ? param.get("content").toString() : null;
@@ -181,7 +178,7 @@ public class SmsController extends BaseController {
             log.error("手机号格式错误");
             result = "failed";
         }
-        return result;
+        return new Resp(result);
     }
 
     /**
@@ -191,14 +188,14 @@ public class SmsController extends BaseController {
      * @return
      */
    @GetMapping("/sms/{id}")
-    public Sms findSms(@PathVariable Integer id) {
-        Sms sms = smsSvc.findSmsById(id);
-        return sms;
+    public Resp findSms(@PathVariable Integer id) {
+        log.info("根据id查询短信信息");
+        return new Resp(smsSvc.findSmsById(id));
     }
 
     @ApiOperation(value = "修改短信，比如暂存草稿,入参为Sms实体对象")
     @PutMapping("/sms")
-    public Sms updateSms(@RequestBody Sms sms) {
+    public Resp updateSms(@RequestBody Sms sms) {
         Sms ss = sms;
         log.info("修改短信信息......" + ss.getContent());
         if (ss != null) {
@@ -210,8 +207,7 @@ public class SmsController extends BaseController {
                 ee.printStackTrace();
             }
         }
-        return sms;
+        return new Resp(sms);
     }
-
 
 }

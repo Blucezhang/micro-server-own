@@ -6,8 +6,8 @@ import java.util.Map;
 
 import com.own.face.party.LoginUserBean;
 import com.own.face.party.UserBean;
+import com.own.face.util.Resp;
 import com.own.face.util.Util;
-import com.own.face.util.base.BaseController;
 import com.own.user.party.dao.LoginUserDao;
 import com.own.user.party.dao.domain.LoginUser;
 import io.swagger.annotations.ApiOperation;
@@ -24,14 +24,14 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/login")
-public class LoginUserController extends BaseController {
+public class LoginUserController {
 
 	@Autowired
 	private LoginUserDao loginUserDao = null;
 
 	@ApiOperation(value = " 用户登录")
 	@PostMapping("/Login")
-	public Map<String,Object> login(@RequestBody UserBean userBean) {
+	public Resp login(@RequestBody UserBean userBean) {
 		Map result  = new HashMap();
 		String name = Util.toStringAndTrim(userBean.getLoginUserName());
 		String password = Util.toStringAndTrim(userBean.getPassword());
@@ -40,25 +40,24 @@ public class LoginUserController extends BaseController {
 
 		if (lists.size()<=0) {
 			result.put("message", "teller_does_not_exist");
-			return result;
+			return new Resp(result);
 		}
 		result.put("LoginUser", lists.get(0));
 		result.put("person", lists.get(1));
-		return result;
+		return new Resp(result);
 		
 	}
 
 	@ApiOperation(value = "根据用户Id查询登录用户的Detail")
 	@GetMapping("/getLoginUser/{loginId}")
-	public LoginUser getDetail(@PathVariable Long loginId) {
-		Map<String, Object> result = new HashMap<String, Object>();
+	public Resp getDetail(@PathVariable Long loginId) {
 		LoginUser loginuser = (LoginUser) loginUserDao.getLoginUser(loginId);
-		return loginuser;
+		return new Resp(loginuser);
 	}
 
 	@ApiOperation(value = "修改密码")
 	@PostMapping("/updatePassword")
-	public Map<String, Object> updatePassword(@RequestBody UserBean userBean) {
+	public Resp updatePassword(@RequestBody UserBean userBean) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		String loginName = userBean.getLoginUserName();
 		String password = userBean.getPassword();
@@ -73,15 +72,14 @@ public class LoginUserController extends BaseController {
 					userBean.getNewpassword());
 			result.put("loginUser", loginUser);
 		}
-		return result;
+		return new Resp(result);
 	}
 
 	@ApiOperation(value = "查询所有LoginUser用户")
 	@GetMapping("/LoginUser")
-	public @ResponseBody List<LoginUser> queryAllLoginUser() {
-		Map<String, Object> result = new HashMap<String, Object>();
+	public @ResponseBody Resp queryAllLoginUser() {
 		List<LoginUser> LoginUserList = loginUserDao.queryAllLoginUser();
-		return LoginUserList;
+		return new Resp(LoginUserList);
 	}
 
 	@ApiOperation(value = "创建LoginUser")

@@ -14,8 +14,10 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.own.face.util.Resp;
 import com.own.face.util.base.BaseController;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -31,7 +33,8 @@ public class FileController extends BaseController {
 
 	@ApiOperation(value = "图片上传接口")
 	@PostMapping("/picture")
-	public @ResponseBody Map<String, String> uploadFile(MultipartHttpServletRequest request) {
+	public @ResponseBody
+	Resp uploadFile(MultipartHttpServletRequest request) {
 		File fileUploadPath = new File(tTmpInfoFilePath);//tme
 		if (!fileUploadPath.exists())
 			fileUploadPath.mkdirs();
@@ -49,12 +52,10 @@ public class FileController extends BaseController {
 				fos.close();
 			} catch (IOException e) {
 				e.printStackTrace();
-				// throw new IFException("读取文件出错！"+e.getStackTrace());
 			}
 		}
-		Map<String, String> resultMap = new HashMap<String, String>();
-		resultMap.put("fileName", realFileName);
-		return resultMap;
+
+		return new Resp(realFileName,HttpStatus.ACCEPTED.value(),"success");
 	}
 
 	@ApiOperation(value = "下载临时文件图片 根据imgUri获得图片并输出到response")
@@ -81,7 +82,6 @@ public class FileController extends BaseController {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -167,7 +167,6 @@ public class FileController extends BaseController {
 				}
 			}
 		}
-
 	}
 
 }

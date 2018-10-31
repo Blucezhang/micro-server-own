@@ -1,6 +1,6 @@
 package com.own.send.server.controller;
 
-import com.own.face.util.base.BaseController;
+import com.own.face.util.Resp;
 import com.own.send.server.domain.CommonInfo;
 import com.own.send.server.service.CommonInfoSvc;
 import io.swagger.annotations.ApiOperation;
@@ -16,18 +16,17 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/Info")
 @Slf4j
-public class CommonInfoController extends BaseController {
+public class CommonInfoController{
 
     @Autowired
     private CommonInfoSvc cifSvc;
     /**
      * ,使用post
-     *
      * @return
      */
     @ApiOperation(value = "查询公共信息列表")
     @GetMapping
-    public List<CommonInfo> findCommonInfo(@RequestParam Integer id, String title, String content, String sendAccount, String receiveAccount) {
+    public Resp findCommonInfo(@RequestParam Integer id, String title, String content, String sendAccount, String receiveAccount) {
         id = id != null ? id : null;
         title = title != null ? title : null;
         content = content != null ? content : null;
@@ -56,6 +55,6 @@ public class CommonInfoController extends BaseController {
 
         List cilist = cifSvc.findList(wheresql.toString());
         log.info("获取公共信息集合长度：" + cilist.size());
-        return cilist;
+        return new Resp(cilist);
     }
 }

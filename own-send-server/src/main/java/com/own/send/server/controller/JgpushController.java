@@ -1,6 +1,6 @@
 package com.own.send.server.controller;
 
-import com.own.face.util.base.BaseController;
+import com.own.face.util.Resp;
 import com.own.send.server.domain.Jgpush;
 import com.own.send.server.prop.ConfigProperty;
 import com.own.send.server.service.JgpushSvc;
@@ -19,7 +19,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping(value = "/Info")
-public class JgpushController extends BaseController {
+public class JgpushController{
 
     @Autowired
     private JgpushSvc jgpushSvc;
@@ -28,14 +28,14 @@ public class JgpushController extends BaseController {
 
     @ApiOperation(value = "根据id查询极光信息")
     @GetMapping("/jgpush/{id}")
-    public Jgpush findJgpush(@PathVariable Integer id) {
-        return jgpushSvc.findJgpushById(id);
+    public Resp findJgpush(@PathVariable Integer id) {
+        return new Resp(jgpushSvc.findJgpushById(id));
     }
 
 
     @ApiOperation(value = "推送极光消息")
     @PostMapping("/jgpush")
-    public String sendJgpush(@RequestBody Jgpush jp) {
+    public Resp sendJgpush(@RequestBody Jgpush jp) {
         //获取配置信息
         String appKey = configProperty.getAppKey();
         String masterSecret = configProperty.getMasterSecret();
@@ -67,12 +67,12 @@ public class JgpushController extends BaseController {
         jgp.setFlag(0);
         jgp.setEndTime(new Date());
 
-        return result;
+        return new Resp(result);
     }
 
     @ApiOperation(value ="搜索信息列表" )
     @GetMapping("/jgpush")
-    public List findJgpushs(@RequestParam String title, String content) {
+    public Resp findJgpushs(@RequestParam String title, String content) {
         String wheresql = " or ";
         if (null != title && !"".equals(title)) {
             wheresql += " jp.title like '%" + title + "%' ";
@@ -81,7 +81,7 @@ public class JgpushController extends BaseController {
             wheresql += " or jp.content like '%" + content + "%' ";
         }
         List jps = jgpushSvc.findJgpushs(wheresql);
-        return jps;
+        return new Resp(jps);
     }
 
 }

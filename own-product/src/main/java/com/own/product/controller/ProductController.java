@@ -3,6 +3,7 @@ package com.own.product.controller;
 import com.own.face.core.FaceUtil;
 import com.own.face.product.ProductBean;
 import com.own.face.product.TemplateBean;
+import com.own.face.util.Resp;
 import com.own.face.util.Util;
 import com.own.face.util.base.BaseController;
 import com.own.product.dao.ProductDao;
@@ -10,7 +11,6 @@ import com.own.product.domain.Product;
 import com.own.product.domain.Template;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.template.Neo4jOperations;
@@ -35,17 +35,18 @@ public class ProductController extends BaseController {
 
     @ApiOperation(value = "根据ID查询产品")
     @GetMapping("/Product/{id}")
-    public @ResponseBody Product getProduct(@PathVariable Long id) {
+    public @ResponseBody
+    Resp getProduct(@PathVariable Long id) {
         Product product = productDao.queryProductById(id);
         log.info("product:{}",product.toString());
-        return product;
+        return new Resp(product);
     }
 
 
     @ApiOperation(value = "查询产品")
-    @ApiImplicitParam(value = "Bean参数",dataType = "Map")
-    @GetMapping("")
-    public @ResponseBody Iterable queryProduct(@RequestParam Map<String, Object> parms) {
+    @ApiImplicitParam(value = "Bean参数",paramType = "Map")
+    @GetMapping
+    public @ResponseBody Resp queryProduct(@RequestParam Map<String, Object> parms) {
         Iterable iterable = null;
         //根据产品类型、店家查询
         if (!Util.isNullOrEmpty(parms.get("categoryId"))) {
@@ -77,7 +78,7 @@ public class ProductController extends BaseController {
         } else {
             iterable = productDao.queryProduct();
         }
-        return iterable;
+        return new Resp(iterable);
     }
 
     /**
@@ -135,7 +136,7 @@ public class ProductController extends BaseController {
 
     @ApiOperation(value = "添加产品")
     @PutMapping("/addProduct")
-    public Product addProduct(@RequestBody ProductBean productBean) {
+    public Resp addProduct(@RequestBody ProductBean productBean) {
         Product product = new Product();
         product.setName(productBean.getName());
         product.setContent(productBean.getContent());
@@ -154,12 +155,12 @@ public class ProductController extends BaseController {
             }
         }
         log.info("addProduct pro:{}",product);
-        return product;
+        return new Resp(product);
     }
 
     @ApiOperation(value = "修改产品")
     @PostMapping("/{id}")
-    public Product updProduct(@PathVariable Long id, @RequestBody ProductBean productBean) {
+    public Resp  updProduct(@PathVariable Long id, @RequestBody ProductBean productBean) {
         Product product = productDao.queryProductById(id);
         product.setName(productBean.getName());
         product.setContent(productBean.getContent());
@@ -170,7 +171,7 @@ public class ProductController extends BaseController {
         product.setSalesNum(productBean.getSalesNum());
         product.setCategoryId(productBean.getCategoryId());
         product.setBrandId(productBean.getBrandId());
-        return productDao.save(product);
+        return new Resp(productDao.save(product));
     }
 
     @ApiOperation(value = "根据ID删除产品")
@@ -183,14 +184,14 @@ public class ProductController extends BaseController {
 
     @ApiOperation(value = "根据ID查询产品模板")
     @GetMapping("/template/{id}")
-    public @ResponseBody Template getTemplate(@PathVariable Long id) {
+    public @ResponseBody Resp getTemplate(@PathVariable Long id) {
         Template templateEntity = productDao.queryTemplateById(id);
-        return templateEntity;
+        return new Resp(templateEntity);
     }
 
     @ApiOperation(value = "查询产品模板")
     @GetMapping("/template")
-    public @ResponseBody Iterable queryTemplate(@RequestParam Map<String, Object> parms) {
+    public @ResponseBody Resp queryTemplate(@RequestParam Map<String, Object> parms) {
         Iterable iterable = null;
         Map<String, Object> map = new HashMap<String, Object>();
         if (!Util.isNullOrEmpty(parms.get("categoryId"))) {
@@ -206,12 +207,12 @@ public class ProductController extends BaseController {
             iterable = productDao.queryTemplate();
         }
         log.info("queryTemplate methed return iterable:{}",iterable);
-        return iterable;
+        return new Resp(iterable);
     }
 
     @ApiOperation(value = "添加产品模板")
     @PutMapping("/template")
-    public Template createTemplate(@RequestBody TemplateBean templateBean) {
+    public Resp createTemplate(@RequestBody TemplateBean templateBean) {
         Map map = FaceUtil.transBean2MapNotNull(templateBean);
         Template template = productDao.createTemplate(map);
         if (!Util.isNullOrEmpty(templateBean.getProductTypeIdList()) && templateBean.getProductTypeIdList().size() > 0) {
@@ -221,18 +222,18 @@ public class ProductController extends BaseController {
             }
         }
         log.info("createTemplate return Obj:{}",template);
-        return template;
+        return new Resp(template);
     }
 
     @ApiOperation(value = "修改产品模板")
     @PostMapping("/template/{id}")
-    public Template updTemplate(@PathVariable Long id, @RequestBody TemplateBean templateBean) {
+    public Resp updTemplate(@PathVariable Long id, @RequestBody TemplateBean templateBean) {
         Template templateEntity = productDao.queryTemplateById(id);
         templateEntity.setName(templateBean.getName());
         templateEntity.setContent(templateBean.getContent());
         template.save(templateEntity);
         log.info("updTemplate return Obj:{}",templateEntity.toString());
-        return templateEntity;
+        return new Resp(templateEntity);
     }
 
 }

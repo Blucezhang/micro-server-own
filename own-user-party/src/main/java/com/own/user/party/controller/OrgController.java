@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.face.party.OrgBean;
+import com.own.face.util.Resp;
 import com.own.face.util.Util;
-import com.own.face.util.base.BaseController;
 import com.own.user.party.dao.LoginUserDao;
 import com.own.user.party.dao.OrgDao;
 import com.own.user.party.dao.domain.Organization;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/org")
-public class OrgController extends BaseController {
+public class OrgController {
 	
 	@Autowired
 	private OrgDao orgDao = null;
@@ -27,37 +27,33 @@ public class OrgController extends BaseController {
 
 	@ApiOperation(value = "根据id查询organization信息")
 	@GetMapping("/Org")
-	public @ResponseBody Map<String,Object> queryOrg(){
+	public @ResponseBody
+	Resp queryOrg(){
 		List<Organization> organizations = orgDao.queryOrg();
-		Map<String,Object> map = new HashMap();
-		map.put("result", organizations);
- 		return map;
+ 		return new Resp(organizations);
  	}
 
 	@ApiOperation(value = "根据id查询organization信息")
 	@GetMapping(value = "/Org",params={"Action=All"})
-	public @ResponseBody Map<String,Object> queryAllOrg(){
+	public @ResponseBody Resp queryAllOrg(){
 		List<Organization> organizations = orgDao.queryAllOrg();
-		Map<String,Object> map = new HashMap();
-		map.put("result", organizations);
- 		return map;
+ 		return new Resp(organizations);
  	}
 
 	@ApiOperation(value = "根据id查询organization信息")
 	@GetMapping(value = "/Org/{id}",params = {"Action=Single"})
-	public @ResponseBody Organization getOrgSingle(@PathVariable Integer id){
+	public @ResponseBody Resp getOrgSingle(@PathVariable Integer id){
 		Organization organization = (Organization) orgDao.getFromId(id);
- 		return organization;
+ 		return new Resp(organization);
  	}
 
 	@ApiOperation(value = "根据id查询organization信息")
 	@GetMapping(value = "/Org/{id}",params = {"Action=All"})
-	public @ResponseBody List<Organization> getOrgAll(@PathVariable Integer id){
+	public @ResponseBody Resp getOrgAll(@PathVariable Integer id){
 		List<Organization> organizations = orgDao.queryChildOrg(id);
- 		return organizations;
+ 		return new Resp(organizations);
  	}
 	
-
 	@ApiOperation(value = "创建organization信息 (创建组织)")
 	@PutMapping("/Org")
 	public @ResponseBody void createOrg(@RequestBody OrgBean ob){

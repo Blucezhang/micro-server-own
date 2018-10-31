@@ -1,6 +1,6 @@
 package com.own.send.server.controller;
 
-import com.own.face.util.base.BaseController;
+import com.own.face.util.Resp;
 import com.own.send.server.domain.CommonInfo;
 import com.own.send.server.domain.Email;
 import com.own.send.server.prop.ConfigProperty;
@@ -23,7 +23,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping(value="/Info")
-public class EmailController extends BaseController {
+public class EmailController {
 
     @Autowired
     private EmailSvc emailSvc;
@@ -33,16 +33,16 @@ public class EmailController extends BaseController {
     public ConfigProperty configProperty;
 
     @ApiOperation(value = "根据id查询email信息") @GetMapping("/email/{id}")
-    public @ResponseBody Email getEmail(@PathVariable int id){
+    public @ResponseBody Resp getEmail(@PathVariable int id){
         log.info("Get Email info !");
         Email email = null;
         email = emailSvc.findEmailById(id);
-        return email;
+        return new Resp(email);
     }
 
     @ApiOperation(value = "查询邮件列表")
    @GetMapping("/email")
-    public @ResponseBody List<Email> getInfo(@RequestParam Integer id, String title, String content){
+    public @ResponseBody Resp getInfo(@RequestParam Integer id, String title, String content){
         log.info("Get Emails info !");
         log.info("获取短信列表信息.....id:"+id+" title:"+title+"  content:"+content);
         StringBuffer sb = new StringBuffer();
@@ -58,13 +58,12 @@ public class EmailController extends BaseController {
         }
         List list = emailSvc.getEmails(sb.toString());
         log.info("查询集合长度："+list.size());
-
-        return list;
+        return new Resp(list);
     }
 
     @ApiOperation(value = "发送邮件")
     @PostMapping("/email")
-    public String sendEmail(@RequestBody Map param) throws Throwable{//use this method to get param value
+    public Resp sendEmail(@RequestBody Map param) throws Throwable{//use this method to get param value
         Email mail = (Email)param.get("Email");
        log.info("传入email:{}",mail.getTitle());
         String result = "";
@@ -120,13 +119,13 @@ public class EmailController extends BaseController {
                 log.info("保存邮件成功");
             }
         }
-        return result;
+        return new Resp(result);
     }
 
 
     @ApiOperation("修改邮件，比如暂存草稿")
     @PutMapping("/email")
-    public Email updateSms(@RequestBody Email email){//note:客户端是用requestbody提交的，这里如果写成requestX别的东西，会找不到这个方法
+    public Resp updateSms(@RequestBody Email email){//note:客户端是用requestbody提交的，这里如果写成requestX别的东西，会找不到这个方法
         Email ss = email;
         log.info("修改短信信息......"+ss.getContent());
         if(ss!=null){
@@ -138,15 +137,7 @@ public class EmailController extends BaseController {
                 ee.printStackTrace();
             }
         }
-        return ss;
-    }
-
-    @ApiOperation(value = "mvc 测试")
-    @GetMapping("/email/test")
-    public ModelAndView getEmailTest(){
-        ModelAndView mv = new ModelAndView("index");
-        System.out.println("Internet the index page !");
-        return mv;
+        return new Resp(ss);
     }
 
 }

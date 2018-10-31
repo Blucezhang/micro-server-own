@@ -1,6 +1,7 @@
 package com.own.product.controller;
 
 import com.own.face.product.CategoryBean;
+import com.own.face.util.Resp;
 import com.own.face.util.Util;
 import com.own.face.util.base.BaseController;
 import com.own.product.dao.CategoryDao;
@@ -26,22 +27,23 @@ public class CategoryController extends BaseController {
 
     @ApiOperation(value = "根据级别查询类别")
     @GetMapping("/query")
-    public @ResponseBody List<Category> queryCategory(@RequestParam Map<String,Object> parms){
+    public @ResponseBody
+    Resp queryCategory(@RequestParam Map<String,Object> parms){
         //如果没有传入级别，默认查询第一级
         String level = "1";
         if(!Util.isNullOrEmpty(parms.get("level"))){
             level = parms.get("level").toString();
         }
         List<Category> c = categoryDao.queryCategoryByLevel(level);
-        return c;
+        return new Resp(c);
     }
 
     @ApiOperation(value = "根据id查询类别")
     @GetMapping("/{id}")
-    public  @ResponseBody Category queryCategoryById(@PathVariable Long id){
+    public @ResponseBody Resp queryCategoryById(@PathVariable Long id){
         Category c = categoryDao.queryCategoryById(id);
         log.info("category:{}",c);
-        return c;
+        return new Resp(c);
     }
 
     @ApiOperation(value = "添加类别")

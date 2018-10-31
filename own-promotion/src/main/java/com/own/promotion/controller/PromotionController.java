@@ -12,6 +12,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.own.face.core.FaceUtil;
 import com.own.face.core.IfException;
 import com.own.face.promotion.CartBean;
+import com.own.face.util.Resp;
 import com.own.face.util.base.BaseController;
 import com.own.promotion.controller.bean.SellerBean;
 import com.own.promotion.dao.*;
@@ -43,23 +44,22 @@ public class PromotionController  extends BaseController {
 
 	@ApiOperation(value = "查询单条活动信息")
 	@GetMapping("/{id}")
-	public  @ResponseBody Promotion findPromotionById(@PathVariable Integer id) {
+	public  @ResponseBody
+	Resp findPromotionById(@PathVariable Integer id) {
 		log.info("查询id为：" + id + "的活动");
 		// return promotionDao.findPromotion(id.longValue());
-		return (Promotion) promotionDao.getFromId(id);
+		return new Resp(promotionDao.getFromId(id));
 	}
 
 	@ApiOperation(value = "查询活动列表，支持搜索")
 	@GetMapping
-	public @ResponseBody List<Promotion> findAll() {
-		List<Promotion> list = new ArrayList<Promotion>();
-		list = promotionDao.findAllPromotion();
-		return list;
+	public @ResponseBody Resp findAll() {
+		return new Resp(promotionDao.findAllPromotion());
 	}
 
 	@ApiOperation(value = "保存活动信息，此处暂时先实现单品促销，对于别的促销方式，后续采用java引擎规则实现")
 	@PostMapping
-	public @ResponseBody Map<String, Object> save(@RequestBody Map param) {
+	public @ResponseBody Resp save(@RequestBody Map param) {
 		Integer typeId = Integer.valueOf(FaceUtil.toStringAndTrim(param.get("promotionTypeId")));
 		Map<String, Object> result = new HashMap<String, Object>();
 		if (typeId == 12) {//折扣
@@ -89,7 +89,7 @@ public class PromotionController  extends BaseController {
 			log.info("活动信息："+promotion.getId()+"  "+promotion.getSaleName());
 			result.put("Obj", promotion);
 			result.put("promotionType", typeId);
-			return result;
+			return new Resp(result);
 		} else if (typeId == 26) {//满赠促销(加10)
 			FullPromotion fullPromotion = new FullPromotion();
 			fullPromotion = (FullPromotion) FaceUtil.transformMap2Bean(param, fullPromotion);
@@ -151,70 +151,63 @@ public class PromotionController  extends BaseController {
 			result.put("Obj", nmpro);
 			result.put("promotionType", typeId);
 		}
-		return result;
+		return new Resp(result);
 	}
 
 
 	@ApiOperation(value = "删除数据以及关系")
 	@DeleteMapping("/{id}")
-	public boolean deletePromotion(@PathVariable Integer id) {
+	public Resp deletePromotion(@PathVariable Integer id) {
 		log.info("删除节点id为：" + id + "的数据");
-		Object o = promotionDao.deleteRelationships(id);// 删除该数据，并且删除关系
-		return true;
+		// 删除该数据，并且删除关系
+		return new Resp(promotionDao.deleteRelationships(id));
 	}
 
 	@ApiOperation(value = "修改信息")
 	@PutMapping
-	public @ResponseBody Promotion upPromotion(@RequestBody Promotion p) {
+	public @ResponseBody Resp upPromotion(@RequestBody Promotion p) {
 		// promotionDao.updatePromotion(id, map);
-		promotionDao.save(p);
-		return p;
+		return new Resp(promotionDao.save(p));
 	}
 
 	@ApiOperation(value = "将卖家与活动关联")
 	@PostMapping("/seller")
-	public @ResponseBody Seller save(@RequestBody SellerBean seller) {
+	public @ResponseBody Resp save(@RequestBody SellerBean seller) {
 		Seller s = new Seller();
 		s.setSellerName(seller.getSellerName());
 		s.setSellerId(seller.getSellerId());
 		s.setCreateTime(seller.getCreateTime());
-		// s = sellerDao.save(s);
 		log.info("添加数据结果,id:" + s.getId() + "  sellerName:" + s.getSellerName());
 		sellerDao.createRelationshipJoin(s.getId().intValue(), seller.getPromotionId(), "JOIN");// 关联id和活动id
-
-		return s;
+		return new Resp(s);
 	}
 
 	@ApiOperation(value = "根据商品信息，查询对应的活动")
 	@GetMapping("/productPromotion")
-	public @ResponseBody List findPromotionByProductId(@RequestParam String productId) {
-		List list = new ArrayList<Promotion>();
-
-		list = promotionDao.findProByProductInfo(productId);
-		log.info("查询商品对应的活动信息，共："+list.size()+"条");
-		return list;
+	public @ResponseBody Resp findPromotionByProductId(@RequestParam String productId) {
+		log.info("查询商品对应的活动信息");
+		return new Resp(promotionDao.findProByProductInfo(productId));
 	}
 
 	@ApiOperation(value = "根据卖家信息，查询对应的活动")
 	@GetMapping("/typePromotion")
-	public @ResponseBody List<Promotion> findPromotionByTypeId(@RequestParam Long typeId) {
+	public @ResponseBody Resp findPromotionByTypeId(@RequestParam Long typeId) {
 		List<Promotion> list = new ArrayList<Promotion>();
-		return list;
+		return new Resp();
 	}
 
 	@ApiOperation(value = "根据地域信息，查询对应的活动")
 	@GetMapping("/zonePromotion")
-	public @ResponseBody List<Promotion> findPromotionByZoneId(@RequestParam Long zoneId) {
+	public @ResponseBody Resp findPromotionByZoneId(@RequestParam Long zoneId) {
 		List<Promotion> list = new ArrayList<Promotion>();
-		return list;
+		return new Resp();
 	}
 
 
 	@ApiOperation(value = "结算方式2")
 	@GetMapping("/calculates")
-	public @ResponseBody CartBean calculates(@RequestParam Map map) throws NumberFormatException, IfException {
+	public @ResponseBody Resp calculates(@RequestParam Map map) throws NumberFormatException, IfException {
 		Map<String,Object> insert = new HashMap<String,Object>();
-		
 		CartBean cb = new CartBean();
 		cb.setPromotionTypeId(Long.valueOf(map.get("promotionTypeId").toString()));
 		cb.setSinglePrice(Double.valueOf(map.get("singlePrice").toString()));
@@ -274,12 +267,12 @@ public class PromotionController  extends BaseController {
 			mapBean.put("PromotionalGifts", promotionalGifts);
 			cb = ruleResult(mapBean);
 		}*/
-		return cb;
+		return new Resp(cb);
 	}
 
 	@ApiOperation(value = "结算")
 	@GetMapping("/calculate")
-	public @ResponseBody CartBean calculate(@RequestParam Map map) throws NumberFormatException, IfException{
+	public @ResponseBody Resp calculate(@RequestParam Map map) throws NumberFormatException, IfException{
 		Map<String,Object> insert = new HashMap<String,Object>();
 		CartBean cb = new CartBean();
 //		cartb = (CartBean)FaceUtil.transMap2Bean(map,cartb);
@@ -292,8 +285,6 @@ public class PromotionController  extends BaseController {
 		cb.setProductName(map.get("productName").toString());
 		cb.setProductJson(FaceUtil.toStringAndTrim(map.get("productJson")));
 		cb.setProductTotolCount(Double.valueOf(map.get("productTotolCount").toString()));
-
-		
 		if(cb.getPromotionTypeId()==12){
 			
 		}else if(cb.getPromotionTypeId()==26){
@@ -351,8 +342,7 @@ public class PromotionController  extends BaseController {
 				cb.setAfterTotal(cb.getSinglePrice()*cb.getAmount());
 			}
 		}
-		
-		return cb;
+		return new Resp(cb);
 	}
 	
 	/**
