@@ -135,7 +135,7 @@
             <layout>default</layout>
             <url>http://maven.aliyun.com/nexus/content/groups/public</url>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </snapshots>
             <releases>
                 <enabled>true</enabled>
@@ -145,12 +145,12 @@
         <repository>
             <id>3party-nexus</id>
             <name>3party-nexus</name>
-            <url>http://47.93.14.223:8082/nexus/content/repositories/thirdparty/</url>
+            <url>http://nexus.zyplayer.cn/nexus/content/repositories/thirdparty/</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
             <releases>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </releases>
         </repository>
 
