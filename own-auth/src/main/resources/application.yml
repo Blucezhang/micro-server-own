@@ -1,0 +1,66 @@
+server:
+  port: ${PORT:8862}
+spring:
+  application:
+    name: own-auth
+  boot:
+      admin:
+        client:
+          url: http://127.0.0.1:8080
+          instance:
+            metadata:
+              tags:
+                environment: dev
+  datasource:
+      dynamic:
+        enable: true
+      druid:
+            # JDBC 配置(驱动类自动从url的mysql识别,数据源类型自动识别)
+            master:
+              url: jdbc:mysql://127.0.0.1:3306/oauth-center?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false
+              username: root
+              password:
+              driver-class-name:  com.mysql.cj.jdbc.Driver
+            slave:
+              url: jdbc:mysql://127.0.0.1:3306/log-center?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false
+              username: root
+              password:
+              driver-class-name:  com.mysql.cj.jdbc.Driver
+            #连接池配置(通常来说，只需要修改initialSize、minIdle、maxActive
+            initial-size: 1
+            max-active: 20
+            min-idle: 1
+            # 配置获取连接等待超时的时间
+            max-wait: 60000
+            #打开PSCache，并且指定每个连接上PSCache的大小
+            pool-prepared-statements: true
+            max-pool-prepared-statement-per-connection-size: 20
+            validation-query: SELECT 'x'
+            test-on-borrow: false
+            test-on-return: false
+            test-while-idle: true
+
+#eureka:
+ # client:
+    #register-with-eureka: true
+    #fetch-registry: true
+    #service-url:
+      #defaultZone: http://127.0.0.1:8761/eureka/
+    #registry-fetch-interval-seconds: 10
+  #instance:
+    #prefer-ip-address: true
+    #instance-id:  ${spring.application.name}:${spring.cloud.client.ip-address}:${spring.application.instance_id:${server.port}}
+    #lease-renewal-interval-in-seconds: 3 #3秒告诉eureka i'm live
+    #lease-expiration-duration-in-seconds: 5 #10秒从eureka服务中剔除该服务
+    #metadata-map:
+     #startup: ${random.int}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+

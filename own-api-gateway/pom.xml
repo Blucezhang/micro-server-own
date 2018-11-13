@@ -7,7 +7,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.own</groupId>
 	<artifactId>own-api-gateway</artifactId>
-	<version>1.0-ALPHA</version>
+	<version>${project.version}</version>
 	<packaging>jar</packaging>
 
 	<name>own-api-gateway</name>
@@ -17,7 +17,7 @@
 	<parent>
 		<artifactId>micro-server-own</artifactId>
 		<groupId>com.own</groupId>
-		<version>1.0-ALPHA</version>
+		<version>${project.version}</version>
 	</parent>
 
 	<properties>

@@ -5,13 +5,13 @@
     <parent>
         <artifactId>micro-server-own</artifactId>
         <groupId>com.own</groupId>
-        <version>1.0-ALPHA</version>
+        <version>${project.version}</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.own</groupId>
     <artifactId>own-workflow</artifactId>
-    <version>${own.version}</version>
+    <version>${project.version}</version>
     <packaging>jar</packaging>
 
 
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.own</groupId>
             <artifactId>own-common</artifactId>
-            <version>${own.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -56,7 +56,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
+                <version>${spring-boot-dependencies.version}</version>
             </plugin>
             <plugin>
                 <groupId>com.spotify</groupId>

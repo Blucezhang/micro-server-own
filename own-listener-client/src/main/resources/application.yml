@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: own-listener-client
+  boot:
+    admin:
+      client:
+        url: http://localhost:8080
+        instance:
+          service-base-url: http://localhost:8080
+  profiles:
+    active:
+      - secure
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: ALWAYS
+
+---
+spring:
+  profiles: insecure
+
+---
+spring:
+  profiles: secure
+  security:
+    user:
+      name: root
+      password: root
+  boot:
+    admin:
+      client:
+        username: root      #These two are needed so that the client
+        password: root   #can register at the protected server api
+        instance:
+          metadata:
+            user.name: root         #These two are needed so that the server
+            user.password: root #can access the protected client endpoints

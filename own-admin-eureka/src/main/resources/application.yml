@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: own-admin-eureka
+  profiles:
+    active:
+      - secure
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka/
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    instance-id:  ${spring.application.name}:${spring.cloud.client.ip-address}:${spring.application.instance_id:${server.port}}
+    lease-renewal-interval-in-seconds: 3 #3秒告诉eureka i'm live
+    lease-expiration-duration-in-seconds: 5 #10秒从eureka服务中剔除该服务
+    metadata-map:
+     startup: ${random.int}
+     user.name: root
+     user.password: root
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+profiles:
+    active:
+      - secure
+---
+spring:
+  profiles: insecure
+
+---
+spring:
+  profiles: secure
+  security:
+    user:
+      name: root
+      password: root
+eureka:
+  instance:
+    metadata-map:
+      user.name: root         #These two are needed so that the server
+      user.password: root #can access the protected client endpoints

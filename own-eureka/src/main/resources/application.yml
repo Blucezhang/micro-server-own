@@ -1,0 +1,36 @@
+server:
+  port: ${PORT:8761}
+
+spring:
+  application:
+    name: own-eureka
+eureka:
+  instance:
+    hostname: 127.0.0.1
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${spring.application.instance_id:${server.port}}
+    lease-renewal-interval-in-seconds: 30    # 续约更新时间间隔（默认30秒）
+    lease-expiration-duration-in-seconds: 60
+  server:
+    response-cache-auto-expiration-in-seconds: 180 #缓存readWriteCacheMap失效时间，这个只有在这个时间过去后缓存才会失效，失效前不会更新，过期后从registry重新读取注册服务信息，registry是一个ConcurrentHashMap。
+    use-read-only-response-cache: true #保证强一致性关闭此切换CP
+    #enable-replicated-request-compression: true
+    enable-self-preservation: false #关闭服务器自我保护，客户端心跳检测15分钟内错误达到80%服务会保护，导致别人还认为是好用的服务
+    eviction-interval-timer-in-ms: 60000 #清理间隔（单位毫秒，默认是60*1000）5秒将客户端剔除的服务在服务注册列表中剔除
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+    initial-instance-info-replication-interval-seconds: 20
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+

@@ -44,3 +44,8 @@
 __<font color=#00ffff size=12>\!ATTENTION:</font>__ 禁止商用（如果可以），最终解释权归作者所有！  
 
 **如果你有兴趣的话，join this project.Email:Blucezhang@outlook.com**
+
+
+**改造中....update version1.2.1 dev 分支不可用 1.5.9->2.0.3**
+
+- 内容：auth 统一授权，api-gateway 高可用 等等。。。

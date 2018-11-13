@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.dao.XxlJobGroupDao">
+	<resultMap id="XxlJobGroup" type="com.example.demo.entity.XxlJobGroup" >
+		<result column="id" property="id" />
+	    <result column="app_name" property="appName" />
+	    <result column="title" property="title" />
+	    <result column="order" property="order" />
+		<result column="address_type" property="addressType" />
+		<result column="address_list" property="addressList" />
+	</resultMap>
+
+	<select id="queryAll" resultType="com.example.demo.entity.XxlJobGroup">
+		SELECT * FROM XXL_JOB_QRTZ_TRIGGER_GROUP AS t ORDER BY t.order DESC
+	</select>
+
+</mapper>

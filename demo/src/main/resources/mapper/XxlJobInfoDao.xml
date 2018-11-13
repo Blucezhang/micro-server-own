@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.dao.XxlJobInfoDao">
+	
+	<resultMap id="XxlJobInfo" type="com.example.demo.entity.XxlJobInfo" >
+		<result column="id" property="id" />
+	
+		<result column="job_group" property="jobGroup" />
+	    <result column="job_cron" property="jobCron" />
+	    <result column="job_desc" property="jobDesc" />
+	    
+	    <result column="add_time" property="addTime" />
+	    <result column="update_time" property="updateTime" />
+	    
+	    <result column="author" property="author" />
+	    <result column="alarm_email" property="alarmEmail" />
+
+		<result column="executor_route_strategy" property="executorRouteStrategy" />
+		<result column="executor_handler" property="executorHandler" />
+	    <result column="executor_param" property="executorParam" />
+		<result column="executor_block_strategy" property="executorBlockStrategy" />
+		<result column="executor_fail_strategy" property="executorFailStrategy" />
+	    
+	    <result column="glue_type" property="glueType" />
+	    <result column="glue_source" property="glueSource" />
+	    <result column="glue_remark" property="glueRemark" />
+		<result column="glue_updatetime" property="glueUpdatetime" />
+
+		<result column="child_jobid" property="childJobId" />
+	</resultMap>
+
+	<select id="findAllCount" resultType="int">
+		SELECT count(1)
+		FROM XXL_JOB_QRTZ_TRIGGER_INFO
+	</select>
+
+</mapper>
