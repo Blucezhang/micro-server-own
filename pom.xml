@@ -12,6 +12,7 @@
     <description>parent</description>
 
     <properties>
+        <docker.image.prefix>own</docker.image.prefix>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
@@ -26,6 +27,15 @@
         <alibaba.fastjson.version>1.2.51</alibaba.fastjson.version>
         <swagger.version>2.8.0</swagger.version>
         <httpclient.version>4.5.6</httpclient.version>
+        <commons.ifRdb.version>1.0.1</commons.ifRdb.version>
+        <aspectjweaver.version>1.8.6</aspectjweaver.version>
+        <jpush-client.version>3.2.3</jpush-client.version>
+        <kie-api.version>7.7.0.Final</kie-api.version>
+        <neo4j.version>3.4.0-alpha10</neo4j.version>
+
+
+        <docker.image.prefix>own</docker.image.prefix>
+        <docker-maven-plugin.version>0.4.3</docker-maven-plugin.version>
     </properties>
 
     <modules>
@@ -37,10 +47,7 @@
         <module>own-auth</module>
         <module>demo</module>
         <module>own-gateway</module>
-        <module>own-api-gateway</module>
-        <module>own-common</module>
         <module>own-config</module>
-        <module>own-eureka-server</module>
         <module>own-file</module>
         <module>own-product</module>
         <module>own-promotion</module>

@@ -3,6 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+	<parent>
+		<artifactId>micro-server-own</artifactId>
+		<groupId>com.own</groupId>
+		<version>${project.version}</version>
+	</parent>
+
+
 	<groupId>com.own</groupId>
 	<artifactId>own-product</artifactId>
 	<version>${project.version}</version>
@@ -11,20 +18,12 @@
 	<name>own-product</name>
 	<description>产品</description>
 
-	<properties>
-		<docker.image.prefix>own</docker.image.prefix>
-	</properties>
 
-	<parent>
-		<artifactId>micro-server-own</artifactId>
-		<groupId>com.own</groupId>
-		<version>${project.version}</version>
-	</parent>
 
 	<dependencies>
 		<dependency>
 			<groupId>com.own</groupId>
-			<artifactId>own-common</artifactId>
+			<artifactId>own-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -37,14 +36,9 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>${spring-boot-dependencies.version}</version>
-			</plugin>
-			<plugin>
 				<groupId>com.spotify</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
-				<version>0.4.3</version>
+				<version>${docker-maven-plugin.version}</version>
 				<configuration>
 					<imageName>${docker.image.prefix}/${project.artifactId}</imageName>
 					<dockerDirectory>src/main/docker</dockerDirectory>
