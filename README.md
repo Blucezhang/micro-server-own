@@ -50,3 +50,4 @@ __<font color=#00ffff size=12>\!ATTENTION:</font>__ 禁止商用（如果可以�
 
 - auth 统一授权，api-gateway 高可用 等等。。。
 - undertow替换tomcat (据说spring boot 中的undertow服务比tomcat性能好不少，实际上从数据上看确实是这样)
+- 添加spring boot admin 监控 各个微服务的信息
