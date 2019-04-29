@@ -145,7 +145,7 @@
         <repository>
             <id>3party-nexus</id>
             <name>3party-nexus</name>
-            <url>http://nexus.zyplayer.cn/nexus/content/repositories/thirdparty/</url>
+            <url>http://nexus.zyplayer.cn/repository/maven-public/</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
