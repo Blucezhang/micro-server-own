@@ -29,7 +29,6 @@ import java.util.List;
 @EnableSwagger2
 public class SwaggerConfig {
 
-
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("Swagger API ")

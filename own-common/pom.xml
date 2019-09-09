@@ -10,9 +10,14 @@
 
 
     <artifactId>own-common</artifactId>
+    <groupId>com.own</groupId>
+    <version>${own.version}</version>
+    <packaging>jar</packaging>
+
+    <name>own-common</name>
+    <description>common</description>
 
     <dependencies>
-
         <!--切面AOP-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -58,11 +63,11 @@
         </dependency>
 
         <!--mybaits plus-->
-        <dependency>
+       <!-- <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus</artifactId>
             <version>${baomidou.version}</version>
-        </dependency>
+        </dependency>-->
 
         <!--swagger2-->
         <dependency>
@@ -84,6 +89,8 @@
             <artifactId>groovy-all</artifactId>
             <version>${groovy-all.version}</version>
         </dependency>
+
+
 
     </dependencies>
 

@@ -19,7 +19,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "urls")
 public class FilterUrlsPropertiesConifg {
 
-    private List<String> anon = new ArrayList<>();
+    private List<String> anon = new ArrayList<String>();
 
     public List<String> getAnon() {
         return anon;

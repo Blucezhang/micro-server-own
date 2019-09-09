@@ -12,6 +12,8 @@
 	<artifactId>own-module</artifactId>
 	<version>${own.version}</version>
 	<packaging>pom</packaging>
+
+
 	<name>own-module</name>
 	<description>Demo project for Spring Boot</description>
 

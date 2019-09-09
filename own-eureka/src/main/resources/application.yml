@@ -4,6 +4,7 @@ server:
 spring:
   application:
     name: own-eureka
+
 eureka:
   instance:
     hostname: 127.0.0.1
@@ -33,4 +34,3 @@ management:
   endpoint:
     health:
       show-details: always
-

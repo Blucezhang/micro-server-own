@@ -1,8 +1,5 @@
-package com.own.owneureka.listener;
+package com.own.eureka.listener;
 
-import com.netflix.discovery.shared.Applications;
-import com.netflix.eureka.EurekaServerContextHolder;
-import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.springframework.cloud.netflix.eureka.server.event.EurekaInstanceCanceledEvent;
@@ -13,7 +10,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Configuration;
 
-import java.text.DateFormat;
 
 @Slf4j
 @Configuration

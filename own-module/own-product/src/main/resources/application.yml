@@ -1,0 +1,50 @@
+server:
+  port: ${PORT:8863}
+spring:
+  application:
+    name: own-gateway
+  #boot:
+    #admin:
+      #client:
+       #url: http://127.0.0.1:8080
+        #instance:
+          #metadata:
+            #tags:
+              #environment: dev
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka/
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    instance-id:  ${spring.application.name}:${spring.cloud.client.ip-address}:${spring.application.instance_id:${server.port}}
+    lease-renewal-interval-in-seconds: 3 #3秒告诉eureka i'm live
+    lease-expiration-duration-in-seconds: 5 #10秒从eureka服务中剔除该服务
+    metadata-map:
+     startup: ${random.int}
+
+zuul:
+  servlet-path: /zuul
+  ignored-services: "*"
+  host:
+    connect-timeout-millis: 20000
+    socket-timeout-millis: 20000
+  routes:
+    ribbon-isolation-strategy: thread #Zuul的隔离策略
+
+
+
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
