@@ -8,23 +8,42 @@
 		<version>${own.version}</version>
 	</parent>
 	<groupId>com.own</groupId>
-	<artifactId>own-config</artifactId>
+	<artifactId>own-auth</artifactId>
 	<version>${own.version}</version>
-	<name>own-config</name>
-	<packaging>jar</packaging>
+	<name>own-auth</name>
 	<description>Demo project for Spring Boot</description>
 
 
 	<dependencies>
 
 		<dependency>
+			<groupId>com.own</groupId>
+			<artifactId>own-common</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-config-server</artifactId>
+			<artifactId>spring-cloud-starter-oauth2</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-security</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
 
 		<dependency>

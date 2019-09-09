@@ -1,160 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>com.own</groupId>
-    <artifactId>micro-server-own</artifactId>
-    <packaging>pom</packaging>
-    <version>1.0-ALPHA</version>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
 
-    <modules>
-        <module>own-config</module>
-        <module>own-eureka-server</module>
-        <module>own-api-gateway</module>
-        <module>own-send-server</module>
-        <module>own-user-party</module>
-        <module>own-promotion</module>
-        <module>own-workflow</module>
-        <module>own-file</module>
-        <module>own-product</module>
-        <module>own-common</module>
-    </modules>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
-        <own.version>1.0-ALPHA</own.version>
-        <spring-boot.version>1.5.9.RELEASE</spring-boot.version>
-        <spring-cloud.version>Edgware.RELEASE</spring-cloud.version>
-        <spring-data-neo4j.version>4.1.2.RELEASE</spring-data-neo4j.version>
-    </properties>
-
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.9.RELEASE</version>
-    </parent>
-
-        <dependencies>
-            <!--注册中心-->
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-eureka</artifactId>
-            </dependency>
-            <!--配置中心-->
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-config</artifactId>
-            </dependency>
-            <!--监控-->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-actuator</artifactId>
-            </dependency>
-            <!--测试依赖-->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-test</artifactId>
-                <scope>test</scope>
-            </dependency>
-            <!--Lombok-->
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>1.2.31</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.siaya</groupId>
-                <artifactId>jspider</artifactId>
-                <version>1.0.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>javax.mail</groupId>
-                <artifactId>mail</artifactId>
-                <version>1.4.7</version>
-            </dependency>
-        </dependencies>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.spring.platform</groupId>
-                <artifactId>platform-bom</artifactId>
-                <version>Brussels-SR6</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.8.RELEASE</version>
+	</parent>
 
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${spring-boot.version}</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <target>${java.version}</target>
-                        <source>${java.version}</source>
-                        <encoding>UTF-8</encoding>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+	<groupId>com.own</groupId>
+	<artifactId>micro-server-own</artifactId>
+	<version>${own.project}</version>
+	<packaging>pom</packaging>
+	<name>micro-server-own</name>
+	<description>Server</description>
 
+	<properties>
+		<own.version>1.0.0</own.version>
+		<java.version>1.8</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<spring-cloud.version>Finchley.RELEASE</spring-cloud.version>
+		<docker.image.prefix>own</docker.image.prefix>
+		<alibaba.json.version>1.2.30</alibaba.json.version>
+		<baomidou.version>3.2.0</baomidou.version>
+		<groovy-all.version>3.0.0-alpha-1</groovy-all.version>
+		<ognl.version>3.2.6</ognl.version>
+		<swagger.verion>2.8.0</swagger.verion>
+	</properties>
 
-    <repositories>
-        <repository>
-            <id>nexus-aliyun</id>
-            <name>Nexus aliyun</name>
-            <layout>default</layout>
-            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
-        <repository>
-            <id>3party-nexus</id>
-            <name>3party-nexus</name>
-            <url>http://nexus.zyplayer.cn/repository/maven-public/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
+	<modules>
+		<module>own-config</module>
+		<module>own-auth</module>
+		<module>own-eureka</module>
+		<module>own-gateway</module>
+		<module>own-module</module>
+		<module>own-common</module>
+	</modules>
 
+	<repositories>
+		<repository>
+			<id>nexus-aliyun</id>
+			<name>Nexus aliyun</name>
+			<layout>default</layout>
+			<url>http://maven.aliyun.com/nexus/content/groups/public</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+	</repositories>
 
-    </repositories>
 
 </project>

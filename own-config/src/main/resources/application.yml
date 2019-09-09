@@ -1,5 +1,5 @@
 server:
-  port: 8001
+  port: 8888
 
 spring:
   application:
@@ -14,6 +14,9 @@ spring:
           search-paths: application-*,own-*
 spring:
   profiles: dev
+  security:
+      user:
+        password: ${CONFIG_SERVICE_PASSWORD}
 eureka:
   instance:
     prefer-ip-address: true

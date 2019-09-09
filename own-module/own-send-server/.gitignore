@@ -29,8 +29,3 @@ build/
 
 ### VS Code ###
 .vscode/
-/.mvn/
-/mvnw.cmd
-/mvnw
-
-.micro-server-own.iml
