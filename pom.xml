@@ -69,7 +69,6 @@
 		<module>own-auth</module>
 		<module>own-eureka</module>
 		<module>own-gateway</module>
-		<module>own-config</module>
 		<module>own-common</module>
 		<module>own-module</module>
 	</modules>
