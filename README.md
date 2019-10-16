@@ -60,6 +60,18 @@ __<font color=#00ffff size=12>\!ATTENTION:</font>__ 禁止商用（如果可以�
                 </a>
             </td>
         </tr>
+        <tr>
+            <td align="center" valign="middle">
+                <a href="https://www.aliyun.com/acts/alicomcloud/new-discount?userCode=x6ommjya&source=5176.11533457&userCode=x6ommjya&type=copy">
+                    <img width="300px" src="https://github.com/Blucezhang/material/blob/master/300x100.jpg?raw=true">
+                </a>
+            </td>
+            <td>
+                <a href="https://ac.aliyun.com/pages/bkshare?userCode=x6ommjya&source=5176.11533457&userCode=x6ommjya&type=copy">
+                    <img width="300px" src="https://github.com/Blucezhang/material/blob/master/640-119.png?raw=true">
+                </a>
+            </td>
+        </tr>
     </tbody>
 </table>
 
