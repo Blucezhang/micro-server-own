@@ -51,7 +51,12 @@ __<font color=#00ffff size=12>\!ATTENTION:</font>__ 禁止商用（如果可以�
         <tr>
             <td align="center" valign="middle">
                 <a href="https://www.aliyun.com/acts/hotsale?userCode=x6ommjya&source=5176.11533457&userCode=x6ommjya&type=copy">
-                    <img width="425px" src="https://github.com/Blucezhang/material/blob/master/CPS_425_320.jpg?raw=true">
+                    <img width="300px" src="https://github.com/Blucezhang/material/blob/master/300-100.jpg?raw=true">
+                </a>
+            </td>
+            <td align="center" valign="middle">
+                <a href="https://www.aliyun.com/acts/limit-buy?userCode=x6ommjya&source=5176.11533457&userCode=x6ommjya&type=copy">
+                    <img width="300px" src="https://github.com/Blucezhang/material/blob/master/375X112.jpg?raw=true">
                 </a>
             </td>
         </tr>
@@ -59,10 +64,7 @@ __<font color=#00ffff size=12>\!ATTENTION:</font>__ 禁止商用（如果可以�
 </table>
 
 
-**声明**
-======
-有几个小伙伴联系我之后，项目话术中有个别错误，目前项目中不包含任何的HTML页面，页面还在完善中，由于一个人在开发，平常工作又忙，所以没有时间将html完整的页面放上去（HTML是半成品），还请谅解。后续如果有时间的话，一定将html文件放上去
-=======
+
 **改造中....update version1.2.1 dev 分支不可用 1.5.9->2.0.3**
 
 - auth 统一授权，api-gateway 高可用 等等。。。
