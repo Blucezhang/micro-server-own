@@ -2,7 +2,7 @@
 
 > 基于 Spring Cloud 的多商家商城后端演示项目
 
-## ⚠️ 项目说明
+## 项目定位
 
 micro-server-own 是一个学习型、演示型的多商家商城后端。它将用户、商品、促销、库存、订单、文件、消息和工作流模块组织为一条交易链路：
 
@@ -10,7 +10,7 @@ micro-server-own 是一个学习型、演示型的多商家商城后端。它将
 
 项目适合学习微服务拆分、库存预占、订单状态机、幂等处理、Outbox、JWT/RBAC 和容器化配置。
 
-## 🐶 新手必读
+## 项目概览
 
 | 项目 | 说明 |
 | --- | --- |
@@ -19,7 +19,7 @@ micro-server-own 是一个学习型、演示型的多商家商城后端。它将
 | 核心框架 | Spring Boot 1.5.9、Spring Cloud Edgware |
 | 数据存储 | MySQL 5.7、Neo4j 3.5 |
 | 网关地址 | http://localhost:9632 |
-| 本地启动 | [快速开始](#-快速开始) |
+| 本地启动 | [快速开始](#快速开始) |
 | 能力路线 | [商城能力路线图](docs/product/mall-capability-roadmap.md) |
 
 开始前请先了解两条边界：
@@ -28,7 +28,7 @@ micro-server-own 是一个学习型、演示型的多商家商城后端。它将
 2. own-settlement 目前是本地模拟支付与退款账本；微信、支付宝及商家结算参数已经预留，但不连接真实渠道。
 3. Docker Compose 仅把网关 `9632` 暴露给外部网络；Eureka、Config Server 仅绑定到宿主机 `127.0.0.1` 用于本地排障，各业务服务仅在 Compose 后端网络监听，不能作为业务入口。网关会覆盖来访者提交的内部令牌并注入受保护的共享令牌；业务服务启用服务边界校验后拒绝缺少该令牌的请求，从而不能通过直连伪造 `X-Actor-*`。
 
-## 🐰 版本说明
+## 版本与技术栈
 
 | 项目版本 | Java | Spring Boot | Spring Cloud | 状态 |
 | --- | --- | --- | --- | --- |
@@ -36,7 +36,22 @@ micro-server-own 是一个学习型、演示型的多商家商城后端。它将
 
 > Spring Boot 1.5.9、Spring Cloud Edgware 和 Neo4j 3.5 均为旧技术栈。升级需要独立完成兼容性设计、回归测试和数据迁移。
 
-## 📌 当前实现总览
+## 目录
+
+- [项目定位](#项目定位)
+- [项目概览](#项目概览)
+- [当前实现摘要](#当前实现摘要)
+- [业务模型](#业务模型)
+- [功能清单](#功能清单)
+- [服务与路由](#服务与路由)
+- [技术栈与版本治理](#技术栈与版本治理)
+- [快速开始](#快速开始)
+- [配置说明](#配置说明)
+- [生产部署](#生产部署)
+- [验证与验收](#验证与验收)
+- [许可证](#许可证)
+
+## 当前实现摘要
 
 当前代码库已形成以多商家交易为主线的后端演示闭环。下表是“现在可以从代码和本地测试确认”的能力摘要；后续章节保留各接口、配置和演示命令的完整说明。
 
@@ -55,7 +70,7 @@ micro-server-own 是一个学习型、演示型的多商家商城后端。它将
 
 **最近本地验证。** 使用 JDK 8 执行 `./mvnw -B -ntp clean verify` 已通过全部 14 个模块；`scripts/validate-migrations.sh` 已验证 MySQL 迁移 01–33；`git diff --check` 通过。这些结果不等同于真实 Docker、MySQL、Neo4j、短信/邮件、物流或生产环境验收。
 
-## 🐯 项目简介
+## 业务模型
 
 ### 业务边界
 
@@ -79,7 +94,7 @@ SYSTEM 还可通过 `PUT /user/api/v1/system/roles/{roleId}/functions` 为既有
 - 平台券每个母订单最多一张，店铺券每个商家子订单最多一张；优惠不抵扣运费。试算只校验并计算优惠，不占用券；创建订单时才预占。
 - 订单事件写入本地 Outbox。PENDING 仅表示待投递，不能解释为外部系统已送达。
 
-## 🐼 内置能力
+## 功能清单
 
 标记说明：✅ 已实现并有本地测试覆盖；🧪 仅本地模拟或依赖外部配置；🚧 尚未实现。
 
@@ -113,7 +128,7 @@ SYSTEM 还可通过 `PUT /user/api/v1/system/roles/{roleId}/functions` 为既有
 
 公共控制器切面仅记录请求方法、URL 和参数数量，不会序列化控制器参数；关联 ID 由过滤器写入日志上下文和响应头。服务间 HTTP 调试日志及短信、邮件更新/查询日志不输出请求体、正文、手机号或邮箱地址。生产日志采集仍应设置访问日志脱敏规则，并限制日志系统的读取权限。
 
-## 🏗️ 项目结构
+## 服务与路由
 
 | 模块 | 端口 | 说明 |
 | --- | ---: | --- |
@@ -143,7 +158,7 @@ SYSTEM 还可通过 `PUT /user/api/v1/system/roles/{roleId}/functions` 为既有
 | /settlement/** | 模拟结算 | POST /settlement/api/v1/payments |
 | /file/**、/flow/**、/Info/** | 原有服务 | 保持原有接口定义 |
 
-## 🐨 技术栈
+## 技术栈与版本治理
 
 | 技术 | 用途 | 当前版本/实现 |
 | --- | --- | --- |
@@ -156,24 +171,26 @@ SYSTEM 还可通过 `PUT /user/api/v1/system/roles/{roleId}/functions` 为既有
 | Maven | 构建与依赖治理 | 根 pom.xml 集中管理版本 |
 | Docker Compose | 单机演示编排 | Compose v2 |
 
-## 🚀 快速开始
+## 快速开始
 
 ### 1. 构建并检查代码
 
-~~~
+```bash
 ./mvnw -B -ntp clean verify
 bash scripts/validate-migrations.sh
 git diff --check
-~~~
+```
 
 ### 2. 创建本地配置
 
-~~~
+```bash
 cp .env.example .env
 chmod 600 .env
-~~~
+```
 
 替换 .env 中所有 change-me 占位值：
+
+#### 2.1 核心环境变量
 
 | 环境变量 | 说明 |
 | --- | --- |
@@ -194,7 +211,7 @@ chmod 600 .env
 
 ### 3. 启动演示环境
 
-~~~
+```bash
 docker compose --env-file .env config --quiet
 docker compose --env-file .env up --build -d
 
@@ -202,19 +219,19 @@ set -a
 . ./.env
 set +a
 ./scripts/smoke-test.sh
-~~~
+```
 
 ### 3.1 MySQL 备份与完整性校验
 
 生产环境应在每次数据库迁移前后以及按既定备份策略执行逻辑备份。下面脚本只读取 MySQL，不会执行恢复；`BACKUP_DIR` 必须是仓库外的绝对路径并由备份系统加密保管。迁移与备份脚本仅接受字母、数字和下划线组成的 `MYSQL_DATABASE`，避免错误环境变量被解释为命令参数；校验脚本只接受绝对归档路径，并同时验证 gzip 完整性、单行 SHA-256 清单格式和实际摘要：
 
-~~~
+```bash
 export MYSQL_HOST=db.example.internal MYSQL_PORT=3306 MYSQL_USER=micro
 export MYSQL_PASSWORD='replace-me' MYSQL_DATABASE=micro
 export BACKUP_DIR=/srv/backups/micro-server-own
 ./scripts/backup-mysql.sh
 ./scripts/verify-mysql-backup.sh /srv/backups/micro-server-own/micro-YYYYMMDDTHHMMSSZ.sql.gz
-~~~
+```
 
 MySQL 逻辑备份不包含文件服务的永久对象；文件卷或对象存储必须按同一恢复点目标单独快照和演练恢复。恢复操作会覆盖数据，必须在隔离环境先验证并经过运维变更审批。
 
@@ -222,34 +239,36 @@ SYSTEM 运维排查可在内部令牌保护下调用 `GET /order/api/v1/internal
 
 停止服务并保留本地数据卷：
 
-~~~
+```bash
 docker compose --env-file .env down
-~~~
+```
 
 首次创建 MySQL 数据卷时，容器会执行 `database/mysql/micro.sql` 与当前仓库中的 `02` 至 `32` 号前向迁移。已有数据卷不会自动执行新迁移；请使用下文的受控迁移脚本。
 
-### 4. 调用一个交易接口
+### 4. API 演示
+
+#### 4.1 身份认证与会话
 
 先登录获得令牌。角色名遵循 `ROLE_BUYER`、`ROLE_MERCHANT`、`ROLE_SYSTEM`；没有图谱角色的个人用户默认只能以 BUYER 身份登录。网关默认强制 Bearer JWT，并以令牌声明覆写外部 `X-Actor-*` 头；下面所有受保护接口均使用 `Authorization: Bearer`：
 
 首次使用可先匿名创建演示买家。此入口只创建 BUYER，不签发令牌、不创建商家或 SYSTEM 权限；需要使用相同 `Idempotency-Key` 重试时会返回原成功响应。真实短信/邮箱验证与反滥用策略尚未接入，生产环境应在网关外增加相应能力：
 
-~~~
+```bash
 BASE=http://localhost:9632
 curl -X POST "$BASE/user/api/v1/auth/registrations" \
   -H 'Content-Type: application/json' \
   -H 'Idempotency-Key: buyer-registration-001' \
   -d '{"loginName":"buyer01","password":"replace-me","name":"演示买家","email":"buyer01@example.test","phone":"13800138000"}'
-~~~
+```
 
 `loginName` 仅允许 3–64 位英文字母、数字、`.`、`_`、`-`；新密码必须为 8–128 个字符且不能包含控制字符。规则仅在创建/改密时生效，不会使既有 BCrypt 密码立即失效。
 
-~~~
+```bash
 curl -X POST "$BASE/user/login/token" \
   -H 'Content-Type: application/json' \
   -d '{"loginUserName":"buyer01","password":"replace-me","actorType":"BUYER"}'
 # 从返回 data.accessToken 取值并设置：TOKEN=...
-~~~
+```
 
 登录响应同时包含 `refreshToken`。Access JWT 临近过期时可调用 `POST /user/login/refresh` 轮换；`GET /user/login/sessions` 查看当前账号仍有效的会话，携带 `Idempotency-Key` 的 `DELETE /user/login/sessions/{id}` 可撤销指定会话。两者都会复核 JWT 用户与主体归属。不要把 Refresh Token 放入前端日志或 URL。
 
@@ -258,6 +277,8 @@ curl -X POST "$BASE/user/login/token" \
 使用旧密码修改密码成功后，系统会撤销该账号全部 Refresh Session；已有 Access JWT 仍只在其配置的短有效期内可用。密码修改失败也会进入与登录相同的失败计数和临时锁定保护，不能作为绕过登录限流的验证入口。
 
 登录后可调用 `GET /user/api/v1/account/authorization` 查看当前 JWT 主体对应的持久化 `actorId`、角色和功能权限。该接口会复核 JWT 用户、请求主体与持久化账号的归属关系，只用于买家或商家自查，不能读取其他账号或 SYSTEM 权限。
+
+#### 4.2 订单、购物车与履约
 
 买家历史订单保留兼容的 `GET /order/api/v1/orders` 全量接口；新客户端应使用 `GET /order/api/v1/orders/page?page=0&size=20&status=PAID&from=<epochMillis>&to=<epochMillis>` 分页读取自己的订单。`status`、`from`、`to` 均可省略，单页最大 100 条。
 
@@ -287,6 +308,8 @@ curl -X POST "$BASE/user/login/token" \
 
 商家通过 `GET /product/api/v1/merchant/products?page=0&size=20&saleStatus=OFF_SHELF` 查看自己的完整 SKU 目录（包含下架商品），可按分类、关键词与上下架状态筛选；公开 `GET /product/api/v1/products` 与 `GET /product/api/v1/products/{id}` 始终只返回可售 SKU 的展示投影，不包含初始化库存和销量字段。商家修改 SKU 原价或促销价时可选传 `priceChangeReason`（最多 200 字）；系统保存前后价格和操作者审计记录，可通过 `GET /product/api/v1/merchant/products/{id}/price-audits?page=0&size=20` 查看自有 SKU 的历史。
 
+#### 4.3 商品、评价与优惠券
+
 商品与评价仅开放四个匿名读取路径：`GET /product/api/v1/categories?level=1`、`GET /product/api/v1/products`、`GET /product/api/v1/products/{productId}` 及 `GET /product/api/v1/products/{productId}/reviews?page=0&size=20`。分类 `level` 仅允许 1–9，且只返回 ID、名称和层级；评价返回 `total`、`page`、`size` 与 `items`，单页最大 100 条。公开及商家回复响应只包含展示字段，不暴露买家内部 ID、举报信息或审核状态。买家在子订单签收后，携带 `Idempotency-Key` 调用 `POST` 同一路径提交一次 `{"rating": 1..5, "content":"..."}`；未签收、重复评价或商家身份都会被拒绝。
 
 `REVIEW_PROHIBITED_TERMS` 可配置逗号分隔的评价与商家回复禁用词，作为部署级兜底规则；命中时返回 `422`。SYSTEM 还可用 `GET /product/api/v1/system/review-prohibited-terms?page=0&size=20` 查询持久化词库，以 `POST` 创建 `{"term":"..."}`，并用 `PUT /product/api/v1/system/review-prohibited-terms/{id}` 更新 `{"term":"...","active":true|false}`。这些写操作必须带 `Idempotency-Key`，且词条统一按去除首尾空白后的小写形式去重；静态与持久化词库均会同时校验买家评价和商家回复。它们仍只是第一层拦截，买家举报和 SYSTEM 审核用于后续处置。
@@ -297,9 +320,11 @@ curl -X POST "$BASE/user/login/token" \
 
 商家可通过 `POST /product/api/v1/merchant/reviews/{reviewId}/reply` 回复自己商品的评价；买家可使用 `POST /product/api/v1/products/{productId}/reviews/{reviewId}/reports` 提交一次 `{"reason":"..."}` 举报。SYSTEM 可通过 `GET /product/api/v1/system/review-reports?status=PENDING` 查看待处理举报、用 `POST /product/api/v1/system/review-reports/{reportId}/resolve` 标记 `RESOLVED` 或 `DISMISSED`，并通过 `PUT /product/api/v1/products/{productId}/reviews/{reviewId}/moderation`（请求体 `{"published":false}`）独立隐藏不当内容，恢复时传 `true`。公开列表只返回 `PUBLISHED` 评价。
 
+#### 4.4 地址与模拟支付
+
 以下示例创建收货地址；返回的 data.id 可在试算和下单时作为 addressId 使用：
 
-~~~
+```bash
 BASE=http://localhost:9632
 TOKEN=<data.accessToken>
 
@@ -308,26 +333,26 @@ curl -X POST "$BASE/user/api/v1/addresses" \
   -H 'Idempotency-Key: address-001' \
   -H 'Content-Type: application/json' \
   -d '{"recipientName":"演示买家","mobile":"13800138000","province":"上海市","city":"上海市","district":"浦东新区","detail":"示例路 1 号","defaultAddress":true}'
-~~~
+```
 
 完整的多商家下单、模拟支付、发货、签收、整单退款和售后流程见 [商城能力路线图](docs/product/mall-capability-roadmap.md)。
 
 模拟渠道回调使用支付单返回的 `paymentNo`、`providerPaymentNo` 和金额；支付宝示例：
 
-~~~
+```bash
 curl -X POST "$BASE/settlement/api/v1/payments/mock-callbacks/MOCK_ALIPAY" \
   -H "X-Mock-Payment-Token: $PAYMENT_MOCK_CALLBACK_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"paymentNo":"PAY-...","providerPaymentNo":"ALIPAY-...","amount":128.00,"result":"SUCCESS"}'
-~~~
+```
 
 微信将路径中的渠道改为 `MOCK_WECHAT`，并使用支付单返回的 `WXPAY-...` 渠道流水。该入口只用于本地模拟，不会调用真实微信或支付宝。
 
-### 5. 上传售后举证材料（可选）
+### 5. 文件举证示例（可选）
 
 售后申请的 `evidenceFileNames` 只能引用新归属文件接口创建、且已由同一买家提升为正式存储的文件。旧 `/file/picture`、`/file/promote` 接口保留兼容性，但不产生归属元数据，不能作为售后举证材料。
 
-~~~
+```bash
 # 先上传。记录返回 data.storedName。
 curl -X POST "$BASE/file/api/v1/files" \
   -H "Authorization: Bearer $TOKEN" \
@@ -339,13 +364,15 @@ curl -X POST "$BASE/file/api/v1/files/<storedName>/promote" \
   -H 'Idempotency-Key: file-promote-001'
 
 # 创建售后时传入："evidenceFileNames":["<storedName>"]
-~~~
+```
 
 归属文件提升后，所有者可用 `GET /file/api/v1/files/{storedName}/content` 下载二进制内容；该接口要求与文件所有者匹配的 JWT。历史 `/file/Picture/**` 路由仍是旧兼容接口，不具备该私有下载校验。
 
-## ⚙️ 配置说明
+## 配置说明
 
 服务配置在 own-config/src/main/resources/config-repo/，Compose 使用 SPRING_PROFILES_ACTIVE=local 加载。生产应使用独立的受控配置，而不是直接修改演示文件。
+
+### 应用配置
 
 | 配置 | 默认值 | 说明 |
 | --- | --- | --- |
@@ -385,7 +412,7 @@ SYSTEM 可通过 `POST /inventory/api/v1/stocks/bootstrap/catalogue` 从商品�
 
 库存确认扣减与预占过期释放会先锁定同一预占记录并在锁内复核状态，因此两者竞争时只会有一个状态转换成功；已提交的预占不会被过期任务错误回补。
 
-## 🐳 生产部署
+## 生产部署
 
 docker-compose.yml 是单机演示编排，可作为构建、端口与环境变量参考，不能直接视为生产部署方案。
 
@@ -406,24 +433,24 @@ docker-compose.yml 是单机演示编排，可作为构建、端口与环境变�
 2. 不要依赖已有 Docker 数据卷的初始化行为。使用 `scripts/apply-migrations.sh` 执行迁移；它在目标库创建 `micro_schema_migration`，记录版本、文件名和 SHA-256，拒绝被篡改的已应用脚本。
 3. 对已有且已确认执行到第 20 个迁移的数据库，先显式建立基线，再只执行后续迁移：
 
-~~~
+```bash
 MYSQL_HOST=db.example.internal MYSQL_PORT=3306 MYSQL_USER=micro MYSQL_PASSWORD='...' MYSQL_DATABASE=micro \\
   bash scripts/apply-migrations.sh --baseline-through 20
-~~~
+```
 
    `--baseline-through` 不检查业务表结构，只有在备份和人工核对后才可使用；新库不带该参数直接执行。也可以将该脚本放入 DBA 的受控迁移作业。
 4. 先发布兼容新表/字段的服务，再切换流量；发布后检查健康状态、错误率、库存异常及 Outbox 积压。
 
-## ✅ 验证范围
+## 验证与验收
 
-~~~
+```bash
 ./mvnw -B -ntp clean verify
 bash scripts/validate-migrations.sh
 docker compose --env-file .env config --quiet
-~~~
+```
 
 这些命令只证明构建、单元测试、迁移编号与 Compose 语法通过。真实 MySQL/Neo4j、容器运行、支付、物流、消息投递、性能、安全、容灾与合规必须在对应环境单独验收。
 
-## 📄 许可证
+## 许可证
 
 仓库中的 LICENSE.htm 内容与项目不匹配，不能视为有效项目许可证。本文档不授予商业使用权；在作者明确许可证前，请避免商业分发。
