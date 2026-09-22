@@ -7,12 +7,12 @@ import com.own.user.party.dao.domain.LoginUser;
 import com.own.user.party.dao.domain.Person;
 import com.own.user.party.dto.BuyerRegistrationCommand;
 import com.own.user.party.dto.LoginUserResponse;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,7 +23,7 @@ public class BuyerRegistrationServiceTest {
     private LoginUserService loginUsers;
     private BuyerRegistrationService registrations;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         people = mock(PersonDao.class); users = mock(LoginUserDao.class); loginUsers = mock(LoginUserService.class);
         registrations = new BuyerRegistrationService(people, users, loginUsers);
@@ -32,7 +32,7 @@ public class BuyerRegistrationServiceTest {
     @Test
     public void createsOnlyBuyerCompatiblePersonAndLoginUser() {
         when(people.save(any(Person.class))).thenAnswer(invocation -> { Person person = (Person) invocation.getArguments()[0]; person.setId(91L); return person; });
-        when(loginUsers.create(any(LoginUser.class), org.mockito.Matchers.eq("password-123"))).thenAnswer(invocation -> { LoginUser user = (LoginUser) invocation.getArguments()[0]; user.setLoginUserId(92L); return user; });
+        when(loginUsers.create(any(LoginUser.class), org.mockito.ArgumentMatchers.eq("password-123"))).thenAnswer(invocation -> { LoginUser user = (LoginUser) invocation.getArguments()[0]; user.setLoginUserId(92L); return user; });
 
         LoginUserResponse response = registrations.register(command());
 

@@ -6,7 +6,7 @@ import com.own.face.security.InternalServiceGuard;
 import com.own.face.util.Resp;
 import com.own.face.util.base.BaseController;
 import com.own.order.service.AfterSaleService;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -10,8 +10,8 @@ import com.own.settlement.repository.AfterSaleRefundRepository;
 import com.own.settlement.repository.PaymentRepository;
 import com.own.settlement.repository.RefundRepository;
 import java.math.BigDecimal;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class SettlementServiceAfterSaleRefundTest {
@@ -28,7 +28,7 @@ public class SettlementServiceAfterSaleRefundTest {
 
         AfterSaleRefund result = service.refundAfterSale(new TradeActor(1L, ActorType.SYSTEM), command());
 
-        Assert.assertSame(existing, result);
+        Assertions.assertSame(existing, result);
         Mockito.verify(refunds, Mockito.never()).save(Mockito.any(AfterSaleRefund.class));
         Mockito.verify(orders).afterSaleRefundSucceeded("AS-1");
     }
@@ -46,7 +46,7 @@ public class SettlementServiceAfterSaleRefundTest {
 
         try {
             service.refundAfterSale(new TradeActor(1L, ActorType.SYSTEM), command());
-            Assert.fail("refunds above the paid amount must be rejected");
+            Assertions.fail("refunds above the paid amount must be rejected");
         } catch (TradeException expected) {
             Mockito.verify(refunds, Mockito.never()).save(Mockito.any(AfterSaleRefund.class));
         }

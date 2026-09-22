@@ -12,7 +12,7 @@ import com.own.user.party.dao.PersonDao;
 import com.own.user.party.dao.domain.LoginUser;
 import com.own.user.party.dao.domain.Person;
 import com.own.user.party.service.LoginUserService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +32,7 @@ public class PerController  {
 	@Autowired
 	private LoginUserService loginUserService = null;
 
-	@ApiOperation(value = "查询所有的person用户")
+	@Operation(summary = "查询所有的person用户")
 	@GetMapping("/Person")
 	public@ResponseBody
 	Resp queryAllPerson(){
@@ -40,14 +40,14 @@ public class PerController  {
  		return new Resp(persons);
  	}
 
-	@ApiOperation(value = "根据id查询person信息")
+	@Operation(summary = "根据id查询person信息")
 	@GetMapping("/Person/{personid}")
 	public @ResponseBody Resp getPerson(@PathVariable Integer personid){
 		Person person = (Person) personDao.getFromId(personid);
  		return new Resp(person);
  	}
 
-	@ApiOperation(value = "创建person信息")
+	@Operation(summary = "创建person信息")
 	@PutMapping("/Person/Reg")
 	public @ResponseBody void createPerson(@RequestBody PersonBean personBean){
 		Person person = new Person();
@@ -70,7 +70,7 @@ public class PerController  {
 		
  	}
 
-	@ApiOperation(value = "根据id修改person信息")
+	@Operation(summary = "根据id修改person信息")
 	@PostMapping("/Person/{id}")
 	public @ResponseBody Resp updPerson(@PathVariable Integer id,@RequestBody PersonBean pb){
 		Person person = (Person) personDao.getFromId(id);
@@ -88,7 +88,7 @@ public class PerController  {
 		return new Resp(personDao.save(person));
  	}
 
-	@ApiOperation(value = "根据id删除person信息")
+	@Operation(summary = "根据id删除person信息")
 	@DeleteMapping("/Person/{id}")
 	public @ResponseBody void deletePerson(@PathVariable Integer id){
 		personDao.deletePerson(id);

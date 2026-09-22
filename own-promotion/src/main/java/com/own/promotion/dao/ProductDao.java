@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.own.promotion.dao.domain.Product;
 import com.own.promotion.dao.domain.Scope;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 public interface ProductDao extends BaseDao<Product>{
 
 	/**
@@ -15,7 +15,7 @@ public interface ProductDao extends BaseDao<Product>{
 	 * 创建商品数据
 	 * {0} 代表传入的参数
 	 */
-	@Query(" create (n:Product{0}) return n; ")
+	@Query("CREATE (n:Product) SET n = $0 RETURN n")
 	public Map createProduct(Map map);
 	
 	/**
@@ -31,7 +31,7 @@ public interface ProductDao extends BaseDao<Product>{
 	 * @param id
 	 * @return
 	 */
-	@Query(" match (n:Product {id:{0}}) return n; ")
+	@Query("MATCH (n:Product) WHERE id(n) = $0 RETURN n")
 	public Scope findProduct(Long id);
 
 	
@@ -42,14 +42,14 @@ public interface ProductDao extends BaseDao<Product>{
 	 * @param id,map
 	 * @return
 	 */
-	@Query(" match (n:Product {id:{0}}) set n+={1}  return n; ")
+	@Query("MATCH (n:Product) WHERE id(n) = $0 SET n += $1 RETURN n")
 	public Scope updateProduct(Long id, Map map);
 	
 	/**
 	 * 为活动添加商品
 	 * relationship:JOIN
 	 */
-	@Query("START startNode=node({0}),endNode=node({1}) CREATE (startNode)-[:JOIN]->(endNode)")
+	@Query("MATCH (startNode:Product), (endNode:Promotion) WHERE id(startNode) = $0 AND id(endNode) = $1 CREATE (startNode)-[:JOIN]->(endNode)")
 	public void createRelationshipJoin(Integer startNodeId, Integer endNodeId, String relationShipType);
 	
 

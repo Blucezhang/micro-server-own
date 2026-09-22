@@ -7,7 +7,7 @@ import com.own.face.util.Resp;
 import com.own.face.util.base.BaseController;
 import com.own.file.domain.OwnedFileObject;
 import com.own.file.service.OwnedFileService;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

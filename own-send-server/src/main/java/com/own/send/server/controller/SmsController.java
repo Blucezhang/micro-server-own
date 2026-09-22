@@ -8,7 +8,7 @@ import com.own.send.server.service.CommonInfoSvc;
 import com.own.send.server.service.SmsSvc;
 import com.own.send.server.util.SendSms;
 import com.own.send.server.util.sms.MsgResult;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +32,7 @@ public class SmsController {
     @Autowired
     public ConfigProperty configProperty;
 
-    @ApiOperation(value = "查询短信列表（搜索功能，无搜索条件时，查所有）")
+    @Operation(summary = "查询短信列表（搜索功能，无搜索条件时，查所有）")
     @GetMapping("/sms")
     public Resp getMessageList(@RequestParam(required = false) Integer id,
                                @RequestParam(required = false) String title,
@@ -50,7 +50,7 @@ public class SmsController {
      *
      * @return
      */
-    @ApiOperation(value = "发送短信")
+    @Operation(summary = "发送短信")
    @PostMapping("/sms")
     public Resp sendSms(@RequestBody Map param) throws Throwable {//use this method to get param value
         String Action = param.get("Action") != null ? param.get("Action").toString() : null;
@@ -180,7 +180,7 @@ public class SmsController {
         return new Resp(smsSvc.findSmsById(id));
     }
 
-    @ApiOperation(value = "修改短信，比如暂存草稿,入参为Sms实体对象")
+    @Operation(summary = "修改短信，比如暂存草稿,入参为Sms实体对象")
     @PutMapping("/sms")
     public Resp updateSms(@RequestBody Sms sms) {
         Sms ss = sms;

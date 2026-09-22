@@ -8,8 +8,8 @@ import com.own.file.domain.OwnedFileStatus;
 import com.own.file.repository.OwnedFileObjectRepository;
 import com.own.file.storage.FileStorageService;
 import java.util.Collections;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class OwnedFileServiceTest {
@@ -25,7 +25,7 @@ public class OwnedFileServiceTest {
         service.promote(new TradeActor(1L, ActorType.BUYER), "file.jpg");
         service.promote(new TradeActor(1L, ActorType.BUYER), "file.jpg");
 
-        Assert.assertEquals(OwnedFileStatus.PERMANENT, file.getStorageStatus());
+        Assertions.assertEquals(OwnedFileStatus.PERMANENT, file.getStorageStatus());
         Mockito.verify(storage).promoteTemporary(Collections.singletonList("file.jpg"));
         Mockito.verify(repository, Mockito.times(1)).save(file);
     }
@@ -41,9 +41,9 @@ public class OwnedFileServiceTest {
 
         try {
             service.requirePermanentOwnedByBuyer(new TradeActor(1L, ActorType.SYSTEM), "file.jpg", 1L);
-            Assert.fail("a buyer must not attach a file owned by another buyer");
+            Assertions.fail("a buyer must not attach a file owned by another buyer");
         } catch (TradeException expected) {
-            Assert.assertEquals(403, expected.getStatus());
+            Assertions.assertEquals(403, expected.getStatus());
         }
     }
 
@@ -54,9 +54,9 @@ public class OwnedFileServiceTest {
         OwnedFileObject file = new OwnedFileObject("file.jpg", 1L, "BUYER");
         Mockito.when(repository.findByStoredName("file.jpg")).thenReturn(file);
         OwnedFileService service = new OwnedFileService(storage, repository);
-        try { service.requirePermanentForOwner(new TradeActor(1L, ActorType.BUYER), "file.jpg"); Assert.fail("temporary file must not download"); }
-        catch (TradeException expected) { Assert.assertEquals(409, expected.getStatus()); }
+        try { service.requirePermanentForOwner(new TradeActor(1L, ActorType.BUYER), "file.jpg"); Assertions.fail("temporary file must not download"); }
+        catch (TradeException expected) { Assertions.assertEquals(409, expected.getStatus()); }
         file.promote();
-        Assert.assertSame(file, service.requirePermanentForOwner(new TradeActor(1L, ActorType.BUYER), "file.jpg"));
+        Assertions.assertSame(file, service.requirePermanentForOwner(new TradeActor(1L, ActorType.BUYER), "file.jpg"));
     }
 }

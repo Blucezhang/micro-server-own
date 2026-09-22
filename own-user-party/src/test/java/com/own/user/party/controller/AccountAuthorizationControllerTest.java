@@ -1,9 +1,9 @@
 package com.own.user.party.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -18,15 +18,15 @@ import com.own.user.party.service.LoginUserService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 public class AccountAuthorizationControllerTest {
     private LoginUserService users;
     private AccountAuthorizationController controller;
 
-    @Before public void setUp() { users = mock(LoginUserService.class); controller = new AccountAuthorizationController(users); }
+    @BeforeEach public void setUp() { users = mock(LoginUserService.class); controller = new AccountAuthorizationController(users); }
 
     @Test
     public void returnsOnlyTheAuthenticatedAccountsPersistedAuthorization() {

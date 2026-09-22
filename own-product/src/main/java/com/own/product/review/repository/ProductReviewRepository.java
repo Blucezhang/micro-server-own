@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductReviewRepository extends JpaRepository<ProductReview, Long> {
     ProductReview findByBuyerIdAndProductId(Long buyerId, Long productId);
-    ProductReview findById(Long id);
     List<ProductReview> findByProductIdAndStatusOrderByIdDesc(Long productId, String status);
     Page<ProductReview> findByProductIdAndStatusOrderByIdDesc(Long productId, String status, Pageable pageable);
 }

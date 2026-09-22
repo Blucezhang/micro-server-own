@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.own.promotion.dao.domain.Promotion;
 import com.own.promotion.dao.domain.PromotionType;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 
 
 public interface PromotionTypeDao extends BaseDao<PromotionType>{
@@ -13,7 +13,7 @@ public interface PromotionTypeDao extends BaseDao<PromotionType>{
 	 * 创建数据
 	 * {0} 代表传入的参数
 	 */
-	@Query(" create (n:PromotionType{0}) return n; ")
+	@Query("CREATE (n:PromotionType) SET n = $0 RETURN n")
 	public Map createPromotionType(Map map);
 	
 	/**
@@ -29,7 +29,7 @@ public interface PromotionTypeDao extends BaseDao<PromotionType>{
 	 * @param id
 	 * @return
 	 */
-	@Query(" match (n:PromotionType {id:{0}}) return n; ")
+	@Query("MATCH (n:PromotionType) WHERE id(n) = $0 RETURN n")
 	public Promotion findPromotionType(Long id);
 
 	
@@ -40,6 +40,6 @@ public interface PromotionTypeDao extends BaseDao<PromotionType>{
 	 * @param id,map
 	 * @return
 	 */
-	@Query(" match (n:PromotionType {id:{0}}) set n+={1}  return n; ")
+	@Query("MATCH (n:PromotionType) WHERE id(n) = $0 SET n += $1 RETURN n")
 	public Promotion updatePromotionType(Long id, Map map);
 }

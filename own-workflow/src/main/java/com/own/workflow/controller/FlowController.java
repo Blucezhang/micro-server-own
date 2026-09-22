@@ -10,7 +10,7 @@ import com.own.workflow.controller.bean.BizBusinessFlowBean;
 import com.own.workflow.domain.BizBusinessFlowContext;
 import com.own.workflow.domain.BizState;
 import com.own.workflow.service.FlowSvc;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +26,7 @@ public class FlowController  {
 	@Autowired
 	private FlowSvc flowSvc;
 
-	@ApiOperation(value = "根据LoginId查询用户所有的交易")
+	@Operation(summary = "根据LoginId查询用户所有的交易")
 	@GetMapping("/workflow")
 	public Resp getUserWorkFlowTransByLoginId(@RequestParam Map params){
 		log.info("工作流查询请求已收到，loginIdPresent={}", params.get("LoginId") != null);
@@ -35,7 +35,7 @@ public class FlowController  {
 		return new Resp(transList);
 	}
 
-	@ApiOperation(value = "根据PartyId&bizTypeId查询用户所有的交易")
+	@Operation(summary = "根据PartyId&bizTypeId查询用户所有的交易")
 	@GetMapping(value = "/workflow",params="ActionName=PartyIdAndBizTypeId")
 	public Resp getUserWorkFlowTransByPartIdAndBizType(@RequestParam Map params){
 		Map<String,List<?>> result = new HashMap<String,List<?>>();
@@ -45,7 +45,7 @@ public class FlowController  {
 	}
 	
 
-	@ApiOperation(value = "根据ProcessId跟BizType当前工作流的详细信息")
+	@Operation(summary = "根据ProcessId跟BizType当前工作流的详细信息")
 	@GetMapping("/workflow/{processId}/{bizType}")
 	public Resp getTransInfor(@PathVariable Long processId,@PathVariable Integer bizType){
 		Map<String,List<?>> result = new HashMap<String,List<?>>();
@@ -61,7 +61,7 @@ public class FlowController  {
 		return new Resp(result);
 	}
 
-	@ApiOperation(value = "查询工作流的所有类型")
+	@Operation(summary = "查询工作流的所有类型")
 	@GetMapping(value="/workflow",params="ActionName=FlowType")
 	public Resp getAllFlowType(){
 		Map<String,List<?>> result = new HashMap<String,List<?>>();
@@ -70,14 +70,14 @@ public class FlowController  {
 		return new Resp(result);
 	}
 
-	@ApiOperation(value = "记录同类型下交易内容详细")
+	@Operation(summary = "记录同类型下交易内容详细")
 	@PutMapping(value="/workflow")
 	public Resp putWorkFlowTrans(@RequestBody BizBusinessFlowBean FlowBean){
 		log.info("记录同类型下交易内容详细");
 		return new Resp(flowSvc.saveAllBusinessProcessMater(FlowBean));
 	}
 
-	@ApiOperation(value = "工作流驱动(根据工作流的当前状态查询出下一个状态，设置下一个工作流的状态)")
+	@Operation(summary = "工作流驱动(根据工作流的当前状态查询出下一个状态，设置下一个工作流的状态)")
 	@PostMapping(value="/workflow")
 	public Resp updataWorkFlowTrans(@RequestBody Map params){
 		Map<String,Object> result = new HashMap<String,Object>();

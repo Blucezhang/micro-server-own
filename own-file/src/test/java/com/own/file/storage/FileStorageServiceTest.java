@@ -1,9 +1,8 @@
 package com.own.file.storage;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.ByteArrayOutputStream;
@@ -16,22 +15,23 @@ import java.util.Arrays;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FileStorageServiceTest {
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    Path folder;
 
     private Path temporaryRoot;
     private Path permanentRoot;
     private FileStorageService storageService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
-        temporaryRoot = folder.newFolder("temporary").toPath();
-        permanentRoot = folder.newFolder("permanent").toPath();
+        temporaryRoot = Files.createDirectory(folder.resolve("temporary"));
+        permanentRoot = Files.createDirectory(folder.resolve("permanent"));
 
         FileStorageProperties properties = new FileStorageProperties();
         properties.setTemporaryRoot(temporaryRoot.toString());
@@ -62,15 +62,16 @@ public class FileStorageServiceTest {
         assertTrue(Files.isRegularFile(temporaryRoot.resolve(storedName)));
     }
 
-    @Test(expected = InvalidStorageRequestException.class)
+    @Test
     public void rejectsEmptyUploads() throws IOException {
-        storageService.storeTemporary(new MockMultipartFile("file", "empty.txt", "text/plain", new byte[0]));
+        assertThrows(InvalidStorageRequestException.class,
+                () -> storageService.storeTemporary(new MockMultipartFile("file", "empty.txt", "text/plain", new byte[0])));
     }
 
-    @Test(expected = InvalidStoragePathException.class)
+    @Test
     public void rejectsUploadNamesContainingPathSeparators() throws IOException {
-        storageService.storeTemporary(new MockMultipartFile(
-                "file", "../photo.jpg", "image/jpeg", new byte[]{1}));
+        assertThrows(InvalidStoragePathException.class, () -> storageService.storeTemporary(new MockMultipartFile(
+                "file", "../photo.jpg", "image/jpeg", new byte[]{1})));
     }
 
     @Test
@@ -82,18 +83,20 @@ public class FileStorageServiceTest {
         assertInvalidName("nested\\file.txt");
     }
 
-    @Test(expected = StoredFileNotFoundException.class)
+    @Test
     public void reportsMissingDownloads() throws IOException {
-        storageService.writeTemporary("missing.txt", new ByteArrayOutputStream());
+        assertThrows(StoredFileNotFoundException.class,
+                () -> storageService.writeTemporary("missing.txt", new ByteArrayOutputStream()));
     }
 
-    @Test(expected = StoredFileNotFoundException.class)
+    @Test
     public void doesNotFollowSymbolicLinksDuringDownload() throws IOException {
-        Path outside = folder.newFile("outside.txt").toPath();
+        Path outside = Files.createFile(folder.resolve("outside.txt"));
         Files.write(outside, "secret".getBytes(StandardCharsets.UTF_8));
         Files.createSymbolicLink(temporaryRoot.resolve("link.txt"), outside);
 
-        storageService.writeTemporary("link.txt", new ByteArrayOutputStream());
+        assertThrows(StoredFileNotFoundException.class,
+                () -> storageService.writeTemporary("link.txt", new ByteArrayOutputStream()));
     }
 
     @Test

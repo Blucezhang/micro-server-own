@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReviewProhibitedTermRepository extends JpaRepository<ReviewProhibitedTerm, Long> {
-    ReviewProhibitedTerm findById(Long id);
     ReviewProhibitedTerm findByNormalizedTerm(String normalizedTerm);
     List<ReviewProhibitedTerm> findByActiveTrueOrderByIdAsc();
     Page<ReviewProhibitedTerm> findAllByOrderByIdDesc(Pageable pageable);

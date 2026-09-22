@@ -1,7 +1,7 @@
 package com.own.order.repository;
 
 import com.own.order.domain.CartBuyerGuard;
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;

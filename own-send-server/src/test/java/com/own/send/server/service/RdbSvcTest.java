@@ -2,16 +2,17 @@ package com.own.send.server.service;
 
 import com.own.send.server.dao.RdbBaseDao;
 import com.own.send.server.domain.Sms;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class RdbSvcTest {
 
-    @Test(expected = EntityNotFoundException.class)
+    @Test
     public void updateBySaveRejectsUnknownIdentifier() {
         RdbBaseDao dao = mock(RdbBaseDao.class);
         Sms sms = new Sms();
@@ -20,6 +21,6 @@ public class RdbSvcTest {
         RdbSvc service = new RdbSvc();
         service.setBaseDao(dao);
 
-        service.save(sms);
+        assertThrows(EntityNotFoundException.class, () -> service.save(sms));
     }
 }

@@ -1,8 +1,8 @@
 package com.own.user.party.address.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /** One permanent row per buyer, used only to serialize default-address updates. */
 @Entity

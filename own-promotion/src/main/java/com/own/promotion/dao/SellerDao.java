@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.promotion.dao.domain.Seller;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 
 
 public interface SellerDao extends BaseDao<Seller>{
@@ -13,7 +13,7 @@ public interface SellerDao extends BaseDao<Seller>{
 	 * 创建参与活动的卖家
 	 * {0} 代表传入的参数
 	 */
-	@Query(" create (n:Seller{0}) return n; ")
+	@Query("CREATE (n:Seller) SET n = $0 RETURN n")
 	public Map createSeller(Map map);
 	
 	/**
@@ -29,7 +29,7 @@ public interface SellerDao extends BaseDao<Seller>{
 	 * @param id
 	 * @return
 	 */
-	@Query(" match (n:Seller {id:{0}}) return n; ")
+	@Query("MATCH (n:Seller) WHERE id(n) = $0 RETURN n")
 	public Seller findSeller(Long id);
 
 	
@@ -40,7 +40,7 @@ public interface SellerDao extends BaseDao<Seller>{
 	 * @param id,map
 	 * @return
 	 */
-	@Query(" match (n:Seller {id:{0}}) set n+={1}  return n; ")
+	@Query("MATCH (n:Seller) WHERE id(n) = $0 SET n += $1 RETURN n")
 	public Seller updateSeller(Long id, Map map);
 	
 	
@@ -48,6 +48,6 @@ public interface SellerDao extends BaseDao<Seller>{
 	 * 关联参与活动的卖家
 	 * relationship:JOIN
 	 */
-	@Query("START startNode=node({0}),endNode=node({1}) CREATE (startNode)-[:JOIN]->(endNode)")
+	@Query("MATCH (startNode:Seller), (endNode:Promotion) WHERE id(startNode) = $0 AND id(endNode) = $1 CREATE (startNode)-[:JOIN]->(endNode)")
 	public void createRelationshipJoin(Integer startNodeId, Integer endNodeId, String relationShipType);
 }

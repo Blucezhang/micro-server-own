@@ -1,4 +1,5 @@
 package com.own.promotion.controller;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,14 +14,14 @@ import com.own.face.util.base.BaseController;
 import com.own.promotion.controller.bean.SellerBean;
 import com.own.promotion.dao.*;
 import com.own.promotion.dao.domain.*;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.*;
@@ -42,7 +43,7 @@ public class PromotionController  extends BaseController {
 	@Autowired
 	private StoreTicketDao storeTicketDao;
 
-	@ApiOperation(value = "查询单条活动信息")
+	@Operation(summary = "查询单条活动信息")
 	@GetMapping("/{id}")
 	public  @ResponseBody
 	Resp findPromotionById(@PathVariable Integer id) {
@@ -51,13 +52,13 @@ public class PromotionController  extends BaseController {
 		return new Resp(promotionDao.getFromId(id));
 	}
 
-	@ApiOperation(value = "查询活动列表，支持搜索")
+	@Operation(summary = "查询活动列表，支持搜索")
 	@GetMapping
 	public @ResponseBody Resp findAll() {
 		return new Resp(promotionDao.findAllPromotion());
 	}
 
-	@ApiOperation(value = "保存活动信息，此处暂时先实现单品促销，对于别的促销方式，后续采用java引擎规则实现")
+	@Operation(summary = "保存活动信息，此处暂时先实现单品促销，对于别的促销方式，后续采用java引擎规则实现")
 	@PostMapping
 	public @ResponseBody Resp save(@RequestBody Map param) {
 		if (param == null || FaceUtil.isNullOrEmpty(param.get("promotionTypeId"))) {
@@ -88,11 +89,11 @@ public class PromotionController  extends BaseController {
 			
 			//商城券与活动建立关系
 			if(mallTicketId != null && !mallTicketId.trim().isEmpty() && !"null".equalsIgnoreCase(mallTicketId)){
-				mallTicketDao.createRelationship(Integer.valueOf(mallTicketId), pro.getId().intValue(), "BELONG");
+				mallTicketDao.createDataRelationship(Integer.valueOf(mallTicketId), pro.getId().intValue());
 			}
 			//店铺券与活动建立关系
 			if(storeTicketId != null && !storeTicketId.trim().isEmpty() && !"null".equalsIgnoreCase(storeTicketId)){
-				storeTicketDao.createRelationship(Integer.valueOf(storeTicketId), pro.getId().intValue(), "BELONG");
+				storeTicketDao.createDataRelationship(Integer.valueOf(storeTicketId), pro.getId().intValue());
 			}
 			log.info("活动信息："+promotion.getId()+"  "+promotion.getSaleName());
 			result.put("Obj", promotion);
@@ -165,22 +166,23 @@ public class PromotionController  extends BaseController {
 	}
 
 
-	@ApiOperation(value = "删除数据以及关系")
+	@Operation(summary = "删除数据以及关系")
 	@DeleteMapping("/{id}")
 	public Resp deletePromotion(@PathVariable Integer id) {
 		log.info("删除节点id为：" + id + "的数据");
 		// 删除该数据，并且删除关系
-		return new Resp(promotionDao.deleteRelationships(id));
+		promotionDao.deleteRelationships(id);
+		return new Resp(id);
 	}
 
-	@ApiOperation(value = "修改信息")
+	@Operation(summary = "修改信息")
 	@PutMapping
 	public @ResponseBody Resp upPromotion(@RequestBody Promotion p) {
 		// promotionDao.updatePromotion(id, map);
 		return new Resp(promotionDao.save(p));
 	}
 
-	@ApiOperation(value = "将卖家与活动关联")
+	@Operation(summary = "将卖家与活动关联")
 	@PostMapping("/seller")
 	public @ResponseBody Resp save(@RequestBody SellerBean seller) {
 		Seller s = new Seller();
@@ -196,33 +198,33 @@ public class PromotionController  extends BaseController {
 		return new Resp(saved);
 	}
 
-	@ApiOperation(value = "根据商品信息，查询对应的活动")
+	@Operation(summary = "根据商品信息，查询对应的活动")
 	@GetMapping("/productPromotion")
 	public @ResponseBody Resp findPromotionByProductId(@RequestParam String productId) {
 		log.info("查询商品对应的活动信息");
 		return new Resp(promotionDao.findProByProductInfo(productId));
 	}
 
-	@ApiOperation(value = "根据卖家信息，查询对应的活动")
+	@Operation(summary = "根据卖家信息，查询对应的活动")
 	@GetMapping("/typePromotion")
 	public @ResponseBody Resp findPromotionByTypeId(@RequestParam Long typeId) {
 		return new Resp(promotionDao.findProByTypeInfo(typeId));
 	}
 
-	@ApiOperation(value = "根据地域信息，查询对应的活动")
+	@Operation(summary = "根据地域信息，查询对应的活动")
 	@GetMapping("/zonePromotion")
 	public @ResponseBody Resp findPromotionByZoneId(@RequestParam Long zoneId) {
 		return new Resp(promotionDao.findProByZoneInfo(zoneId));
 	}
 
 
-	@ApiOperation(value = "结算方式2")
+	@Operation(summary = "结算方式2")
 	@GetMapping("/calculates")
 	public @ResponseBody Resp calculates(@RequestParam Map map) throws NumberFormatException, IfException {
 		return new Resp(calculateCart(map));
 	}
 
-	@ApiOperation(value = "结算")
+	@Operation(summary = "结算")
 	@GetMapping("/calculate")
 	public @ResponseBody Resp calculate(@RequestParam Map map) throws NumberFormatException, IfException{
 		return new Resp(calculateCart(map));
@@ -338,7 +340,7 @@ public class PromotionController  extends BaseController {
 	private void createPromotion(Integer promotionId, Integer promotionTypeId, Integer scopeId, String productJson) {
 		FaceUtil faceUtil = new FaceUtil();
 		if (promotionId != -1) {
-			promotionDao.createRelationship(promotionId, 32, "Data");
+			promotionDao.createDataRelationship(promotionId, 32);
 			promotionDao.createRelationshipBelong(promotionId, promotionTypeId, "Belong");
 			promotionDao.createRelationshipBelong(promotionId, scopeId, "Belong");
 		}
@@ -366,7 +368,7 @@ public class PromotionController  extends BaseController {
 						productDao.createRelationshipJoin(pro.getId().intValue(), promotionId, "JOIN");
 					}
 				}
-			} catch (JsonProcessingException exception) {
+			} catch (IOException exception) {
 				throw new IllegalArgumentException("productJson must be a valid JSON array", exception);
 			}
 		}

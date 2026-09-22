@@ -9,20 +9,21 @@ import com.own.promotion.dao.SellerDao;
 import com.own.promotion.dao.StoreTicketDao;
 import com.own.promotion.dao.domain.Promotion;
 import com.own.promotion.dao.domain.Seller;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,7 +37,7 @@ public class PromotionControllerTest {
 
     private PromotionController controller;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         controller = new PromotionController();
@@ -52,7 +53,8 @@ public class PromotionControllerTest {
         Method method = PromotionDao.class.getMethod("findProByProductInfo", String.class);
         String cypher = method.getAnnotation(Query.class).value();
         assertFalse(cypher.contains("'111'"));
-        assertEquals(true, cypher.contains("{0}"));
+        assertEquals(true, cypher.contains("$0"));
+        assertFalse(cypher.contains("{0}"));
     }
 
     @Test
@@ -96,10 +98,10 @@ public class PromotionControllerTest {
         verify(promotionDao).findProByZoneInfo(4L);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void unknownPromotionTypeIsRejected() {
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("promotionTypeId", "999");
-        controller.save(parameters);
+        assertThrows(IllegalArgumentException.class, () -> controller.save(parameters));
     }
 }

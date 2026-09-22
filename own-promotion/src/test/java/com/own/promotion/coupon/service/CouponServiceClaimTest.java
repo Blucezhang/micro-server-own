@@ -1,7 +1,7 @@
 package com.own.promotion.coupon.service;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -25,7 +25,7 @@ import java.util.Calendar;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Arrays;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CouponServiceClaimTest {
 
@@ -64,7 +64,7 @@ public class CouponServiceClaimTest {
             service.claim(2L, claimCommand());
             fail("exhausted coupon stock must become a conflict");
         } catch (TradeException expected) {
-            org.junit.Assert.assertEquals(409, expected.getStatus());
+            org.junit.jupiter.api.Assertions.assertEquals(409, expected.getStatus());
         }
     }
 
@@ -81,7 +81,7 @@ public class CouponServiceClaimTest {
 
         service.reserve(reservationCommand());
 
-        org.junit.Assert.assertEquals(CouponStatus.RESERVED, coupon.getStatus());
+        org.junit.jupiter.api.Assertions.assertEquals(CouponStatus.RESERVED, coupon.getStatus());
         verify(coupons).findByCouponNoForUpdate("CPN-1");
     }
 
@@ -96,8 +96,8 @@ public class CouponServiceClaimTest {
         when(coupons.findByCouponNo("CPN-1")).thenReturn(coupon);
         CouponService service = new CouponService(stocks, coupons, mock(MallTicketDao.class), mock(StoreTicketDao.class), 15);
 
-        org.junit.Assert.assertEquals(BigDecimal.ONE, service.preview(reservationCommand()).getTotalDiscount());
-        org.junit.Assert.assertEquals(CouponStatus.AVAILABLE, coupon.getStatus());
+        org.junit.jupiter.api.Assertions.assertEquals(BigDecimal.ONE, service.preview(reservationCommand()).getTotalDiscount());
+        org.junit.jupiter.api.Assertions.assertEquals(CouponStatus.AVAILABLE, coupon.getStatus());
         verify(coupons).findByCouponNo("CPN-1");
         verify(coupons, org.mockito.Mockito.never()).save(coupon);
     }
@@ -116,7 +116,7 @@ public class CouponServiceClaimTest {
             service.reserve(command);
             fail("one coupon must not be counted twice in one order");
         } catch (TradeException expected) {
-            org.junit.Assert.assertEquals(422, expected.getStatus());
+            org.junit.jupiter.api.Assertions.assertEquals(422, expected.getStatus());
         }
         verify(coupons, org.mockito.Mockito.never()).findByCouponNoForUpdate("CPN-1");
     }
@@ -128,9 +128,9 @@ public class CouponServiceClaimTest {
         when(coupons.countByMerchantIdAndStatus(9L, CouponStatus.AVAILABLE)).thenReturn(4L);
         CouponService service = new CouponService(mock(CouponStockRepository.class), coupons, mock(MallTicketDao.class), mock(StoreTicketDao.class), 15);
         java.util.Map<String, Object> summary = service.merchantSummary(9L);
-        org.junit.Assert.assertEquals(10L, summary.get("issued"));
-        org.junit.Assert.assertEquals(4L, summary.get("available"));
-        org.junit.Assert.assertFalse(summary.containsKey("couponNo"));
+        org.junit.jupiter.api.Assertions.assertEquals(10L, summary.get("issued"));
+        org.junit.jupiter.api.Assertions.assertEquals(4L, summary.get("available"));
+        org.junit.jupiter.api.Assertions.assertFalse(summary.containsKey("couponNo"));
     }
 
     @Test
@@ -142,7 +142,7 @@ public class CouponServiceClaimTest {
         when(tickets.getFromId(7)).thenReturn(ticket);
         CouponService service = new CouponService(stocks, mock(UserCouponRepository.class), tickets, mock(StoreTicketDao.class), 15);
         try { service.claim(1L, claimCommand()); fail("future coupon receive window must reject claim"); }
-        catch (TradeException expected) { org.junit.Assert.assertEquals(409, expected.getStatus()); }
+        catch (TradeException expected) { org.junit.jupiter.api.Assertions.assertEquals(409, expected.getStatus()); }
     }
 
     @Test
@@ -160,8 +160,8 @@ public class CouponServiceClaimTest {
         CouponService service = new CouponService(stocks, coupons, mock(MallTicketDao.class), mock(StoreTicketDao.class), templates, 15);
         ClaimCouponCommand command = new ClaimCouponCommand(); command.setCouponType("STORE"); command.setMerchantTemplateId(8L);
         UserCoupon claimed = service.claim(1L, command);
-        org.junit.Assert.assertEquals(Long.valueOf(9L), claimed.getMerchantId());
-        org.junit.Assert.assertEquals("MERCHANT_TEMPLATE:8", claimed.getSourceKey());
+        org.junit.jupiter.api.Assertions.assertEquals(Long.valueOf(9L), claimed.getMerchantId());
+        org.junit.jupiter.api.Assertions.assertEquals("MERCHANT_TEMPLATE:8", claimed.getSourceKey());
         verify(stocks).insertIfAbsent("MERCHANT_TEMPLATE:8", 3);
     }
 

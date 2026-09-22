@@ -12,8 +12,8 @@ import com.own.settlement.repository.RefundRepository;
 import com.own.settlement.dto.MerchantSettlementLine;
 import java.util.Arrays;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.InOrder;
 
@@ -30,8 +30,8 @@ public class SettlementServicePaymentTransitionTest {
 
         Payment result = service.simulateSuccess(new TradeActor(1L, ActorType.SYSTEM), "PAY-1");
 
-        Assert.assertSame(payment, result);
-        Assert.assertEquals(PaymentStatus.SUCCEEDED, result.getStatus());
+        Assertions.assertSame(payment, result);
+        Assertions.assertEquals(PaymentStatus.SUCCEEDED, result.getStatus());
         Mockito.verify(payments).findByPaymentNoForUpdate("PAY-1");
         Mockito.verify(payments, Mockito.never()).findByPaymentNo("PAY-1");
         Mockito.verify(orders).paymentSucceeded("ORD-1");
@@ -49,7 +49,7 @@ public class SettlementServicePaymentTransitionTest {
 
         Payment result = service.simulateSuccess(new TradeActor(1L, ActorType.SYSTEM), "PAY-1");
 
-        Assert.assertSame(payment, result);
+        Assertions.assertSame(payment, result);
         Mockito.verify(orders, Mockito.never()).paymentSucceeded(Mockito.anyString());
         Mockito.verify(payments, Mockito.never()).save(Mockito.any(Payment.class));
     }
@@ -82,7 +82,7 @@ public class SettlementServicePaymentTransitionTest {
 
         Payment result = service.processMockCallback(PaymentChannel.MOCK_ALIPAY, callback);
 
-        Assert.assertEquals(PaymentStatus.SUCCEEDED, result.getStatus());
+        Assertions.assertEquals(PaymentStatus.SUCCEEDED, result.getStatus());
         Mockito.verify(orders).paymentSucceeded("ORD-1");
     }
 
@@ -96,9 +96,9 @@ public class SettlementServicePaymentTransitionTest {
         callback.setPaymentNo("PAY-1"); callback.setProviderPaymentNo("forged"); callback.setAmount(java.math.BigDecimal.ONE); callback.setResult("SUCCESS");
         try {
             service.processMockCallback(PaymentChannel.MOCK_WECHAT, callback);
-            Assert.fail("forged provider reference must be rejected");
+            Assertions.fail("forged provider reference must be rejected");
         } catch (com.own.face.trade.TradeException expected) {
-            Assert.assertEquals(403, expected.getStatus());
+            Assertions.assertEquals(403, expected.getStatus());
         }
     }
 

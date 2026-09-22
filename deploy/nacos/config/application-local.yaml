@@ -1,0 +1,10 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false

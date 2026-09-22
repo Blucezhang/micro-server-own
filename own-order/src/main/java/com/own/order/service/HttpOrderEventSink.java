@@ -21,7 +21,7 @@ import org.springframework.web.client.RestTemplate;
 /** Optional outbound adapter. Receivers deduplicate by event ID and verify its HMAC signature. */
 @Component
 @Primary
-@ConditionalOnProperty(name = "trade.outbox.webhook-url")
+@ConditionalOnProperty(name = "trade.outbox.rocketmq.enabled", havingValue = "false", matchIfMissing = true)
 public class HttpOrderEventSink implements OrderEventSink {
     private static final String HMAC = "HmacSHA256";
     private final RestTemplate restTemplate; private final String webhookUrl; private final String webhookSecret; private final ObjectMapper objectMapper;
@@ -42,7 +42,7 @@ public class HttpOrderEventSink implements OrderEventSink {
             headers.set("X-Order-Event-Signature", "sha256=" + hex(hmac(serialized)));
             headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
             ResponseEntity<Void> response = restTemplate.postForEntity(webhookUrl, new HttpEntity<String>(serialized, headers), Void.class);
-            if (!response.getStatusCode().is2xxSuccessful()) throw new IllegalStateException("outbox webhook rejected event with " + response.getStatusCodeValue());
+            if (!response.getStatusCode().is2xxSuccessful()) throw new IllegalStateException("outbox webhook rejected event with " + response.getStatusCode().value());
         } catch (IllegalStateException exception) { throw exception; }
         catch (Exception exception) { throw new IllegalStateException("outbox webhook payload could not be signed", exception); }
     }

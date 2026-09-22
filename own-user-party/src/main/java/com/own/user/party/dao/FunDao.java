@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.user.party.dao.domain.Fun;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -15,7 +15,7 @@ public interface FunDao extends BaseDao<Fun> {
 	 * @param maps
 	 * @return
 	 */
-	@Query("create (n {0}) return n")
+	@Query("CREATE (n:Fun) SET n = $0 RETURN n")
 	public Map createFun(Map maps);
 	
 	/**
@@ -29,14 +29,14 @@ public interface FunDao extends BaseDao<Fun> {
 	 *根据ID删除功能信息
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH()-[fd]->(n) delete n,fd")
+	@Query("MATCH (n:Fun) WHERE id(n) = $0 OPTIONAL MATCH ()-[fd]->(n) DELETE fd, n")
 	public void deleteFun(Long id);
 	
 	/**
 	 * 创建Fun--数据
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH(T:Table {name:'Fun'}) CREATE (T)-[fd:fundata]->(n)")
+	@Query("MATCH (n:Fun), (T:Table {name: 'Fun'}) WHERE id(n) = $0 CREATE (T)-[:fundata]->(n)")
 	public void createRelationShipOfFun(Long id);
 	
 	/**
@@ -44,7 +44,7 @@ public interface FunDao extends BaseDao<Fun> {
 	 * @param id
 	 * @return 
 	 */
-	@Query("START n=node({0}) return n")
+	@Query("MATCH (n:Fun) WHERE id(n) = $0 RETURN n")
 	public Fun queryOneFunbyId(Long id);
 	
 }

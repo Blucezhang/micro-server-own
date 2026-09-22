@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.send.server.domain.Email;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.Page;
@@ -19,7 +20,7 @@ public class EmailSvc {
 	@Autowired
 	private RdbSvc rdbSvc;
 	
-	Logger log = Logger.getLogger(EmailSvc.class);
+	Logger log = LoggerFactory.getLogger(EmailSvc.class);
 	
 	/**
 	 * 查询邮件

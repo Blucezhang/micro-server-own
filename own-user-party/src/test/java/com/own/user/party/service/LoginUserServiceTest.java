@@ -9,21 +9,22 @@ import com.own.user.party.dao.domain.LoginUser;
 import com.own.user.party.dao.domain.Role;
 import com.own.user.party.dto.OwnProfileCommand;
 import java.util.Arrays;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -35,7 +36,7 @@ public class LoginUserServiceTest {
     private PasswordEncoder passwordEncoder;
     private LoginUserService loginUserService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         loginUserDao = mock(LoginUserDao.class);
         passwordEncoder = new BCryptPasswordEncoder(4);
@@ -145,12 +146,12 @@ public class LoginUserServiceTest {
         assertEquals("Alice Updated", updated.getName());
     }
 
-    @Test(expected = TradeException.class)
+    @Test
     public void selfProfileRejectsInvalidEmail() {
         LoginUser storedUser = user("alice", passwordEncoder.encode("current-password"));
         when(loginUserDao.getLoginUser(7L)).thenReturn(storedUser);
         OwnProfileCommand input = new OwnProfileCommand(); input.setEmail("not-an-email");
-        loginUserService.updateOwnProfile(7L, input);
+        assertThrows(TradeException.class, () -> loginUserService.updateOwnProfile(7L, input));
     }
 
     @Test
@@ -165,10 +166,10 @@ public class LoginUserServiceTest {
         } catch (TradeException expected) { assertEquals(403, expected.getStatus()); }
     }
 
-    @Test(expected = TradeException.class)
+    @Test
     public void missingProfileUpdateReturnsNotFound() {
         when(loginUserDao.getLoginUser(99L)).thenReturn(null);
-        loginUserService.updateProfile(99L, new LoginUserBean());
+        assertThrows(TradeException.class, () -> loginUserService.updateProfile(99L, new LoginUserBean()));
     }
 
     @Test

@@ -3,14 +3,16 @@ package com.own.promotion.dao.domain;
 import java.util.Date;
 
 import lombok.Data;
-import org.neo4j.ogm.annotation.GraphId;
-import org.neo4j.ogm.annotation.NodeEntity;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Node;
 
 @Data
-@NodeEntity
+@Node
 public class Product {
 
-	@GraphId
+	@Id
+    @GeneratedValue
 	private Long id;
 	private String productId;//商品id
 	private String productName;//商品名称

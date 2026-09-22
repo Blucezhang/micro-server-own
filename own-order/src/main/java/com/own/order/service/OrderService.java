@@ -43,6 +43,7 @@ import org.springframework.data.domain.PageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class OrderService {
@@ -63,6 +64,8 @@ public class OrderService {
     private final com.own.order.repository.LogisticsTraceRepository logisticsTraceRepository;
     private final com.own.order.repository.AfterSaleRepository afterSaleRepository;
     private final SensitiveAccessAuditRepository sensitiveAccessAuditRepository;
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private AsyncOrderSagaService asyncOrderSagaService;
+    @Value("${trade.saga.async-enabled:true}") private boolean asyncSagaEnabled;
 
     public OrderService(CartItemRepository cartItemRepository, com.own.order.repository.CartBuyerGuardRepository cartBuyerGuards, TradeOrderRepository orderRepository,
                         TradeSubOrderRepository subOrderRepository, OrderItemRepository orderItemRepository,
@@ -163,21 +166,27 @@ public class OrderService {
         List<CartItem> items = selectedCart(actor.getId(), command);
         validateCatalogSnapshots(items);
         String orderNo = "ORD-" + UUID.randomUUID().toString();
-        CheckoutQuote quote = quote(actor.getId(), items, command.getCoupons(), orderNo);
+        boolean asyncSaga = asyncSagaEnabled && asyncOrderSagaService != null;
+        CheckoutQuote quote = quote(actor.getId(), items, command.getCoupons(), asyncSaga ? null : orderNo);
         TradeOrder order = new TradeOrder(orderNo, actor.getId(), quote.getTotalAmount(), quote.getDiscountAmount(),
                 address.formatted(), address.id, address.recipientName, address.mobile, address.province, address.city,
                 address.district, address.detail, freightTotal(quote.getMerchantFreights()), requestKey);
         List<OrderItem> orderItems = new ArrayList<OrderItem>();
         List<TradeSubOrder> subOrders = createSubOrders(orderNo, items, quote.getMerchantTotals(), quote.getMerchantDiscounts(), quote.getMerchantFreights());
+        for (TradeSubOrder subOrder : subOrders) {
+            subOrderRepository.save(subOrder);
+        }
+        for (CartItem item : items) {
+            OrderItem orderItem = new OrderItem(orderNo, findSubOrderNo(subOrders, item.getMerchantId()), item);
+            orderItemRepository.save(orderItem);
+            orderItems.add(orderItem);
+        }
+        if (asyncSaga) {
+            orderRepository.save(order);
+            asyncOrderSagaService.start(order, subOrders, sagaCommand(orderNo, actor.getId(), quote.getTotalAmount(), items, command.getCoupons()));
+            return order;
+        }
         try {
-            for (TradeSubOrder subOrder : subOrders) {
-                subOrderRepository.save(subOrder);
-            }
-            for (CartItem item : items) {
-                OrderItem orderItem = new OrderItem(orderNo, findSubOrderNo(subOrders, item.getMerchantId()), item);
-                orderItemRepository.save(orderItem);
-                orderItems.add(orderItem);
-            }
             reserveInventory(orderNo, orderItems);
             orderRepository.save(order);
             event(orderNo, null, "ORDER_CREATED", actor, "pending_payment");
@@ -384,7 +393,7 @@ public class OrderService {
         actor.require(ActorType.BUYER);
         if (page < 0 || size < 1 || size > 100 || page > Integer.MAX_VALUE / size) throw TradeException.unprocessable("page must be nonnegative and size must be 1..100 without overflow");
         if (from != null && to != null && from.after(to)) throw TradeException.unprocessable("from must not be after to");
-        Page<TradeOrder> result = orderRepository.pageByBuyer(actor.getId(), status, from, to, new PageRequest(page, size));
+        Page<TradeOrder> result = orderRepository.pageByBuyer(actor.getId(), status, from, to, PageRequest.of(page, size));
         Map<String, Object> response = new HashMap<String, Object>(); response.put("total", result.getTotalElements()); response.put("page", page); response.put("size", size); response.put("items", result.getContent()); return response;
     }
 
@@ -444,8 +453,8 @@ public class OrderService {
         actor.require(ActorType.SYSTEM);
         if (page < 0 || size < 1 || size > 100 || page > Integer.MAX_VALUE / size) throw TradeException.unprocessable("page must be nonnegative and size must be 1..100 without overflow");
         org.springframework.data.domain.Page<com.own.order.domain.SensitiveAccessAudit> result = blank(orderNo)
-                ? sensitiveAccessAuditRepository.findAllByOrderByIdDesc(new org.springframework.data.domain.PageRequest(page, size))
-                : sensitiveAccessAuditRepository.findByResourceTypeAndResourceIdOrderByIdDesc("ORDER", orderNo, new org.springframework.data.domain.PageRequest(page, size));
+                ? sensitiveAccessAuditRepository.findAllByOrderByIdDesc(org.springframework.data.domain.PageRequest.of(page, size))
+                : sensitiveAccessAuditRepository.findByResourceTypeAndResourceIdOrderByIdDesc("ORDER", orderNo, org.springframework.data.domain.PageRequest.of(page, size));
         Map<String, Object> data = new HashMap<String, Object>(); data.put("total", result.getTotalElements()); data.put("page", page); data.put("size", size); data.put("items", result.getContent()); return data;
     }
 
@@ -574,6 +583,27 @@ public class OrderService {
             OrderItem item = entry.getValue();
             inventoryClient.reserve(orderNo, item.getProductId(), item.getMerchantId(), quantities.get(entry.getKey()));
         }
+    }
+
+    private com.own.order.dto.OrderSagaCommand sagaCommand(String orderNo, Long buyerId, BigDecimal total,
+                                                            List<CartItem> items, List<CouponUse> coupons) {
+        Map<String, com.own.order.dto.OrderSagaCommand.InventoryLine> lines = new LinkedHashMap<String, com.own.order.dto.OrderSagaCommand.InventoryLine>();
+        Map<String, Integer> quantities = new LinkedHashMap<String, Integer>();
+        List<Long> cartIds = new ArrayList<Long>();
+        for (CartItem item : items) {
+            String key = item.getProductId() + ":" + item.getMerchantId();
+            quantities.put(key, Integer.valueOf((quantities.containsKey(key) ? quantities.get(key).intValue() : 0) + item.getQuantity().intValue()));
+            lines.put(key, new com.own.order.dto.OrderSagaCommand.InventoryLine(item.getProductId(), item.getMerchantId(), quantities.get(key)));
+            cartIds.add(item.getId());
+        }
+        List<com.own.order.dto.OrderSagaCommand.InventoryLine> values = new ArrayList<com.own.order.dto.OrderSagaCommand.InventoryLine>();
+        for (Map.Entry<String, com.own.order.dto.OrderSagaCommand.InventoryLine> entry : lines.entrySet()) {
+            com.own.order.dto.OrderSagaCommand.InventoryLine line = entry.getValue();
+            values.add(new com.own.order.dto.OrderSagaCommand.InventoryLine(line.getProductId(), line.getMerchantId(), quantities.get(entry.getKey())));
+        }
+        com.own.order.dto.OrderSagaCommand result = new com.own.order.dto.OrderSagaCommand("", orderNo, buyerId, total, values, coupons);
+        result.setCartItemIds(cartIds);
+        return result;
     }
 
     private boolean allToShip(String orderNo) {

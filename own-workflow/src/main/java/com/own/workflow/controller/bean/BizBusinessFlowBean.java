@@ -4,7 +4,7 @@ import lombok.Data;
 
 import java.util.Map;
 
-import javax.persistence.Transient;
+import jakarta.persistence.Transient;
 
 /**
  * @author BluceZhang

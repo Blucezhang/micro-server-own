@@ -17,14 +17,14 @@ import com.own.user.party.auth.service.LoginAttemptService;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Arrays;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,7 +39,7 @@ public class LoginUserControllerTest {
     private RefreshSessionService refreshSessions;
     private LoginAttemptService loginAttempts;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         loginUserService = mock(LoginUserService.class);
         refreshSessions = mock(RefreshSessionService.class);
@@ -105,14 +105,14 @@ public class LoginUserControllerTest {
     @Test
     public void existingSessionEndpointAlsoChecksJwtActorOwnership() {
         controller.activeSessions(7L, request("BUYER", "70"));
-        verify(loginUserService).requireOwnedByActor(org.mockito.Matchers.eq(7L), org.mockito.Matchers.any(com.own.face.trade.TradeActor.class));
+        verify(loginUserService).requireOwnedByActor(org.mockito.ArgumentMatchers.eq(7L), org.mockito.ArgumentMatchers.any(com.own.face.trade.TradeActor.class));
         verify(refreshSessions).listActive(7L);
     }
 
     @Test
     public void existingSessionEndpointRejectsMismatchedJwtActor() {
         doThrow(TradeException.forbidden("authenticated actor does not own this account"))
-                .when(loginUserService).requireOwnedByActor(org.mockito.Matchers.eq(7L), org.mockito.Matchers.any(com.own.face.trade.TradeActor.class));
+                .when(loginUserService).requireOwnedByActor(org.mockito.ArgumentMatchers.eq(7L), org.mockito.ArgumentMatchers.any(com.own.face.trade.TradeActor.class));
         try {
             controller.revokeSession(7L, 9L, request("BUYER", "71"));
             fail("mismatched actor must be rejected");
@@ -150,7 +150,7 @@ public class LoginUserControllerTest {
         when(loginUserService.authorization(user, "BUYER")).thenReturn(new LoginAuthorization(70L, ActorType.BUYER,
                 Arrays.asList("ROLE_BUYER"), Arrays.asList("order:read")));
         java.util.Map<String,Object> tokens = new LinkedHashMap<String,Object>(); tokens.put("accessToken", "token"); tokens.put("refreshToken", "refresh");
-        when(refreshSessions.issue(org.mockito.Matchers.eq(user), org.mockito.Matchers.any(LoginAuthorization.class))).thenReturn(tokens);
+        when(refreshSessions.issue(org.mockito.ArgumentMatchers.eq(user), org.mockito.ArgumentMatchers.any(LoginAuthorization.class))).thenReturn(tokens);
         String json = objectMapper.writeValueAsString(controller.token(command));
         assertFalse(json.contains("plain-password"));
         assertFalse(json.contains("stored-hash"));

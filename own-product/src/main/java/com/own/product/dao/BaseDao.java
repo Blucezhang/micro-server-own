@@ -1,10 +1,10 @@
 package com.own.product.dao;
 
-import org.springframework.data.neo4j.annotation.Query;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.repository.CrudRepository;
 
 
-public interface BaseDao<T> extends GraphRepository<T> {
+public interface BaseDao<T> extends CrudRepository<T, Long> {
 	
 	/**
 	 * 数据库提前插入信息
@@ -17,30 +17,34 @@ public interface BaseDao<T> extends GraphRepository<T> {
 	
 	/**
 	 * 根据id查询信息
-	 * {0} 表示 传入的参数 id
+	 * 使用 Cypher 参数绑定传入节点 id。
 	 * @param id
 	 * @return T
 	 */
-	@Query("MATCH (n) WHERE id(n)={0} RETURN n")
+	@Query("MATCH (n) WHERE id(n) = $0 RETURN n")
     public <T> T getFromId(Integer id);
 	
 	/**
      * 创建两个节点之间的关系,节点关系由startNodeId指向endNodeId
      * @param startNodeId 节点id
      * @param endNodeId 节点id
-     * @param relationShipType 关系类型
+     * 固定创建 CONTAIN 关系；关系类型不得由请求参数决定。
      * @return
      */
-    @Query("START startNode=node({0}),endNode=node({1}) CREATE (startNode)-[:CONTAIN]->(endNode)")
-	//@Query("MATCH (p:Person { name: {0} }), (o:Organization { name: {1} }) CREATE (p)-[:{2}]->(o)")
-    public void createRelationship(Integer startNodeId, Integer endNodeId, String relationShipType);
+    @Query("MATCH (startNode), (endNode) WHERE id(startNode) = $0 AND id(endNode) = $1 CREATE (startNode)-[:CONTAIN]->(endNode)")
+    public void createContainRelationship(Integer startNodeId, Integer endNodeId);
+
+    @Deprecated
+    default void createRelationship(Integer startNodeId, Integer endNodeId, String relationShipType) {
+        throw new UnsupportedOperationException("Dynamic relationship types are not supported; use createContainRelationship");
+    }
     
     /**
      * 根据id删除节点（没有关系关联的节点）
      * @return
      */
-    @Query("start n=node({0}) delete n")
-    public <T> T deleteRelationship(Integer id);
+    @Query("MATCH (n) WHERE id(n) = $0 DETACH DELETE n")
+    public void deleteRelationship(Integer id);
     
     /**
      * 删除节点和节点关系
@@ -48,9 +52,10 @@ public interface BaseDao<T> extends GraphRepository<T> {
      * @param relationShip 关系类型
      * @return
      */
-    @Query("START n=node({0}) "
-    	 + "MATCH (n)-[r:{1}]-() delete n,r ")
-    public <T> T deleteRelationship(Integer id, String relationShip);
+    @Deprecated
+    default void deleteRelationship(Integer id, String relationShip) {
+        throw new UnsupportedOperationException("Dynamic relationship types are not supported; use a repository method with a fixed relationship type");
+    }
     
     /**
      * 删除两个节点和节点关系
@@ -58,8 +63,9 @@ public interface BaseDao<T> extends GraphRepository<T> {
      * @param relationShip 关系类型
      * @return
      */
-    @Query("START startNode=node({0}),endNode=node({1}) "
-    	 + "MATCH (startNode)-[r:{2}]-(endNode) delete startNode,r,endNode ")
-    public <T> T deleteRelationship(Integer startNodeId, Integer endNodeId, String relationShip);
+    @Deprecated
+    default void deleteRelationship(Integer startNodeId, Integer endNodeId, String relationShip) {
+        throw new UnsupportedOperationException("Dynamic relationship types are not supported; use a repository method with a fixed relationship type");
+    }
 
 }

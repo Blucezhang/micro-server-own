@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.own.promotion.dao.domain.Scope;
 import com.own.promotion.dao.domain.StoreTicket;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 
 
 public interface StoreTicketDao extends BaseDao<StoreTicket>{
@@ -13,7 +13,7 @@ public interface StoreTicketDao extends BaseDao<StoreTicket>{
 	 * 创建店铺券数据
 	 * {0} 代表传入的参数
 	 */
-	@Query(" create (n:StoreTicket{0}) return n; ")
+	@Query("CREATE (n:StoreTicket) SET n = $0 RETURN n")
 	public Map createStoreTicket(Map map);
 	
 	/**
@@ -29,7 +29,7 @@ public interface StoreTicketDao extends BaseDao<StoreTicket>{
 	 * @param id
 	 * @return
 	 */
-	@Query(" match (n:StoreTicket {id:{0}}) return n; ")
+	@Query("MATCH (n:StoreTicket) WHERE id(n) = $0 RETURN n")
 	public StoreTicket findStoreTicket(Long id);
 
 	
@@ -40,6 +40,6 @@ public interface StoreTicketDao extends BaseDao<StoreTicket>{
 	 * @param id,map
 	 * @return
 	 */
-	@Query(" match (n:StoreTicket {id:{0}}) set n+={1}  return n; ")
+	@Query("MATCH (n:StoreTicket) WHERE id(n) = $0 SET n += $1 RETURN n")
 	public Scope updateStoreTicket(Long id, Map map);
 }

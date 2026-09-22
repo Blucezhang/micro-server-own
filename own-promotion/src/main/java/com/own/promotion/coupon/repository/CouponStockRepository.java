@@ -1,7 +1,7 @@
 package com.own.promotion.coupon.repository;
 
 import com.own.promotion.coupon.domain.CouponStock;
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.JpaRepository;

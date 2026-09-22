@@ -1,5 +1,5 @@
 package com.own.inventory.domain;
-import java.util.Date; import javax.persistence.*;
+import java.util.Date; import jakarta.persistence.*;
 @Entity @Table(name="inventory_adjustment") public class InventoryAdjustment {
  @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id;
  @Column(name="product_id",nullable=false) private Long productId; @Column(name="merchant_id",nullable=false) private Long merchantId;

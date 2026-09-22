@@ -4,14 +4,14 @@ import com.own.face.trade.TradeException;
 import com.own.user.party.dao.domain.LoginUser;
 import com.own.user.party.dto.OwnProfileCommand;
 import com.own.user.party.service.LoginUserService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,7 +21,7 @@ public class AccountProfileControllerTest {
     private LoginUserService users;
     private AccountProfileController controller;
 
-    @Before
+    @BeforeEach
     public void setUp() { users = mock(LoginUserService.class); controller = new AccountProfileController(users); }
 
     @Test

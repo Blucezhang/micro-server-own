@@ -5,7 +5,7 @@ import com.own.face.trade.TradeHeaders;
 import com.own.face.util.Resp;
 import com.own.face.util.base.BaseController;
 import com.own.product.favorite.service.BuyerFavoriteService;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

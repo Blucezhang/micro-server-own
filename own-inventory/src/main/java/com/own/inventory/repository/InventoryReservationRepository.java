@@ -4,7 +4,7 @@ import com.own.inventory.domain.InventoryReservation;
 import com.own.inventory.domain.ReservationStatus;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;

@@ -1,13 +1,13 @@
 package com.own.product.api.gateway.security;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.own.face.security.JwtPrincipal;
 import com.own.face.trade.ActorType;
 import java.util.Arrays;
 import java.util.Collections;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RbacAccessPolicyTest {
     private final RbacAccessPolicy policy = new RbacAccessPolicy();

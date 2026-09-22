@@ -1,0 +1,42 @@
+server:
+  port: 6005
+
+spring:
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false}
+    username: ${MYSQL_USER:micro}
+    password: ${MYSQL_PASSWORD:micro}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+  cloud:
+    function:
+      definition: tradeOrderEventInbox
+    stream:
+      rocketmq:
+        binder:
+          name-server: ${ROCKETMQ_NAMESRV_ADDR:localhost:9876}
+      bindings:
+        tradeOrderEventInbox-in-0:
+          destination: ${ROCKETMQ_ORDER_EVENT_TOPIC:trade.order.events}
+          group: promotion-saga
+          content-type: application/json
+
+trade:
+  inbox:
+    consumer-name: promotion-saga
+  neo4j:
+    uri: ${NEO4J_URI:bolt://neo4j:7687}
+    authentication:
+      username: ${NEO4J_USER:neo4j}
+      password: ${NEO4J_PASSWORD:}
+  internal:
+    service-token: ${INTERNAL_SERVICE_TOKEN:}
+    previous-service-token: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:}
+  promotion:
+    reservation-ttl-minutes: 15
+    reservation-expiry-scan-delay-millis: 60000
+  idempotency:
+    enabled: true
+    retention-hours: 24

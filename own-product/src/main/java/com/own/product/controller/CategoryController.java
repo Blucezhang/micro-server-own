@@ -6,7 +6,7 @@ import com.own.face.util.Util;
 import com.own.face.util.base.BaseController;
 import com.own.product.dao.CategoryDao;
 import com.own.product.domain.Category;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public class CategoryController extends BaseController {
     @Autowired
     private CategoryDao categoryDao;
 
-    @ApiOperation(value = "根据级别查询类别")
+    @Operation(summary = "根据级别查询类别")
     @GetMapping("/query")
     public @ResponseBody
     Resp queryCategory(@RequestParam Map<String,Object> parms){
@@ -38,7 +38,7 @@ public class CategoryController extends BaseController {
         return new Resp(c);
     }
 
-    @ApiOperation(value = "根据id查询类别")
+    @Operation(summary = "根据id查询类别")
     @GetMapping("/{id}")
     public @ResponseBody Resp queryCategoryById(@PathVariable Long id){
         Category c = categoryDao.queryCategoryById(id);
@@ -46,7 +46,7 @@ public class CategoryController extends BaseController {
         return new Resp(c);
     }
 
-    @ApiOperation(value = "添加类别")
+    @Operation(summary = "添加类别")
     @PutMapping("/add")
     public void addCategory(@RequestBody CategoryBean cb){
         Category c = new Category();
@@ -59,7 +59,7 @@ public class CategoryController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "根据Id修改类别信息")
+    @Operation(summary = "根据Id修改类别信息")
     @PostMapping("/{id}")
     public void updCategory(@PathVariable Long id,@RequestBody CategoryBean categoryBean){
       Category category= categoryDao.queryCategoryById(id);
@@ -72,7 +72,7 @@ public class CategoryController extends BaseController {
           }
       });
     }
-    @ApiOperation(value = "根据ID删除类别")
+    @Operation(summary = "根据ID删除类别")
     @DeleteMapping("/{id}")
     public void delCategory(@PathVariable Long id){
         categoryDao.deleteCategory(id);

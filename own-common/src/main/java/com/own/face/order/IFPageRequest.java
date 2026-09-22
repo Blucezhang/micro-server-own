@@ -15,7 +15,7 @@ public class IFPageRequest {
 
     public PageRequest getPageRequest() {
 
-        return new PageRequest(pageNo, pageSize, null);
+        return PageRequest.of(pageNo, pageSize);
     }
 
     public Integer getPageNo() {

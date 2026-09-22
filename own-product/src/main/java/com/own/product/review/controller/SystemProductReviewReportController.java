@@ -7,7 +7,7 @@ import com.own.face.util.Resp;
 import com.own.face.util.base.BaseController;
 import com.own.product.review.dto.ResolveProductReviewReportCommand;
 import com.own.product.review.service.ProductReviewService;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

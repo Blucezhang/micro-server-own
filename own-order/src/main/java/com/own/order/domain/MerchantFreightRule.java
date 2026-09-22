@@ -2,7 +2,7 @@ package com.own.order.domain;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity @Table(name = "merchant_freight_rule")
 public class MerchantFreightRule {

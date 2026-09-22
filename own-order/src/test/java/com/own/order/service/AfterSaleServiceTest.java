@@ -26,8 +26,8 @@ import com.own.order.repository.TradeSubOrderRepository;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -39,7 +39,7 @@ public class AfterSaleServiceTest {
                 new BigDecimal("10.00"), BigDecimal.ZERO, BigDecimal.ZERO);
         subOrder.markToShip();
         subOrder.ship("DEMO", "TRACK-1");
-        Assert.assertEquals(SubOrderStatus.SHIPPED, subOrder.getStatus());
+        Assertions.assertEquals(SubOrderStatus.SHIPPED, subOrder.getStatus());
         TradeOrder order = new TradeOrder("ORD-1", 1L, new BigDecimal("10.00"),
                 BigDecimal.ZERO, "history", "key-1");
         OrderItem item = new OrderItem("ORD-1", "SUB-1",
@@ -61,7 +61,7 @@ public class AfterSaleServiceTest {
 
         try {
             service.create(new TradeActor(1L, ActorType.BUYER), duplicateItemCommand());
-            Assert.fail("duplicate order item must be rejected");
+            Assertions.fail("duplicate order item must be rejected");
         } catch (TradeException expected) {
             // expected: one order item can be requested at most once per after-sale application
         }
@@ -95,7 +95,7 @@ public class AfterSaleServiceTest {
 
         try {
             service.create(new TradeActor(1L, ActorType.BUYER), singleItemCommand());
-            Assert.fail("previously refunded quantity must not be requested again");
+            Assertions.fail("previously refunded quantity must not be requested again");
         } catch (TradeException expected) {
             // expected
         }
@@ -116,11 +116,11 @@ public class AfterSaleServiceTest {
                 Mockito.mock(OrderItemRepository.class), events);
 
         AfterSaleDetail detail = service.detail(new TradeActor(2L, ActorType.MERCHANT), "AS-1");
-        Assert.assertEquals("AS-1", detail.getAfterSale().getAfterSaleNo());
-        Assert.assertNotNull(detail.getEvents());
+        Assertions.assertEquals("AS-1", detail.getAfterSale().getAfterSaleNo());
+        Assertions.assertNotNull(detail.getEvents());
         try {
             service.detail(new TradeActor(3L, ActorType.MERCHANT), "AS-1");
-            Assert.fail("other merchants must not read an after-sale request");
+            Assertions.fail("other merchants must not read an after-sale request");
         } catch (TradeException expected) {
             // expected
         }
@@ -148,11 +148,11 @@ public class AfterSaleServiceTest {
 
         try {
             service.create(new TradeActor(1L, ActorType.BUYER), command);
-            Assert.fail("duplicate evidence must be rejected before processing the order");
+            Assertions.fail("duplicate evidence must be rejected before processing the order");
         } catch (TradeException expected) {
-            Assert.assertEquals(422, expected.getStatus());
+            Assertions.assertEquals(422, expected.getStatus());
         }
-        Mockito.verifyZeroInteractions(files);
+        Mockito.verifyNoInteractions(files);
     }
 
     @Test
@@ -168,8 +168,8 @@ public class AfterSaleServiceTest {
         InventoryClient inventory = Mockito.mock(InventoryClient.class);
         ReflectionTestUtils.setField(service, "inventory", inventory);
         AfterSale completed = service.refundSucceeded(new TradeActor(1L, ActorType.SYSTEM), "AS-1");
-        Assert.assertEquals(com.own.order.domain.AfterSaleStatus.REFUNDED, completed.getStatus());
-        Mockito.verifyZeroInteractions(inventory);
+        Assertions.assertEquals(com.own.order.domain.AfterSaleStatus.REFUNDED, completed.getStatus());
+        Mockito.verifyNoInteractions(inventory);
     }
 
     @Test
@@ -194,9 +194,9 @@ public class AfterSaleServiceTest {
         service.refundSucceeded(new TradeActor(1L, ActorType.SYSTEM), "AS-2");
         service.refundSucceeded(new TradeActor(1L, ActorType.SYSTEM), "AS-2");
 
-        Assert.assertEquals(com.own.order.domain.AfterSaleStatus.REFUNDED, sale.getStatus());
+        Assertions.assertEquals(com.own.order.domain.AfterSaleStatus.REFUNDED, sale.getStatus());
         Mockito.verify(inventory, Mockito.times(1)).refundAfterSale(Mockito.eq("AS-2"), Mockito.eq(2L),
-                Mockito.<java.util.List<AfterSaleItem>>anyList());
+                Mockito.<AfterSaleItem>anyList());
     }
 
     @Test
@@ -248,14 +248,14 @@ public class AfterSaleServiceTest {
 
         AfterSale closed = service.close(new TradeActor(1L, ActorType.BUYER), "AS-CLOSE");
 
-        Assert.assertEquals(com.own.order.domain.AfterSaleStatus.CLOSED, closed.getStatus());
+        Assertions.assertEquals(com.own.order.domain.AfterSaleStatus.CLOSED, closed.getStatus());
         Mockito.verify(sales).save(sale);
         Mockito.verify(events).save(Mockito.any(com.own.order.domain.OrderEvent.class));
         try {
             service.close(new TradeActor(2L, ActorType.BUYER), "AS-CLOSE");
-            Assert.fail("another buyer must not close the request");
+            Assertions.fail("another buyer must not close the request");
         } catch (TradeException expected) {
-            Assert.assertEquals(403, expected.getStatus());
+            Assertions.assertEquals(403, expected.getStatus());
         }
     }
 
@@ -273,13 +273,13 @@ public class AfterSaleServiceTest {
                 Mockito.mock(TradeSubOrderRepository.class), Mockito.mock(TradeOrderRepository.class),
                 Mockito.mock(OrderItemRepository.class), Mockito.mock(OrderEventRepository.class));
 
-        Assert.assertEquals(com.own.order.domain.AfterSaleStatus.EXCHANGED,
+        Assertions.assertEquals(com.own.order.domain.AfterSaleStatus.EXCHANGED,
                 service.confirmExchangeReceipt(new TradeActor(1L, ActorType.BUYER), "AS-EXCHANGE").getStatus());
         try {
             service.confirmExchangeReceipt(new TradeActor(2L, ActorType.BUYER), "AS-EXCHANGE");
-            Assert.fail("another buyer must not confirm replacement receipt");
+            Assertions.fail("another buyer must not confirm replacement receipt");
         } catch (TradeException expected) {
-            Assert.assertEquals(403, expected.getStatus());
+            Assertions.assertEquals(403, expected.getStatus());
         }
     }
 

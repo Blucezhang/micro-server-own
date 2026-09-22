@@ -17,7 +17,7 @@ import com.own.inventory.dto.LowStockAlertRuleCommand;
 import com.own.inventory.service.InventoryService;
 import com.own.inventory.service.ProductBootstrapClient;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

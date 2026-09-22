@@ -3,7 +3,7 @@ package com.own.user.party.dao;
 import java.util.List;
 
 import com.own.user.party.dao.domain.Person;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
 
 
@@ -21,7 +21,7 @@ public interface PersonDao extends BaseDao<Person>  {
 	 * 根据节点实体类名和节点name属性查询信息
 	 * @return T
 	 */
-	@Query("MATCH (n:Person { name:{0},phone:{1},email:{2}}) return n")
+	@Query("MATCH (n:Person) WHERE n.name = $0 AND n.phone = $1 AND n.email = $2 RETURN n")
     public Person getFromName(String name, String phone, String email);
 	
 	
@@ -29,7 +29,7 @@ public interface PersonDao extends BaseDao<Person>  {
 	 * 创建用户节点关系
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH(o:Table {table:'par_person'}) create (o)-[r:data]->(n)")
+	@Query("MATCH (n:Person), (o:Table {table: 'par_person'}) WHERE id(n) = $0 CREATE (o)-[:data]->(n)")
 	public void createRelationShipData(Long id);
 	
 	/**
@@ -39,14 +39,13 @@ public interface PersonDao extends BaseDao<Person>  {
      * @param relationShipType 关系类型
      * @return
      */
-    @Query("START startNode=node({0}),endNode=node({1}) CREATE (endNode)-[:CONTAIN]->(startNode)")
-    //@Query("MATCH (p:Person { name: {0} }), (o:Organization { name: {1} }) CREATE (p)-[:{2}]->(o)")
+    @Query("MATCH (startNode:Person), (endNode:Organization) WHERE id(startNode) = $0 AND id(endNode) = $1 CREATE (endNode)-[:CONTAIN]->(startNode)")
     public void createRelationshipContain(Long startNodeId, Long endNodeId);
 	
     /**
 	 * 删除person
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH()-[r]->(n) delete n,r")
+	@Query("MATCH (n:Person) WHERE id(n) = $0 OPTIONAL MATCH ()-[r]-(n) DELETE r, n")
 	public void deletePerson(Integer id);
 }

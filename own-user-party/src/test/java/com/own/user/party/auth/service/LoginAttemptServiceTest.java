@@ -1,14 +1,14 @@
 package com.own.user.party.auth.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.own.face.trade.TradeException;
 import com.own.user.party.auth.domain.LoginFailureAttempt;
 import com.own.user.party.auth.repository.LoginFailureAttemptRepository;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class LoginAttemptServiceTest {
     @Test

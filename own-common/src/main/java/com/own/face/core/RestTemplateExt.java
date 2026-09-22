@@ -144,8 +144,7 @@ public class RestTemplateExt {
 					}
 				}
 				if (!allSupportedMediaTypes.isEmpty()) {
-					MediaType.sortBySpecificity(allSupportedMediaTypes);
-					if (log.isDebugEnabled()) {
+                    if (log.isDebugEnabled()) {
 						log.debug("Setting request Accept header to " + allSupportedMediaTypes);
 					}
 					request.getHeaders().setAccept(allSupportedMediaTypes);
@@ -157,7 +156,7 @@ public class RestTemplateExt {
 			List<MediaType> supportedMediaTypes = messageConverter.getSupportedMediaTypes();
 			List<MediaType> result = new ArrayList<MediaType>(supportedMediaTypes.size());
 			for (MediaType supportedMediaType : supportedMediaTypes) {
-				if (supportedMediaType.getCharSet() != null) {
+                if (supportedMediaType.getCharset() != null) {
 					supportedMediaType =
 							new MediaType(supportedMediaType.getType(), supportedMediaType.getSubtype());
 				}

@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Data
 @Entity

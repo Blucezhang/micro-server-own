@@ -1,0 +1,3 @@
+package com.own.order.domain;
+
+public enum OrderSagaStep { RESERVE_INVENTORY, RESERVE_COUPON, COMPENSATE_INVENTORY, COMPENSATE_COUPON, READY_FOR_PAYMENT }

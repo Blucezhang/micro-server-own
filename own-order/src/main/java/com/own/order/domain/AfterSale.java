@@ -1,5 +1,5 @@
 package com.own.order.domain;
-import java.math.BigDecimal; import java.util.Date; import javax.persistence.*;
+import java.math.BigDecimal; import java.util.Date; import jakarta.persistence.*;
 @Entity @Table(name="ord_after_sale") public class AfterSale {
  @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; @Column(name="after_sale_no",nullable=false,unique=true,length=64) private String afterSaleNo;
  @Column(name="order_no",nullable=false,length=64) private String orderNo; @Column(name="sub_order_no",nullable=false,length=64) private String subOrderNo;

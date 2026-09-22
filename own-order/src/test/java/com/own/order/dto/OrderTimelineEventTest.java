@@ -2,8 +2,8 @@ package com.own.order.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.own.order.domain.OrderEvent;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class OrderTimelineEventTest {
@@ -15,10 +15,10 @@ public class OrderTimelineEventTest {
 
         String json = new ObjectMapper().writeValueAsString(OrderTimelineEvent.from(event));
 
-        Assert.assertTrue(json.contains("AFTER_SALE_CREATED"));
-        Assert.assertFalse(json.contains("internal detail"));
-        Assert.assertFalse(json.contains("webhook secret failure"));
-        Assert.assertFalse(json.contains("deliveryStatus"));
-        Assert.assertFalse(json.contains("actorId"));
+        Assertions.assertTrue(json.contains("AFTER_SALE_CREATED"));
+        Assertions.assertFalse(json.contains("internal detail"));
+        Assertions.assertFalse(json.contains("webhook secret failure"));
+        Assertions.assertFalse(json.contains("deliveryStatus"));
+        Assertions.assertFalse(json.contains("actorId"));
     }
 }

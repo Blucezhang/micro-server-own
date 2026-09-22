@@ -15,7 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.own.face.util.Util;
 import com.own.send.server.util.sms.MsgResult;
@@ -25,7 +26,7 @@ import com.own.send.server.util.sms.SmsGatewayException;
 public class SendSms {
 	
 	
-	Logger logger = Logger.getLogger(SendSms.class);
+	Logger logger = LoggerFactory.getLogger(SendSms.class);
 	
 	/**
 	 * 发送短信

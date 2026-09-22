@@ -18,8 +18,8 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Collections;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -37,9 +37,9 @@ public class OrderPaymentCallbackTest {
 
         try {
             service.paymentSucceeded("ORD-1", new TradeActor(1L, ActorType.SYSTEM));
-            Assert.fail("late payment must not revive a canceled order");
+            Assertions.fail("late payment must not revive a canceled order");
         } catch (TradeException expected) {
-            Assert.assertEquals(409, expected.getStatus());
+            Assertions.assertEquals(409, expected.getStatus());
         }
         Mockito.verify(inventory, Mockito.never()).commit("ORD-1");
         Mockito.verify(coupons, Mockito.never()).consume("ORD-1");
@@ -57,7 +57,7 @@ public class OrderPaymentCallbackTest {
         TradeOrder result = service(orders, inventory, coupons)
                 .paymentSucceeded("ORD-1", new TradeActor(1L, ActorType.SYSTEM));
 
-        Assert.assertSame(order, result);
+        Assertions.assertSame(order, result);
         Mockito.verify(inventory, Mockito.never()).commit("ORD-1");
         Mockito.verify(coupons, Mockito.never()).consume("ORD-1");
     }
@@ -70,8 +70,8 @@ public class OrderPaymentCallbackTest {
                 .thenReturn(new PageImpl<TradeOrder>(Arrays.asList(order)));
         Map<String, Object> result = service(orders, Mockito.mock(InventoryClient.class), Mockito.mock(CouponClient.class))
                 .buyerOrderPage(new TradeActor(7L, ActorType.BUYER), null, null, null, 0, 20);
-        Assert.assertEquals(1L, result.get("total"));
-        Assert.assertEquals(1, ((java.util.List) result.get("items")).size());
+        Assertions.assertEquals(1L, result.get("total"));
+        Assertions.assertEquals(1, ((java.util.List) result.get("items")).size());
     }
 
     @Test
@@ -92,8 +92,8 @@ public class OrderPaymentCallbackTest {
         Map<String, Object> detail = service.merchantSubOrderDetail(new TradeActor(8L, ActorType.MERCHANT), "SUB-3");
 
         java.util.List<com.own.order.dto.OrderTimelineEvent> timeline = (java.util.List<com.own.order.dto.OrderTimelineEvent>) detail.get("events");
-        Assert.assertEquals(1, timeline.size());
-        Assert.assertEquals("SUB_ORDER_SHIPPED", timeline.get(0).getEventType());
+        Assertions.assertEquals(1, timeline.size());
+        Assertions.assertEquals("SUB_ORDER_SHIPPED", timeline.get(0).getEventType());
     }
 
     @Test
@@ -112,7 +112,7 @@ public class OrderPaymentCallbackTest {
 
         CartItem updated = service.updateCartItem(new TradeActor(7L, ActorType.BUYER), 5L, command);
 
-        Assert.assertEquals(Integer.valueOf(3), updated.getQuantity());
+        Assertions.assertEquals(Integer.valueOf(3), updated.getQuantity());
     }
 
     @Test
@@ -131,8 +131,8 @@ public class OrderPaymentCallbackTest {
 
         CartItem updated = service.addCartItem(new TradeActor(7L, ActorType.BUYER), command);
 
-        Assert.assertSame(existing, updated);
-        Assert.assertEquals(Integer.valueOf(5), updated.getQuantity());
+        Assertions.assertSame(existing, updated);
+        Assertions.assertEquals(Integer.valueOf(5), updated.getQuantity());
     }
 
     private CatalogClient.CatalogProduct catalogProduct(Long productId, Long merchantId, String name, BigDecimal price) {

@@ -1,5 +1,5 @@
 package com.own.order.domain;
-import java.util.Date; import javax.persistence.*;
+import java.util.Date; import jakarta.persistence.*;
 @Entity @Table(name="ord_sensitive_access_audit") public class SensitiveAccessAudit {
  @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; @Column(name="actor_id",nullable=false) private Long actorId; @Column(name="actor_type",nullable=false,length=16) private String actorType; @Column(nullable=false,length=64) private String action; @Column(name="resource_type",nullable=false,length=32) private String resourceType; @Column(name="resource_id",nullable=false,length=64) private String resourceId; @Column(name="correlation_id",length=100) private String correlationId; @Column(name="created_at",nullable=false) private Date createdAt;
  protected SensitiveAccessAudit(){} public SensitiveAccessAudit(Long actorId,String actorType,String action,String resourceType,String resourceId,String correlationId){this.actorId=actorId;this.actorType=actorType;this.action=action;this.resourceType=resourceType;this.resourceId=resourceId;this.correlationId=correlationId;this.createdAt=new Date();}

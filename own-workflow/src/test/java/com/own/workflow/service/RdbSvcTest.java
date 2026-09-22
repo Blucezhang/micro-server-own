@@ -2,16 +2,17 @@ package com.own.workflow.service;
 
 import com.own.workflow.dao.RdbBaseDao;
 import com.own.workflow.domain.BizBusinessFlowContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class RdbSvcTest {
 
-    @Test(expected = EntityNotFoundException.class)
+    @Test
     public void updateBySaveRejectsUnknownIdentifier() {
         RdbBaseDao dao = mock(RdbBaseDao.class);
         BizBusinessFlowContext context = new BizBusinessFlowContext();
@@ -20,6 +21,6 @@ public class RdbSvcTest {
         RdbSvc service = new RdbSvc();
         service.setBaseDao(dao);
 
-        service.save(context);
+        assertThrows(EntityNotFoundException.class, () -> service.save(context));
     }
 }

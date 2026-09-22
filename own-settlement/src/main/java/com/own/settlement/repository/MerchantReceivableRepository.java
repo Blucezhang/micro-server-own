@@ -3,7 +3,7 @@ package com.own.settlement.repository;
 import com.own.settlement.domain.MerchantReceivable;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;

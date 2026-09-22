@@ -2,9 +2,9 @@ package com.own.face.promotion;
 
 
 import com.own.face.core.FaceUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import lombok.Data;
 
 //购物结算时，处理参数bean
@@ -42,7 +42,7 @@ public class CartBean {
 						signle += conuters * job.path("price").asDouble();
 					}
 				}
-			} catch (JsonProcessingException exception) {
+				} catch (IOException exception) {
 				throw new IllegalArgumentException("productJson must be a valid JSON array", exception);
 			}
 			

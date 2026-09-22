@@ -33,12 +33,12 @@ public class TradeIdempotencyRecordTransactions {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void complete(Long id, Resp response) throws Exception {
-        IdempotencyRecord record = repository.findOne(id);
+        IdempotencyRecord record = repository.findById(id).orElse(null);
         if (record == null) throw new IllegalStateException("idempotency record disappeared before completion");
         record.complete(response.getStatus(), objectMapper.writeValueAsString(response));
         repository.save(record);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void delete(Long id) { repository.delete(id); }
+    public void delete(Long id) { repository.deleteById(id); }
 }

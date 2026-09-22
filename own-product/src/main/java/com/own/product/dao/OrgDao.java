@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.product.domain.Organization;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 
 
 public interface OrgDao extends BaseDao<Organization> {
@@ -13,7 +13,7 @@ public interface OrgDao extends BaseDao<Organization> {
 	/**
 	 * 创建数据
 	 */
-	@Query("create (n {0}) return n")
+	@Query("CREATE (n:Organization) SET n = $0 RETURN n")
     public Map createOrg(Map o);
 	
 	/**
@@ -35,7 +35,7 @@ public interface OrgDao extends BaseDao<Organization> {
 	 * @param id
 	 * @return 
 	 */
-	@Query("start n=node({0}) match(n)-[r:LEVEL]->(c) return c")
+	@Query("MATCH (n:Organization) WHERE id(n) = $0 MATCH (n)-[:LEVEL]->(c:Organization) RETURN c")
     public List<Organization> queryChildOrg(Integer id);
 	
 	/**
@@ -43,14 +43,14 @@ public interface OrgDao extends BaseDao<Organization> {
 	 * @param attributeName 节点属性key
 	 * @return T
 	 */
-	@Query("MATCH (n:Organization { name:{0} }) return n")
+	@Query("MATCH (n:Organization) WHERE n.name = $0 RETURN n")
     public Organization getFromName(String attributeName);
 	
 	/**
 	 * 创建组织机构节点关系
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH(o:Table {table:'par_org'}) create (o)-[r:data]->(n)")
+	@Query("MATCH (n:Organization), (o:Table {table: 'par_org'}) WHERE id(n) = $0 CREATE (o)-[:data]->(n)")
 	public void createRelationShipData(Long id);
  
 	/**
@@ -58,14 +58,13 @@ public interface OrgDao extends BaseDao<Organization> {
 	 * @param startNodeId
 	 * @param endNodeId
 	 */
-	@Query("START startNode=node({0}),endNode=node({1}) create (startNode)-[r:LEVEL]->(endNode)")
+	@Query("MATCH (startNode:Organization), (endNode:Organization) WHERE id(startNode) = $0 AND id(endNode) = $1 CREATE (startNode)-[:LEVEL]->(endNode)")
 	public void createChildRelationShip(Integer startNodeId, Long endNodeId);
 	
 	/**
 	 * 删除org
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH()-[r]->(n) delete n,r")
+	@Query("MATCH (n:Organization) WHERE id(n) = $0 OPTIONAL MATCH ()-[r]-(n) DELETE r, n")
 	public void deleteOrg(Integer id);
 }
-

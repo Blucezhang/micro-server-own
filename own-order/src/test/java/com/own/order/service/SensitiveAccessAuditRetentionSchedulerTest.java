@@ -1,7 +1,7 @@
 package com.own.order.service;
 
 import com.own.order.repository.SensitiveAccessAuditRepository;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class SensitiveAccessAuditRetentionSchedulerTest {

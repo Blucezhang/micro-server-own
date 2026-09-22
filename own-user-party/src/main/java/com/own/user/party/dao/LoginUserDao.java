@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.own.user.party.dao.domain.LoginUser;
 import com.own.user.party.dao.domain.Role;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -23,15 +23,15 @@ public interface LoginUserDao extends BaseDao<LoginUser> {
 	 * @param loginName 登录名
 	 * @return 用户，不存在时返回 null
 	 */
-	@Query("MATCH (L:LoginUser {loginName:{0}}) RETURN L LIMIT 1")
+	@Query("MATCH (L:LoginUser) WHERE L.loginName = $0 RETURN L LIMIT 1")
 	LoginUser findByLoginName(String loginName);
 
 	/** Roles are stored in the legacy graph as (Role)-[:belong]->(LoginUser). */
-	@Query("START u=node({0}) MATCH (r:Role)-[:belong]->(u) RETURN DISTINCT r")
+	@Query("MATCH (u:LoginUser) WHERE id(u) = $0 MATCH (r:Role)-[:belong]->(u) RETURN DISTINCT r")
 	List<Role> findRolesByLoginUserId(Long loginUserId);
 
 	/** Functions granted through (Fun)-[:FbelongR]->(Role)-[:belong]->(LoginUser). */
-	@Query("START u=node({0}) MATCH (f:Fun)-[:FbelongR]->(r:Role)-[:belong]->(u) RETURN DISTINCT f.name")
+	@Query("MATCH (u:LoginUser) WHERE id(u) = $0 MATCH (f:Fun)-[:FbelongR]->(r:Role)-[:belong]->(u) RETURN DISTINCT f.name")
 	List<String> findPermissionNamesByLoginUserId(Long loginUserId);
 	
 	
@@ -40,28 +40,28 @@ public interface LoginUserDao extends BaseDao<LoginUser> {
 	 * @param LoginUserId
 	 * @return
 	 */
-	@Query("START w=node({0}) RETURN w")
+	@Query("MATCH (w:LoginUser) WHERE id(w) = $0 RETURN w")
 	public Object getLoginUser(Long LoginUserId);
 	
 	/**
 	 * 创建LoginUser--数据
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH (T:Table {name:'LoginUser'}) CREATE (T)-[lud:loginUserdata]->(n)")
+	@Query("MATCH (n:LoginUser), (T:Table {name: 'LoginUser'}) WHERE id(n) = $0 CREATE (T)-[:loginUserdata]->(n)")
 	public void createRelationShipWithLoginUser(Long id);
 	
 	/**
 	 * 创建跟Person的关系
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH(o:Table {table:'par_person'}) create (o)-[pd:persondata]->(n)")
+	@Query("MATCH (n:LoginUser), (o:Table {table: 'par_person'}) WHERE id(n) = $0 CREATE (o)-[:persondata]->(n)")
 	public void createRelationShipWithPerson(Long id);
 
 	/**
 	 * 根据Id删除LongUser == data 
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH ()-[lud]->(n) delete n,lud")
+	@Query("MATCH (n:LoginUser) WHERE id(n) = $0 OPTIONAL MATCH ()-[lud]->(n) DELETE lud, n")
 	public void deleteLoginUser(Integer id);
 	
 	/**
@@ -69,14 +69,14 @@ public interface LoginUserDao extends BaseDao<LoginUser> {
 	 * @param startId
 	 * @param endId
 	 */
-	@Query("START startNode = node({0}),endNode = node({1}) CREATE (endNode)-[b:belong]->(startNode)")
+	@Query("MATCH (startNode:LoginUser), (endNode:Role) WHERE id(startNode) = $0 AND id(endNode) = $1 CREATE (endNode)-[:belong]->(startNode)")
 	public void createRelationShipLoginUserAndRole(Long startId, Long endId);
 
 	/**
 	 * Grants a graph role exactly once.  This is deliberately a MERGE instead
 	 * of the legacy CREATE method so retries cannot duplicate the relationship.
 	 */
-	@Query("START startNode = node({0}),endNode = node({1}) MERGE (endNode)-[:belong]->(startNode)")
+	@Query("MATCH (startNode:LoginUser), (endNode:Role) WHERE id(startNode) = $0 AND id(endNode) = $1 MERGE (endNode)-[:belong]->(startNode)")
 	void grantRoleToLoginUserIfAbsent(Long loginUserId, Long roleId);
 	
 	
@@ -85,14 +85,14 @@ public interface LoginUserDao extends BaseDao<LoginUser> {
 	 * @param startId
 	 * @param endId
 	 */
-	@Query("START startNode=node({0}),endNode = node({1}) CREATE (endNode)-[o:orgs]->(startNode)")
+	@Query("MATCH (startNode:LoginUser), (endNode:Organization) WHERE id(startNode) = $0 AND id(endNode) = $1 CREATE (endNode)-[:orgs]->(startNode)")
 	public void createRelationShipLoginUserAndOrg(Long startId, Long endId);
 	
 	/**
 	 * 删除LoginUser跟Org的关系
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH ()-[o]->(n) delete o")
+	@Query("MATCH (n:LoginUser) WHERE id(n) = $0 MATCH ()-[o]->(n) DELETE o")
 	public void deleteLoginUserAndOrgs(Long id);
 	
 	
@@ -101,7 +101,7 @@ public interface LoginUserDao extends BaseDao<LoginUser> {
 	 * @param startId
 	 * @param endId
 	 */
-	@Query("START startNode=node({0}),endNode = node({1}) CREATE (endNode)-[b:belong]->(startNode)")
+	@Query("MATCH (startNode:Person), (endNode:LoginUser) WHERE id(startNode) = $0 AND id(endNode) = $1 CREATE (endNode)-[:belong]->(startNode)")
 	public void createRelationShipPersonWithLoginUser(Long startId, Long endId);
 	
 }

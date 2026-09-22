@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.send.server.domain.CommonInfo;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ public class CommonInfoSvc {
 	@Autowired
 	private RdbSvc rdbSvc;
 	
-	Logger logger = Logger.getLogger(CommonInfo.class);
+	Logger logger = LoggerFactory.getLogger(CommonInfo.class);
 	
 	/**
 	 * 添加或修改公共信息表

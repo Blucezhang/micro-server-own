@@ -8,7 +8,7 @@ import com.own.face.util.base.BaseController;
 import com.own.user.party.dto.LoginUserResponse;
 import com.own.user.party.dto.OwnProfileCommand;
 import com.own.user.party.service.LoginUserService;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;

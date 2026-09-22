@@ -80,7 +80,7 @@ public class FaceBase implements IErrCode {
 		}
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
-		headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        headers.setContentType(MediaType.APPLICATION_JSON);
 		return new HttpEntity<Object>(body, headers);
 	}
 	

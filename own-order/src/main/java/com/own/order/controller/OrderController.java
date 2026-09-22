@@ -16,7 +16,7 @@ import com.own.order.service.OrderOutboxService;
 import com.own.face.trade.ActorType;
 import com.own.face.security.InternalServiceGuard;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

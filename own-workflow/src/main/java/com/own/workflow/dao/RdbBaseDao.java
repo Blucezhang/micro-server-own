@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Collections;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +65,7 @@ public class RdbBaseDao{
 				query.setParameter(entry.getKey(), entry.getValue());
 			}
 		}
-		query.setFirstResult(pageable.getOffset());
+		query.setFirstResult(Math.toIntExact(pageable.getOffset()));
 		query.setMaxResults(pageable.getPageSize());
 		List<?> list = query.getResultList();
 		
@@ -156,7 +156,7 @@ public class RdbBaseDao{
 				query.setParameter(entry.getKey(), entry.getValue());
 			}
 		}
-		query.setFirstResult(pageable.getOffset());
+		query.setFirstResult(Math.toIntExact(pageable.getOffset()));
 		query.setMaxResults(pageable.getPageSize());
 		List<Object[]> list = query.getResultList();
 		

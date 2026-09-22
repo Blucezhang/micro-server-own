@@ -5,14 +5,14 @@ import java.util.Map;
 
 import com.own.promotion.dao.domain.MallTicket;
 import com.own.promotion.dao.domain.Scope;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 
 public interface MallTicketDao extends BaseDao<MallTicket>{
 	/**
 	 * 创建商城券
 	 * {0} 代表传入的参数
 	 */
-	@Query(" create (n:MallTicket{0}) return n; ")
+	@Query("CREATE (n:MallTicket) SET n = $0 RETURN n")
 	public Map createMallTicket(Map map);
 
 	
@@ -29,7 +29,7 @@ public interface MallTicketDao extends BaseDao<MallTicket>{
 	 * @param id
 	 * @return
 	 */
-	@Query(" match (n:MallTicket {id:{0}}) return n; ")
+	@Query("MATCH (n:MallTicket) WHERE id(n) = $0 RETURN n")
 	public Scope findMallTicket(Long id);
 
 	
@@ -40,6 +40,6 @@ public interface MallTicketDao extends BaseDao<MallTicket>{
 	 * @param id,map
 	 * @return
 	 */
-	@Query(" match (n:MallTicket {id:{0}}) set n+={1}  return n; ")
+	@Query("MATCH (n:MallTicket) WHERE id(n) = $0 SET n += $1 RETURN n")
 	public Scope updateMallTicket(Long id, Map map);
 }

@@ -2,10 +2,9 @@ package com.own.file.controller;
 
 import com.own.file.storage.FileStorageProperties;
 import com.own.file.storage.FileStorageService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,7 +17,7 @@ import java.nio.file.Path;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -26,17 +25,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class FileControllerTest {
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    Path folder;
 
     private Path temporaryRoot;
     private Path permanentRoot;
     private MockMvc mockMvc;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
-        temporaryRoot = folder.newFolder("temporary").toPath();
-        permanentRoot = folder.newFolder("permanent").toPath();
+        temporaryRoot = Files.createDirectory(folder.resolve("temporary"));
+        permanentRoot = Files.createDirectory(folder.resolve("permanent"));
 
         FileStorageProperties properties = new FileStorageProperties();
         properties.setTemporaryRoot(temporaryRoot.toString());
@@ -49,7 +48,7 @@ public class FileControllerTest {
     public void rejectsEmptyMultipartUploadWithBadRequest() throws Exception {
         MockMultipartFile upload = new MockMultipartFile("file", "empty.txt", "text/plain", new byte[0]);
 
-        mockMvc.perform(fileUpload("/file/picture").file(upload))
+        mockMvc.perform(multipart("/file/picture").file(upload))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("must not be empty")));
     }

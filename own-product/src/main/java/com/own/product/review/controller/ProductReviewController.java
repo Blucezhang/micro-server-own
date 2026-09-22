@@ -9,7 +9,7 @@ import com.own.product.review.dto.CreateProductReviewCommand;
 import com.own.product.review.dto.CreateProductReviewReportCommand;
 import com.own.product.review.dto.ModerateReviewCommand;
 import com.own.product.review.service.ProductReviewService;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -7,8 +7,8 @@ import com.own.order.repository.AfterSaleRepository;
 import com.own.order.repository.OrderEventRepository;
 import java.math.BigDecimal;
 import java.util.Collections;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -23,7 +23,7 @@ public class AfterSaleReminderSchedulerTest {
 
         new AfterSaleReminderScheduler(sales, events, 48, 24).remindOverdueAudits();
 
-        Assert.assertNotNull(sale.getLastReminderAt());
+        Assertions.assertNotNull(sale.getLastReminderAt());
         Mockito.verify(sales).save(sale);
         Mockito.verify(events).save(Mockito.any(com.own.order.domain.OrderEvent.class));
     }

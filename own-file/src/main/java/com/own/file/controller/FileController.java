@@ -8,7 +8,7 @@ import com.own.file.storage.FileStorageService;
 import com.own.file.storage.InvalidStoragePathException;
 import com.own.file.storage.InvalidStorageRequestException;
 import com.own.file.storage.StoredFileNotFoundException;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -41,14 +41,14 @@ public class FileController extends BaseController {
         this.storageService = storageService;
     }
 
-    @ApiOperation(value = "图片上传接口")
+    @Operation(summary = "图片上传接口")
     @PostMapping("/picture")
     public @ResponseBody Resp uploadFile(@RequestParam("file") MultipartFile file) {
         String storedName = storageService.storeTemporary(file);
         return new Resp(storedName, HttpStatus.ACCEPTED.value(), "success");
     }
 
-    @ApiOperation(value = "下载临时文件图片 根据imgUri获得图片并输出到response")
+    @Operation(summary = "下载临时文件图片 根据imgUri获得图片并输出到response")
     @GetMapping("/tmpPicture/{fileName}/{fileSuffix}")
     public @ResponseBody void downloadTmpFile(HttpServletResponse response,
                                                @PathVariable String fileName,
@@ -58,7 +58,7 @@ public class FileController extends BaseController {
         storageService.writeTemporary(storedName, response.getOutputStream());
     }
 
-    @ApiOperation(value = "下载正式文件图片 根据imgUri获得图片并输出到response")
+    @Operation(summary = "下载正式文件图片 根据imgUri获得图片并输出到response")
     @RequestMapping(value = "/Picture/{fileName}/{fileSuffix}", method = RequestMethod.GET)
     public @ResponseBody void downloadFile(HttpServletResponse response,
                                             @PathVariable String fileName,
@@ -68,13 +68,13 @@ public class FileController extends BaseController {
         storageService.writePermanent(storedName, response.getOutputStream());
     }
 
-    @ApiOperation(value = "将图片从临时目录移动到正式目录")
+    @Operation(summary = "将图片从临时目录移动到正式目录")
     @PostMapping("/Copy/{fileNames}")
     public @ResponseBody void copy(@PathVariable String[] fileNames) {
         storageService.promoteTemporary(Arrays.asList(fileNames));
     }
 
-    @ApiOperation(value = "将文件从临时目录移动到正式目录（请求体接口）")
+    @Operation(summary = "将文件从临时目录移动到正式目录（请求体接口）")
     @PostMapping("/promote")
     public ResponseEntity<List<String>> promote(@RequestBody FilePromotionRequest request) {
         List<String> promoted = storageService.promoteTemporary(

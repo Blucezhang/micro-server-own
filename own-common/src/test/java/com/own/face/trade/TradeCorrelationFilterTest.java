@@ -1,9 +1,9 @@
 package com.own.face.trade;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -20,7 +20,7 @@ public class TradeCorrelationFilterTest {
 
     @Test
     public void replacesUnsafeCorrelationValueInsteadOfWritingItToLogsOrHeaders() {
-        String generated = TradeCorrelationFilter.resolve("bad\nvalue");
+        String generated = TradeCorrelation.resolve("bad\nvalue");
         assertNotEquals("bad\nvalue", generated);
         assertEquals(36, generated.length());
     }

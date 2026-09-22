@@ -3,8 +3,8 @@ package com.own.face.trade.idempotency;
 import com.own.face.trade.ActorType;
 import com.own.face.trade.TradeActor;
 import java.lang.reflect.Method;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Propagation;
@@ -20,7 +20,7 @@ public class TradeIdempotencyStoreTest {
         Mockito.when(operations.create("order", buyer, "/api/v1/orders", "key", "hash", 24)).thenReturn(created);
         TradeIdempotencyStore store = new TradeIdempotencyStore(operations);
 
-        Assert.assertSame(created, store.begin("order", buyer, "/api/v1/orders", "key", "hash", 24));
+        Assertions.assertSame(created, store.begin("order", buyer, "/api/v1/orders", "key", "hash", 24));
         Mockito.verify(operations).lookup("order", buyer, "/api/v1/orders", "key");
         Mockito.verify(operations).create("order", buyer, "/api/v1/orders", "key", "hash", 24);
     }
@@ -35,7 +35,7 @@ public class TradeIdempotencyStoreTest {
                 .thenThrow(new DataIntegrityViolationException("duplicate"));
         TradeIdempotencyStore store = new TradeIdempotencyStore(operations);
 
-        Assert.assertSame(completed, store.begin("order", buyer, "/api/v1/orders", "key", "hash", 24));
+        Assertions.assertSame(completed, store.begin("order", buyer, "/api/v1/orders", "key", "hash", 24));
         Mockito.verify(operations, Mockito.times(2)).lookup("order", buyer, "/api/v1/orders", "key");
     }
 
@@ -45,7 +45,7 @@ public class TradeIdempotencyStoreTest {
                 String.class, String.class, String.class, int.class);
         Method complete = TradeIdempotencyRecordTransactions.class.getMethod("complete", Long.class,
                 com.own.face.util.Resp.class);
-        Assert.assertEquals(Propagation.REQUIRES_NEW, create.getAnnotation(Transactional.class).propagation());
-        Assert.assertEquals(Propagation.REQUIRES_NEW, complete.getAnnotation(Transactional.class).propagation());
+        Assertions.assertEquals(Propagation.REQUIRES_NEW, create.getAnnotation(Transactional.class).propagation());
+        Assertions.assertEquals(Propagation.REQUIRES_NEW, complete.getAnnotation(Transactional.class).propagation());
     }
 }

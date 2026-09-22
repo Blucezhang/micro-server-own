@@ -5,7 +5,7 @@ import com.own.send.server.domain.Jgpush;
 import com.own.send.server.prop.ConfigProperty;
 import com.own.send.server.service.JgpushSvc;
 import com.own.send.server.util.SendJgpush;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,14 +26,14 @@ public class JgpushController{
     @Autowired
     public ConfigProperty configProperty;
 
-    @ApiOperation(value = "根据id查询极光信息")
+    @Operation(summary = "根据id查询极光信息")
     @GetMapping("/jgpush/{id}")
     public Resp findJgpush(@PathVariable Integer id) {
         return new Resp(jgpushSvc.findJgpushById(id));
     }
 
 
-    @ApiOperation(value = "推送极光消息")
+    @Operation(summary = "推送极光消息")
     @PostMapping("/jgpush")
     public Resp sendJgpush(@RequestBody Jgpush jp) {
         //获取配置信息
@@ -70,7 +70,7 @@ public class JgpushController{
         return new Resp(result);
     }
 
-    @ApiOperation(value ="搜索信息列表" )
+    @Operation(summary ="搜索信息列表" )
     @GetMapping("/jgpush")
     public Resp findJgpushs(@RequestParam(required = false) String title,
                             @RequestParam(required = false) String content) {

@@ -1,15 +1,17 @@
 package com.own.product.domain;
 
 import lombok.Data;
-import org.neo4j.ogm.annotation.GraphId;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Property;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 
 @Data
-@NodeEntity
+@Node
 public class Product {
 
-	@GraphId
+	@Id
+    @GeneratedValue
 	private Long id;
 	@Property(name="name")
 	private String name;

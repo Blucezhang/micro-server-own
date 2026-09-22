@@ -2,9 +2,10 @@ package com.own.send.server.util;
 
 import com.own.send.server.util.sms.MsgResult;
 import com.own.send.server.util.sms.SmsGatewayException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SendSmsTest {
 
@@ -18,14 +19,16 @@ public class SendSmsTest {
         assertEquals("12345", result.getSysSuccMsg());
     }
 
-    @Test(expected = SmsGatewayException.class)
+    @Test
     public void rejectsBlankGatewayResponse() {
-        new StubSendSms(" ").sendSms("13800138000", "hello", "http://localhost", "sn", "pwd");
+        assertThrows(SmsGatewayException.class,
+                () -> new StubSendSms(" ").sendSms("13800138000", "hello", "http://localhost", "sn", "pwd"));
     }
 
-    @Test(expected = SmsGatewayException.class)
+    @Test
     public void rejectsNonNumericGatewayResponse() {
-        new StubSendSms("not-a-number").sendSms("13800138000", "hello", "http://localhost", "sn", "pwd");
+        assertThrows(SmsGatewayException.class,
+                () -> new StubSendSms("not-a-number").sendSms("13800138000", "hello", "http://localhost", "sn", "pwd"));
     }
 
     @Test

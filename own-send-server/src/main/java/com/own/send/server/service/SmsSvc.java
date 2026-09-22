@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.send.server.domain.Sms;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class SmsSvc {
 	
-	Logger log = Logger.getLogger(SmsSvc.class);
+	Logger log = LoggerFactory.getLogger(SmsSvc.class);
 	
 	@Autowired
 	private RdbSvc rdbSvc;

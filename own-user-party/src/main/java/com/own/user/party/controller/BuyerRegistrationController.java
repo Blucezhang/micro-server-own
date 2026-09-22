@@ -4,7 +4,7 @@ import com.own.face.trade.TradeHeaders;
 import com.own.face.util.Resp;
 import com.own.user.party.dto.BuyerRegistrationCommand;
 import com.own.user.party.service.BuyerRegistrationService;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

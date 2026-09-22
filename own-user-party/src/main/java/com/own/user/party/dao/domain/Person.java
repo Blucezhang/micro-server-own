@@ -3,11 +3,11 @@ package com.own.user.party.dao.domain;
 import java.util.List;
 
 import lombok.Data;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Property;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 
 @Data
-@NodeEntity
+@Node
 public class Person extends Party {
 
 	@Property(name = "name")

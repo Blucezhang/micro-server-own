@@ -3,7 +3,7 @@ package com.own.send.server.controller;
 import com.own.face.util.Resp;
 import com.own.send.server.domain.CommonInfo;
 import com.own.send.server.service.CommonInfoSvc;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +24,7 @@ public class CommonInfoController{
      * ,使用post
      * @return
      */
-    @ApiOperation(value = "查询公共信息列表")
+    @Operation(summary = "查询公共信息列表")
     @GetMapping
     public Resp findCommonInfo(@RequestParam(required = false) Integer id,
                                @RequestParam(required = false) String title,

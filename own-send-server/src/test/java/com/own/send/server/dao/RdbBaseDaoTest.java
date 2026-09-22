@@ -1,15 +1,15 @@
 package com.own.send.server.dao;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import java.util.Collections;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,7 +26,7 @@ public class RdbBaseDaoTest {
         dao.em = entityManager;
 
         Page<?> result = dao.findAllByNativeSql(
-                "select ID from sms where 1=0", null, Collections.<String, Object>emptyMap(), new PageRequest(0, 10));
+                "select ID from sms where 1=0", null, Collections.<String, Object>emptyMap(), PageRequest.of(0, 10));
 
         assertNotNull(result);
         assertTrue(result.getContent().isEmpty());

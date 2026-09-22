@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.own.promotion.dao.domain.Scope;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 
 public interface ScopeDao extends BaseDao<Scope>{
 	/**
 	 * 创建范围数据
 	 * {0} 代表传入的参数
 	 */
-	@Query(" create (n:Scope{0}) return n; ")
+	@Query("CREATE (n:Scope) SET n = $0 RETURN n")
 	public Map createScope(Map map);
 	
 	
@@ -28,7 +28,7 @@ public interface ScopeDao extends BaseDao<Scope>{
 	 * @param id
 	 * @return
 	 */
-	@Query(" match (n:Scope {id:{0}}) return n; ")
+	@Query("MATCH (n:Scope) WHERE id(n) = $0 RETURN n")
 	public Scope findScope(Long id);
 
 	
@@ -39,7 +39,7 @@ public interface ScopeDao extends BaseDao<Scope>{
 	 * @param id,map
 	 * @return
 	 */
-	@Query(" match (n:Scope {id:{0}}) set n+={1}  return n; ")
+	@Query("MATCH (n:Scope) WHERE id(n) = $0 SET n += $1 RETURN n")
 	public Scope updateScope(Long id, Map map);
 	
 }

@@ -6,7 +6,7 @@ import com.own.order.domain.AfterSaleType;
 import com.own.order.repository.AfterSaleRepository;
 import java.math.BigDecimal;
 import java.util.Collections;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class AfterSaleRefundRetrySchedulerTest {

@@ -10,11 +10,11 @@ import com.own.face.util.base.BaseController;
 import com.own.product.dao.ProductDao;
 import com.own.product.domain.Product;
 import com.own.product.domain.Template;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.template.Neo4jOperations;
+import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -32,9 +32,11 @@ public class ProductController extends BaseController {
     @Autowired
     private ProductDao productDao = null;
     @Autowired
-    private Neo4jOperations template;
+    private Neo4jClient neo4jClient;
+    @Autowired
+    private Neo4jTemplate neo4jTemplate;
 
-    @ApiOperation(value = "根据ID查询产品")
+    @Operation(summary = "根据ID查询产品")
     @GetMapping("/Product/{id}")
     public @ResponseBody
     Resp getProduct(@PathVariable Long id) {
@@ -47,8 +49,7 @@ public class ProductController extends BaseController {
     }
 
 
-    @ApiOperation(value = "查询产品")
-    @ApiImplicitParam(value = "Bean参数",paramType = "Map")
+    @Operation(summary = "查询产品")
     @GetMapping
     public @ResponseBody Resp queryProduct(@RequestParam Map<String, Object> parms) {
         Iterable iterable = null;
@@ -61,7 +62,7 @@ public class ProductController extends BaseController {
                 partyId = numericId(parms.get("partyId").toString(), "partyId");
             }
             String cypher = createQueryCypher(categoryIds, partyId, "product");
-            iterable = template.queryForObjects(Product.class, cypher, new HashMap());
+            iterable = query(cypher);
             log.info("iterable:{}",iterable);
         }
         //根据产品id查询
@@ -71,7 +72,7 @@ public class ProductController extends BaseController {
             sb.append("start n=node(");
             sb.append(productId);
             sb.append(") return n");
-            iterable = template.queryForObjects(Product.class, sb.toString(), new HashMap());
+            iterable = query(sb.toString());
         }
         //只根据店家查询（不包括产品类型）
         else if (!Util.isNullOrEmpty(parms.get("partyId")) && Util.isNullOrEmpty(parms.get("categoryId"))) {
@@ -80,11 +81,15 @@ public class ProductController extends BaseController {
             sb.append("match(n:Product {partyId:");
             sb.append(partyId);
             sb.append("}) return n");
-            iterable = template.queryForObjects(Product.class, sb.toString(), new HashMap());
+            iterable = query(sb.toString());
         } else {
             iterable = productDao.queryProduct();
         }
         return new Resp(iterable);
+    }
+
+    private Iterable<Map<String, Object>> query(String cypher) {
+        return neo4jClient.query(cypher).fetch().all();
     }
 
     /**
@@ -156,7 +161,7 @@ public class ProductController extends BaseController {
         return value;
     }
 
-    @ApiOperation(value = "添加产品")
+    @Operation(summary = "添加产品")
     @PutMapping("/addProduct")
     public Resp addProduct(@RequestBody ProductBean productBean) {
         Product product = new Product();
@@ -180,7 +185,7 @@ public class ProductController extends BaseController {
         return new Resp(product);
     }
 
-    @ApiOperation(value = "修改产品")
+    @Operation(summary = "修改产品")
     @PostMapping("/{id}")
     public Resp  updProduct(@PathVariable Long id, @RequestBody ProductBean productBean) {
         Product product = productDao.queryProductById(id);
@@ -196,7 +201,7 @@ public class ProductController extends BaseController {
         return new Resp(productDao.save(product));
     }
 
-    @ApiOperation(value = "根据ID删除产品")
+    @Operation(summary = "根据ID删除产品")
     @DeleteMapping("/{id}")
     public void delProduct(@PathVariable Long id) {
         productDao.deleteProduct(id);
@@ -204,14 +209,14 @@ public class ProductController extends BaseController {
 
 
 
-    @ApiOperation(value = "根据ID查询产品模板")
+    @Operation(summary = "根据ID查询产品模板")
     @GetMapping("/template/{id}")
     public @ResponseBody Resp getTemplate(@PathVariable Long id) {
         Template templateEntity = productDao.queryTemplateById(id);
         return new Resp(templateEntity);
     }
 
-    @ApiOperation(value = "查询产品模板")
+    @Operation(summary = "查询产品模板")
     @GetMapping("/template")
     public @ResponseBody Resp queryTemplate(@RequestParam Map<String, Object> parms) {
         Iterable iterable = null;
@@ -224,7 +229,7 @@ public class ProductController extends BaseController {
                 partyId = parms.get("partyId").toString();
             }
             String cypher = createQueryCypher(categoryIds, partyId, "template");
-            iterable = template.queryForObjects(Template.class, cypher, new HashMap());
+            iterable = query(cypher);
         } else {
             iterable = productDao.queryTemplate();
         }
@@ -232,7 +237,7 @@ public class ProductController extends BaseController {
         return new Resp(iterable);
     }
 
-    @ApiOperation(value = "添加产品模板")
+    @Operation(summary = "添加产品模板")
     @PutMapping("/template")
     public Resp createTemplate(@RequestBody TemplateBean templateBean) {
         Map map = FaceUtil.transBean2MapNotNull(templateBean);
@@ -247,13 +252,13 @@ public class ProductController extends BaseController {
         return new Resp(template);
     }
 
-    @ApiOperation(value = "修改产品模板")
+    @Operation(summary = "修改产品模板")
     @PostMapping("/template/{id}")
     public Resp updTemplate(@PathVariable Long id, @RequestBody TemplateBean templateBean) {
         Template templateEntity = productDao.queryTemplateById(id);
         templateEntity.setName(templateBean.getName());
         templateEntity.setContent(templateBean.getContent());
-        template.save(templateEntity);
+        neo4jTemplate.save(templateEntity);
         log.info("updTemplate return Obj:{}",templateEntity.toString());
         return new Resp(templateEntity);
     }

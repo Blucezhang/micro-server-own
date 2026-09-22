@@ -7,7 +7,7 @@ import com.own.send.server.prop.ConfigProperty;
 import com.own.send.server.service.CommonInfoSvc;
 import com.own.send.server.service.EmailSvc;
 import com.own.send.server.util.SendMail;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +32,7 @@ public class EmailController {
     @Autowired
     public ConfigProperty configProperty;
 
-    @ApiOperation(value = "根据id查询email信息") @GetMapping("/email/{id}")
+    @Operation(summary = "根据id查询email信息") @GetMapping("/email/{id}")
     public @ResponseBody Resp getEmail(@PathVariable int id){
         log.info("Get Email info !");
         Email email = null;
@@ -40,7 +40,7 @@ public class EmailController {
         return new Resp(email);
     }
 
-    @ApiOperation(value = "查询邮件列表")
+    @Operation(summary = "查询邮件列表")
    @GetMapping("/email")
     public @ResponseBody Resp getInfo(@RequestParam(required = false) Integer id,
                                       @RequestParam(required = false) String title,
@@ -53,7 +53,7 @@ public class EmailController {
         return new Resp(list);
     }
 
-    @ApiOperation(value = "发送邮件")
+    @Operation(summary = "发送邮件")
     @PostMapping("/email")
     public Resp sendEmail(@RequestBody Map param) throws Throwable{//use this method to get param value
         String result = "";
@@ -114,7 +114,7 @@ public class EmailController {
     }
 
 
-    @ApiOperation("修改邮件，比如暂存草稿")
+    @Operation(summary = "修改邮件，比如暂存草稿")
     @PutMapping("/email")
     public Resp updateSms(@RequestBody Email email){//note:客户端是用requestbody提交的，这里如果写成requestX别的东西，会找不到这个方法
         Email ss = email;

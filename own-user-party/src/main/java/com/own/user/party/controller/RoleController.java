@@ -112,7 +112,7 @@ public class RoleController {
 	 * @param roleBean
 	 */
 	@RequestMapping(value="/Role/addFun",method=RequestMethod.PUT)
-	public Resp createRelationShipRoleAndFun(@RequestBody RoleBean roleBean, javax.servlet.http.HttpServletRequest request){
+	public Resp createRelationShipRoleAndFun(@RequestBody RoleBean roleBean, jakarta.servlet.http.HttpServletRequest request){
 		com.own.face.trade.TradeHeaders.actor(request).require(com.own.face.trade.ActorType.SYSTEM);
 		com.own.face.trade.TradeHeaders.idempotencyKey(request);
 		if (roleBean == null) throw com.own.face.trade.TradeException.unprocessable("role payload is required");

@@ -31,7 +31,7 @@ public class ReviewProhibitedTermService {
 
     @Transactional
     public ReviewProhibitedTermView update(Long systemUserId, Long id, ReviewProhibitedTermCommand command) {
-        ReviewProhibitedTerm current = id == null ? null : repository.findById(id);
+        ReviewProhibitedTerm current = id == null ? null : repository.findById(id).orElse(null);
         if (current == null) throw TradeException.notFound("review prohibited term was not found");
         if (command == null || command.getActive() == null) throw TradeException.unprocessable("active is required");
         String term = command.getTerm() == null ? current.getNormalizedTerm() : normalize(command.getTerm());
@@ -44,7 +44,7 @@ public class ReviewProhibitedTermService {
 
     public Map<String, Object> page(int page, int size) {
         if (page < 0 || size < 1 || size > 100) throw TradeException.unprocessable("page must be nonnegative and size must be 1..100");
-        Page<ReviewProhibitedTerm> result = repository.findAllByOrderByIdDesc(new PageRequest(page, size));
+        Page<ReviewProhibitedTerm> result = repository.findAllByOrderByIdDesc(PageRequest.of(page, size));
         List<ReviewProhibitedTermView> items = new ArrayList<ReviewProhibitedTermView>();
         for (ReviewProhibitedTerm term : result.getContent()) items.add(view(term));
         Map<String, Object> response = new LinkedHashMap<String, Object>();

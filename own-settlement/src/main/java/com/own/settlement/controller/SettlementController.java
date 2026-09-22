@@ -12,7 +12,7 @@ import com.own.face.security.InternalServiceGuard;
 import com.own.settlement.service.SettlementService;
 import com.own.settlement.service.MockPaymentCallbackGuard;
 import com.own.settlement.domain.PaymentChannel;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

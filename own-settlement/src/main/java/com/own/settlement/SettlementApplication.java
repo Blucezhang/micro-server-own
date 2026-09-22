@@ -2,7 +2,7 @@ package com.own.settlement;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
@@ -13,8 +13,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EntityScan(basePackages = {"com.own.settlement.domain", "com.own.face.trade.idempotency"})
-@EnableJpaRepositories(basePackages = {"com.own.settlement.repository", "com.own.face.trade.idempotency"})
+@EntityScan(basePackages = {"com.own.settlement.domain", "com.own.face.trade.idempotency", "com.own.face.trade.inbox"})
+@EnableJpaRepositories(basePackages = {"com.own.settlement.repository", "com.own.face.trade.idempotency", "com.own.face.trade.inbox"})
 @ComponentScan(basePackages = {"com.own.settlement", "com.own.face"})
 @EnableScheduling
 public class SettlementApplication {

@@ -1,8 +1,9 @@
 package com.own.product.review.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -13,7 +14,8 @@ import com.own.product.review.moderation.dto.ReviewProhibitedTermView;
 import com.own.product.review.moderation.repository.ReviewProhibitedTermRepository;
 import com.own.product.review.moderation.service.ReviewProhibitedTermService;
 import java.util.Collections;
-import org.junit.Test;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class ReviewProhibitedTermServiceTest {
@@ -30,15 +32,16 @@ public class ReviewProhibitedTermServiceTest {
         ReviewProhibitedTermView created = service.create(9L, create);
         assertEquals("blocked phrase", created.getTerm()); assertTrue(created.isActive());
         ReviewProhibitedTerm stored = new ReviewProhibitedTerm("blocked phrase", 9L); ReflectionTestUtils.setField(stored, "id", 7L);
-        when(repository.findById(7L)).thenReturn(stored);
+        when(repository.findById(7L)).thenReturn(Optional.of(stored));
         ReviewProhibitedTermCommand update = new ReviewProhibitedTermCommand(); update.setActive(false);
         assertEquals(false, service.update(10L, 7L, update).isActive());
     }
 
-    @Test(expected = TradeException.class)
+    @Test
     public void managedActiveTermBlocksReviewAndReplyContent() {
         ReviewProhibitedTermRepository repository = mock(ReviewProhibitedTermRepository.class);
         when(repository.findByActiveTrueOrderByIdAsc()).thenReturn(Collections.singletonList(new ReviewProhibitedTerm("managed block", 1L)));
-        new ReviewContentPolicy("", repository).requireAllowed("contains MANAGED BLOCK content");
+        assertThrows(TradeException.class,
+                () -> new ReviewContentPolicy("", repository).requireAllowed("contains MANAGED BLOCK content"));
     }
 }

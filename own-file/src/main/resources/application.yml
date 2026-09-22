@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: own-file
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  config:
+    import: optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml?group=${NACOS_GROUP:MICRO_SERVER}
+  cloud:
+    nacos:
+      server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:}
+      discovery:
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_GROUP:MICRO_SERVER}
+      config:
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_GROUP:MICRO_SERVER}
+        file-extension: yaml

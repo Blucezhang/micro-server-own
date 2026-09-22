@@ -1,6 +1,6 @@
 package com.own.face.trade;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public final class TradeHeaders {
 

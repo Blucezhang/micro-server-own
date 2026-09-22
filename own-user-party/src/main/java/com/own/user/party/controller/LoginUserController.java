@@ -14,7 +14,7 @@ import com.own.user.party.auth.service.RefreshSessionService;
 import com.own.user.party.auth.service.LoginAttemptService;
 import com.own.user.party.service.LoginAuthorization;
 import com.own.user.party.service.LoginUserService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestHeader;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +55,7 @@ public class LoginUserController {
         this.loginAttempts = loginAttempts;
     }
 
-    @ApiOperation(value = "用户登录")
+    @Operation(summary = "用户登录")
     @PostMapping("/Login")
     public Resp login(@RequestBody UserBean userBean) {
         Map<String, Object> result = new HashMap<String, Object>();
@@ -73,7 +73,7 @@ public class LoginUserController {
         return new Resp(result);
     }
 
-    @ApiOperation(value = "获取 JWT 访问令牌")
+    @Operation(summary = "获取 JWT 访问令牌")
     @PostMapping("/token")
     public Resp token(@RequestBody TokenLoginCommand command) {
         if (command != null) loginAttempts.requireAllowed(command.getLoginUserName());
@@ -110,13 +110,13 @@ public class LoginUserController {
         return new Resp("session_revoked");
     }
 
-    @ApiOperation(value = "根据用户Id查询登录用户的Detail")
+    @Operation(summary = "根据用户Id查询登录用户的Detail")
     @GetMapping("/getLoginUser/{loginId}")
     public Resp getDetail(@PathVariable Long loginId) {
         return new Resp(LoginUserResponse.from(loginUserService.getById(loginId)));
     }
 
-    @ApiOperation(value = "修改密码")
+    @Operation(summary = "修改密码")
     @PostMapping("/updatePassword")
     public Resp updatePassword(@RequestBody UserBean userBean) {
         Map<String, Object> result = new HashMap<String, Object>();
@@ -143,7 +143,7 @@ public class LoginUserController {
         return new Resp(result);
     }
 
-    @ApiOperation(value = "查询所有LoginUser用户")
+    @Operation(summary = "查询所有LoginUser用户")
     @GetMapping("/LoginUser")
     @ResponseBody
     public Resp queryAllLoginUser() {
@@ -153,7 +153,7 @@ public class LoginUserController {
         return new Resp(users);
     }
 
-    @ApiOperation(value = "创建LoginUser")
+    @Operation(summary = "创建LoginUser")
     @PutMapping("/LoginUser")
     @ResponseBody
     public void createLoginUser(@RequestBody LoginUserBean userBean) {
@@ -174,7 +174,7 @@ public class LoginUserController {
         }
     }
 
-    @ApiOperation(value = "根据Id修改LoginUser")
+    @Operation(summary = "根据Id修改LoginUser")
     @PostMapping("/LoginUser/{id}")
     public void updateLoginUser(@RequestBody LoginUserBean loginUserBean,
                                 @PathVariable Long id) {
@@ -192,7 +192,7 @@ public class LoginUserController {
         }
     }
 
-    @ApiOperation(value = "根据ID删除系统用户信息")
+    @Operation(summary = "根据ID删除系统用户信息")
     @DeleteMapping("/LoginUser/{id}")
     public void deleteLoginUser(@PathVariable Integer id) {
         loginUserDao.deleteLoginUser(id);

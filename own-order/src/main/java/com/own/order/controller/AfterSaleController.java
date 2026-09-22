@@ -1,5 +1,5 @@
 package com.own.order.controller;
-import com.own.face.trade.TradeActor; import com.own.face.trade.TradeHeaders; import com.own.face.util.Resp; import com.own.face.util.base.BaseController; import com.own.order.dto.*; import com.own.order.service.AfterSaleService; import javax.servlet.http.HttpServletRequest; import org.springframework.web.bind.annotation.*;
+import com.own.face.trade.TradeActor; import com.own.face.trade.TradeHeaders; import com.own.face.util.Resp; import com.own.face.util.base.BaseController; import com.own.order.dto.*; import com.own.order.service.AfterSaleService; import jakarta.servlet.http.HttpServletRequest; import org.springframework.web.bind.annotation.*;
 @RestController @RequestMapping("/api/v1/after-sales") public class AfterSaleController extends BaseController {
  private final AfterSaleService service; public AfterSaleController(AfterSaleService service){this.service=service;}
  @PostMapping public Resp create(@RequestBody CreateAfterSaleCommand command,HttpServletRequest request){TradeActor actor=TradeHeaders.actor(request);TradeHeaders.idempotencyKey(request);return new Resp(service.view(service.create(actor,command)),201,"created");}

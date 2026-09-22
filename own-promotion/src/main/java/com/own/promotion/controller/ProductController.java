@@ -9,9 +9,10 @@ import com.own.face.util.Resp;
 import com.own.face.util.base.BaseController;
 import com.own.promotion.dao.ProductDao;
 import com.own.promotion.dao.domain.Product;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +24,7 @@ public class ProductController extends BaseController {
 	@Autowired
 	private ProductDao productDao;
 
-	@ApiOperation(value = "查询单条scope信息")
+	@Operation(summary = "查询单条scope信息")
 	@GetMapping("/{id}")
 	public @ResponseBody
 	Resp findProductById(@PathVariable Integer id){
@@ -31,13 +32,13 @@ public class ProductController extends BaseController {
 		return new Resp(productDao.getFromId(id));
 	}
 
-	@ApiOperation(value = "查询scope列表")
+	@Operation(summary = "查询scope列表")
 	@GetMapping("/query/all")
 	public @ResponseBody Resp findAll(){
 		return new Resp(productDao.findAllProduct());
 	}
 
-	@ApiOperation(value = "保存scope信息",response =Product.class )
+	@Operation(summary = "保存scope信息")
 	@PostMapping("/save/scope")
 	public @ResponseBody Resp save(@RequestBody Product p){
 		productDao.save(p);//创建节点
@@ -48,15 +49,16 @@ public class ProductController extends BaseController {
 		return new Resp(params);
 	}
 
-	@ApiOperation(value = "删除scope数据以及关系")
+	@Operation(summary = "删除scope数据以及关系")
 	@DeleteMapping("/{id}")
 	public @ResponseBody Resp deleteProduct(@PathVariable Integer id){
 		log.info("删除节点id为："+id+"的数据");
 		//删除该数据，并且删除关系
-		return new Resp(productDao.deleteRelationships(id));
+		productDao.deleteRelationships(id);
+		return new Resp(id);
 	}
 
-	@ApiOperation(value = "修改scope信息")
+	@Operation(summary = "修改scope信息")
 	@PutMapping("/update/scope")
 	public @ResponseBody Resp upProduct(Product p){
 		log.info("修改scope值",p.toString());

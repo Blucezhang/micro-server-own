@@ -1,0 +1,52 @@
+server:
+  port: 9632
+
+trade:
+  internal:
+    service-token: ${INTERNAL_SERVICE_TOKEN:}
+  security:
+    jwt:
+      enabled: ${JWT_ENABLED:true}
+      issuer: ${JWT_ISSUER:micro-server-own}
+      secret: ${JWT_SECRET:}
+      previous-secret: ${JWT_PREVIOUS_SECRET:}
+      expiration-seconds: ${JWT_EXPIRATION_SECONDS:7200}
+      refresh-expiration-seconds: ${JWT_REFRESH_EXPIRATION_SECONDS:1209600}
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: file
+              uri: lb://own-file
+              predicates: [Path=/file/**]
+            - id: product
+              uri: lb://own-product
+              predicates: [Path=/product/**]
+            - id: promotion
+              uri: lb://own-promotion
+              predicates: [Path=/sale/**]
+            - id: send
+              uri: lb://own-send-server
+              predicates: [Path=/Info/**]
+            - id: user
+              uri: lb://own-user-party
+              predicates: [Path=/user/**]
+              filters: [StripPrefix=1]
+            - id: workflow
+              uri: lb://own-workflow
+              predicates: [Path=/flow/**]
+            - id: inventory
+              uri: lb://own-inventory
+              predicates: [Path=/inventory/**]
+              filters: [StripPrefix=1]
+            - id: order
+              uri: lb://own-order
+              predicates: [Path=/order/**]
+              filters: [StripPrefix=1]
+            - id: settlement
+              uri: lb://own-settlement
+              predicates: [Path=/settlement/**]
+              filters: [StripPrefix=1]

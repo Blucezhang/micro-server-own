@@ -8,7 +8,7 @@ import com.own.face.party.FunBean;
 import com.own.face.util.Resp;
 import com.own.user.party.dao.FunDao;
 import com.own.user.party.dao.domain.Fun;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +26,7 @@ public class FunController{
 	@Autowired
 	private FunDao funDao = null;
 
-	@ApiOperation(value = "添加功能")
+	@Operation(summary = "添加功能")
 	@PutMapping("/Fun")
 	public @ResponseBody void createFunSet(@RequestBody FunBean funBean){
 		Fun fun = new Fun();
@@ -39,7 +39,7 @@ public class FunController{
 		funDao.createRelationShipOfFun(fun.getFunctionId());
 	}
 
-	@ApiOperation("查询所有的功能")
+	@Operation(summary = "查询所有的功能")
 	@GetMapping("/Fun")
 	public @ResponseBody
 	Resp getAllFun(){
@@ -48,14 +48,14 @@ public class FunController{
 		return new Resp(funList);
 	}
 
-	@ApiOperation(value ="根据Id删除功能" )
+	@Operation(summary ="根据Id删除功能" )
 	@DeleteMapping("/Fun/{id}")
 	public @ResponseBody void deleteFunById(@PathVariable Long Id){
 		funDao.deleteFun(Id);
 	}
 	
 
-	@ApiOperation(value = "根据Id查询功能的详细信息")
+	@Operation(summary = "根据Id查询功能的详细信息")
 	@GetMapping("/Fun/{functionId}")
 	public Resp getInforbyId(@PathVariable Long functionId){
 		Map<String,Object> result = new HashMap<String,Object>();
@@ -63,7 +63,7 @@ public class FunController{
 		return new Resp(fun);
 	}
 
-	@ApiOperation(value = "根据Id修改功能信息")
+	@Operation(summary = "根据Id修改功能信息")
 	@PostMapping("/Fun/{id}")
 	public @ResponseBody void updataFunById(@PathVariable Long id,@RequestBody FunBean funBean){
 		Fun fun = funDao.getFromId(Integer.parseInt(id.toString()));

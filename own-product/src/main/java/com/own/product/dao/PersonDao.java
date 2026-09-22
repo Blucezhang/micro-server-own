@@ -3,7 +3,7 @@ package com.own.product.dao;
 import java.util.List;
 
 import com.own.product.domain.Person;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 
 
 public interface PersonDao extends BaseDao<Person>  {
@@ -20,14 +20,14 @@ public interface PersonDao extends BaseDao<Person>  {
 	 * @param attributeName 节点属性key
 	 * @return T
 	 */
-	@Query("MATCH (n:Person { name:{0} }) return n")
+	@Query("MATCH (n:Person) WHERE n.name = $0 RETURN n")
     public Person getFromName(String attributeName);
 	
 	/**
 	 * 创建用户节点关系
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH(o:Table {table:'par_person'}) create (o)-[r:data]->(n)")
+	@Query("MATCH (n:Person), (o:Table {table: 'par_person'}) WHERE id(n) = $0 CREATE (o)-[:data]->(n)")
 	public void createRelationShipData(Long id);
 	
 	/**
@@ -36,13 +36,13 @@ public interface PersonDao extends BaseDao<Person>  {
      * @param endNodeId 节点id
      * @return
      */
-    @Query("START startNode=node({0}),endNode=node({1}) CREATE (endNode)-[:CONTAIN]->(startNode)")
+    @Query("MATCH (startNode:Person), (endNode:Organization) WHERE id(startNode) = $0 AND id(endNode) = $1 CREATE (endNode)-[:CONTAIN]->(startNode)")
     public void createRelationshipContain(Long startNodeId, Long endNodeId);
 	
     /**
 	 * 删除person
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH()-[r]->(n) delete n,r")
+	@Query("MATCH (n:Person) WHERE id(n) = $0 OPTIONAL MATCH ()-[r]-(n) DELETE r, n")
 	public void deletePerson(Integer id);
 }

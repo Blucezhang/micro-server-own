@@ -1,7 +1,7 @@
 package com.own.user.party.auth.repository;
 
 import com.own.user.party.auth.domain.RefreshTokenSession;
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;

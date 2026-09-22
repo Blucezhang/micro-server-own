@@ -1,8 +1,8 @@
 package com.own.settlement.domain;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.math.BigDecimal;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PaymentTest {
 
@@ -18,6 +18,6 @@ public class PaymentTest {
     public void localAlipayPaymentHasChannelSpecificProviderReference() {
         Payment payment = new Payment("PAY-2", "ORD-2", 1L, BigDecimal.ONE, "key-2", PaymentChannel.MOCK_ALIPAY);
         assertEquals(PaymentChannel.MOCK_ALIPAY, payment.getPaymentChannel());
-        org.junit.Assert.assertTrue(payment.getProviderPaymentNo().startsWith("ALIPAY-"));
+        org.junit.jupiter.api.Assertions.assertTrue(payment.getProviderPaymentNo().startsWith("ALIPAY-"));
     }
 }

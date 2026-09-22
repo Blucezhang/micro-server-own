@@ -1,7 +1,7 @@
 package com.own.face.security;
 
 import com.own.face.trade.TradeException;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

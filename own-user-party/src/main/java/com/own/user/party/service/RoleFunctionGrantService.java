@@ -27,7 +27,7 @@ public class RoleFunctionGrantService {
         if (roleId == null || roleId.longValue() <= 0L) {
             throw TradeException.unprocessable("role id must be positive");
         }
-        Role role = roles.findOne(roleId);
+        Role role = roles.findById(roleId).orElse(null);
         if (role == null) throw TradeException.notFound("role was not found");
         if (functionIds == null || functionIds.isEmpty()) {
             throw TradeException.unprocessable("at least one function id is required");
@@ -41,7 +41,7 @@ public class RoleFunctionGrantService {
         }
         List<Long> granted = new ArrayList<Long>();
         for (Long functionId : distinctIds) {
-            Fun function = functions.findOne(functionId);
+            Fun function = functions.findById(functionId).orElse(null);
             if (function == null) throw TradeException.notFound("function was not found");
             roles.createRelationShipRoleAndFun(roleId, functionId);
             granted.add(functionId);

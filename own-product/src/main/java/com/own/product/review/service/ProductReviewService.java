@@ -40,7 +40,7 @@ public class ProductReviewService {
     public Map<String, Object> page(Long productId, int page, int size) {
         if (productId == null || productId.longValue() <= 0) throw TradeException.unprocessable("productId is required");
         if (page < 0 || size < 1 || size > 100) throw TradeException.unprocessable("page must be nonnegative and size must be 1..100");
-        Page<ProductReview> result = reviews.findByProductIdAndStatusOrderByIdDesc(productId, "PUBLISHED", new PageRequest(page, size));
+        Page<ProductReview> result = reviews.findByProductIdAndStatusOrderByIdDesc(productId, "PUBLISHED", PageRequest.of(page, size));
         List<PublicProductReviewView> items = new ArrayList<PublicProductReviewView>(); for (ProductReview review : result.getContent()) items.add(publicView(review));
         Map<String, Object> response = new HashMap<String, Object>(); response.put("total", result.getTotalElements()); response.put("page", page); response.put("size", size); response.put("items", items); return response;
     }
@@ -64,15 +64,15 @@ public class ProductReviewService {
     public Map<String, Object> reportPage(String status, int page, int size) {
         if (!"PENDING".equals(status) && !"RESOLVED".equals(status) && !"DISMISSED".equals(status)) throw TradeException.unprocessable("status must be PENDING, RESOLVED or DISMISSED");
         if (page < 0 || size < 1 || size > 100) throw TradeException.unprocessable("page must be nonnegative and size must be 1..100");
-        Page<ProductReviewReport> result = reports.findByStatusOrderByIdDesc(status, new PageRequest(page, size));
+        Page<ProductReviewReport> result = reports.findByStatusOrderByIdDesc(status, PageRequest.of(page, size));
         Map<String, Object> response = new HashMap<String, Object>(); response.put("total", result.getTotalElements()); response.put("page", page); response.put("size", size); response.put("items", result.getContent()); return response;
     }
     @Transactional public ProductReviewReport resolveReport(Long systemUserId, Long reportId, ResolveProductReviewReportCommand command) {
         if (systemUserId == null || systemUserId.longValue() <= 0) throw TradeException.unprocessable("system user is required");
-        ProductReviewReport report = reportId == null ? null : reports.findById(reportId); if (report == null) throw TradeException.notFound("product review report was not found");
+        ProductReviewReport report = reportId == null ? null : reports.findById(reportId).orElse(null); if (report == null) throw TradeException.notFound("product review report was not found");
         String status = command == null || command.getStatus() == null ? "" : command.getStatus().trim(); if (!"RESOLVED".equals(status) && !"DISMISSED".equals(status)) throw TradeException.unprocessable("status must be RESOLVED or DISMISSED");
         String note = command.getNote() == null ? "" : command.getNote().trim(); if (note.length() > 500) throw TradeException.unprocessable("resolution note must not exceed 500 characters");
         report.resolve(systemUserId, status, note); return reports.save(report);
     }
-    private ProductReview require(Long id) { ProductReview review = id == null ? null : reviews.findById(id); if (review == null) throw TradeException.notFound("product review was not found"); return review; }
+    private ProductReview require(Long id) { ProductReview review = id == null ? null : reviews.findById(id).orElse(null); if (review == null) throw TradeException.notFound("product review was not found"); return review; }
 }

@@ -1,11 +1,12 @@
 package com.own.face.security;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.own.face.trade.ActorType;
 import java.util.Arrays;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JwtTokenServiceTest {
     private static final String SECRET = "01234567890123456789012345678901";
@@ -53,9 +54,9 @@ public class JwtTokenServiceTest {
         assertEquals(Long.valueOf(10L), rotated.verify(oldToken).getUserId());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void refusesWeakSigningSecret() {
-        new JwtTokenService(new ObjectMapper(), "short", 120L, "test-issuer")
-                .issue(1L, 1L, ActorType.BUYER, null, null);
+        assertThrows(IllegalStateException.class, () -> new JwtTokenService(new ObjectMapper(), "short", 120L, "test-issuer")
+                .issue(1L, 1L, ActorType.BUYER, null, null));
     }
 }

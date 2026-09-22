@@ -62,7 +62,7 @@ public class MerchantSettlementService {
         if (due.isEmpty()) return null;
         SettlementBatch batch = batches.save(new SettlementBatch("STL-" + UUID.randomUUID().toString(), cutoff, current));
         for (MerchantReceivable receivable : due) receivable.settle(batch.getBatchNo());
-        receivables.save(due); return batch;
+        receivables.saveAll(due); return batch;
     }
 
     @Transactional

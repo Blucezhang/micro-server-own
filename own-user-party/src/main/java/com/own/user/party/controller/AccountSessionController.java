@@ -6,7 +6,7 @@ import com.own.face.trade.TradeHeaders;
 import com.own.face.util.Resp;
 import com.own.user.party.auth.service.RefreshSessionService;
 import com.own.user.party.service.LoginUserService;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

@@ -1,7 +1,7 @@
 package com.own.user.party.address.domain;
 
 import java.util.Date;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "buyer_address")

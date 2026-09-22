@@ -2,14 +2,14 @@ package com.own.order.domain;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "ord_sub_order")
@@ -34,6 +34,9 @@ public class TradeSubOrder {
         this.status = SubOrderStatus.PENDING_PAYMENT;
     }
     public void markToShip() { require(SubOrderStatus.PENDING_PAYMENT); status = SubOrderStatus.TO_SHIP; }
+    public void startSaga() { require(SubOrderStatus.PENDING_PAYMENT); status = SubOrderStatus.PROCESSING; }
+    public void sagaReadyForPayment() { require(SubOrderStatus.PROCESSING); status = SubOrderStatus.PENDING_PAYMENT; }
+    public void sagaFailed() { require(SubOrderStatus.PROCESSING); status = SubOrderStatus.CANCELED; }
     public void ship(String logisticsCompany, String trackingNo) { require(SubOrderStatus.TO_SHIP); this.logisticsCompany = logisticsCompany; this.trackingNo = trackingNo; this.shippedAt = new Date(); status = SubOrderStatus.SHIPPED; }
     public void correctShipment(String logisticsCompany, String trackingNo) { require(SubOrderStatus.SHIPPED); this.logisticsCompany = logisticsCompany; this.trackingNo = trackingNo; }
     public void receive() { require(SubOrderStatus.SHIPPED); status = SubOrderStatus.RECEIVED; }

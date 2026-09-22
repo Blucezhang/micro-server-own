@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.own.face.party.RoleBean;
 import com.own.user.party.dao.domain.Role;
-import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.query.Query;
 
 
 public interface RoleDao extends BaseDao<Role> {
@@ -28,14 +28,14 @@ public interface RoleDao extends BaseDao<Role> {
 	 * 创建Role数据
 	 * @param id
 	 */
-	@Query("START n = node({0}) MATCH (T:Table {table:'sys_role'}) CREATE (T)-[rd:roledata]->(n)")
+	@Query("MATCH (n:Role), (T:Table {table: 'sys_role'}) WHERE id(n) = $0 CREATE (T)-[:roledata]->(n)")
 	public void createRelationShipWithRole(Long id);
 
 	/**
 	 * 删除Person === Data
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH ()-[rd]->(n) DELETE n,rd")
+	@Query("MATCH (n:Role) WHERE id(n) = $0 OPTIONAL MATCH ()-[rd]->(n) DELETE rd, n")
 	public void deleteFun(Long id);
 
 	/**
@@ -43,7 +43,7 @@ public interface RoleDao extends BaseDao<Role> {
 	 * @param endNode funids
 	 * @param startNode roleid
 	 */
-	@Query("START startNode = node({0}),endNode = node({1}) MERGE (endNode)-[:FbelongR]->(startNode)")
+	@Query("MATCH (startNode:Fun), (endNode:Role) WHERE id(startNode) = $0 AND id(endNode) = $1 MERGE (endNode)-[:FbelongR]->(startNode)")
 	public void createRelationShipRoleAndFun(Long endNode ,Long startNode);
 
 
@@ -51,7 +51,7 @@ public interface RoleDao extends BaseDao<Role> {
 	 * 删除功能与权限的关系
 	 * @param id
 	 */
-	@Query("START n=node({0}) MATCH ()-[flr]->(n) DELETE flr")
+	@Query("MATCH (n:Role) WHERE id(n) = $0 MATCH ()-[flr]->(n) DELETE flr")
 	public void deleteRoleAndFunRelationShip(Long id);
 
 
@@ -60,7 +60,7 @@ public interface RoleDao extends BaseDao<Role> {
 	 * @param endNode
 	 * @param startNode
 	 */
-	@Query("START startNode = node({0}),endNode = node({1}) CREATE (endNode)-[rbo:RbelongO]->(startNode)")
+	@Query("MATCH (startNode:Organization), (endNode:Role) WHERE id(startNode) = $0 AND id(endNode) = $1 CREATE (endNode)-[:RbelongO]->(startNode)")
 	public void createRelationShipRoleAndOrg(Long endNode,Long startNode);
 
 
@@ -68,7 +68,7 @@ public interface RoleDao extends BaseDao<Role> {
 	 * 删除部门跟角色的关系
 	 * @param Id
 	 */
-	@Query("START n=node({0}) MATCH ()-[rbo]->(n) DELETE rbo")
+	@Query("MATCH (n:Role) WHERE id(n) = $0 MATCH ()-[rbo]->(n) DELETE rbo")
 	public void deleteRoleAndOrgRelationShip(Long Id);
 
 

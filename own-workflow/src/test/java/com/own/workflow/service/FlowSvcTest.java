@@ -1,18 +1,22 @@
 package com.own.workflow.service;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class FlowSvcTest {
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void rejectsMissingProcessIdBeforeDereferencingIt() {
-        new FlowSvc().doFlow(Collections.singletonMap("funName", "approve"));
+        assertThrows(IllegalArgumentException.class,
+                () -> new FlowSvc().doFlow(Collections.singletonMap("funName", "approve")));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void rejectsMissingFunctionNameBeforeDereferencingIt() {
-        new FlowSvc().doFlow(Collections.singletonMap("processId", 1L));
+        assertThrows(IllegalArgumentException.class,
+                () -> new FlowSvc().doFlow(Collections.singletonMap("processId", 1L)));
     }
 }

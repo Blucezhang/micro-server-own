@@ -45,6 +45,8 @@ services:
       - ./database/mysql/31-login-failure-retention-index.sql:/docker-entrypoint-initdb.d/31-login-failure-retention-index.sql:ro
       - ./database/mysql/32-cart-buyer-guard.sql:/docker-entrypoint-initdb.d/32-cart-buyer-guard.sql:ro
       - ./database/mysql/33-review-prohibited-term.sql:/docker-entrypoint-initdb.d/33-review-prohibited-term.sql:ro
+      - ./database/mysql/34-trade-message-inbox.sql:/docker-entrypoint-initdb.d/34-trade-message-inbox.sql:ro
+      - ./database/mysql/35-order-saga.sql:/docker-entrypoint-initdb.d/35-order-saga.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
