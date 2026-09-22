@@ -28,6 +28,82 @@ micro-server-own 是一个学习型、演示型的多商家商城后端。它将
 2. own-settlement 目前是本地模拟支付与退款账本；微信、支付宝及商家结算参数已经预留，但不连接真实渠道。
 3. Docker Compose 仅把网关 `9632` 暴露给外部网络；Eureka、Config Server 仅绑定到宿主机 `127.0.0.1` 用于本地排障，各业务服务仅在 Compose 后端网络监听，不能作为业务入口。网关会覆盖来访者提交的内部令牌并注入受保护的共享令牌；业务服务启用服务边界校验后拒绝缺少该令牌的请求，从而不能通过直连伪造 `X-Actor-*`。
 
+## 系统架构
+
+项目采用“网关统一入口 + Spring Cloud 服务治理 + 领域服务分工”的结构。买家和商家只访问网关，业务服务通过 Eureka 发现彼此，并从 Config Server 获取配置；交易数据使用 MySQL，商品、用户和促销的既有图模型使用 Neo4j。
+
+```mermaid
+flowchart LR
+    buyer[买家 / 商家客户端]
+
+    subgraph platform[平台基础设施]
+        gateway[own-api-gateway\n:9632\nJWT / RBAC / 路由]
+        eureka[own-eureka-server\n:8002\n服务注册发现]
+        config[own-config\n:8001\n配置中心]
+    end
+
+    subgraph domains[业务服务]
+        user[own-user-party\n用户 / 角色 / 地址]
+        product[own-product\n商品 SKU / 上下架]
+        promotion[own-promotion\n促销 / 优惠券]
+        inventory[own-inventory\n库存 / 预占 / 调整]
+        order[own-order\n购物车 / 订单 / 履约 / Outbox]
+        settlement[own-settlement\n模拟支付 / 退款 / 结算账本]
+    end
+
+    subgraph support[支撑服务]
+        file[own-file\n文件存储]
+        send[own-send-server\n短信 / 邮件 / 推送适配]
+        workflow[own-workflow\n工作流]
+    end
+
+    subgraph storage[数据存储]
+        mysql[(MySQL\n交易 / 库存 / 订单 / 券)]
+        neo4j[(Neo4j\n商品 / 用户 / 促销图数据)]
+    end
+
+    channels[外部渠道\n短信 / 邮件 / 支付\n可选，需自行配置]
+
+    buyer --> gateway
+    gateway --> user
+    gateway --> product
+    gateway --> promotion
+    gateway --> inventory
+    gateway --> order
+    gateway --> settlement
+    gateway --> file
+
+    domains -.服务发现 / 配置.-> eureka
+    domains -.读取配置.-> config
+    user --> mysql
+    promotion --> mysql
+    inventory --> mysql
+    order --> mysql
+    settlement --> mysql
+    user --> neo4j
+    product --> neo4j
+    promotion --> neo4j
+    order --> product
+    order --> user
+    order --> promotion
+    order --> inventory
+    order --> settlement
+    order -.Outbox 事件.-> workflow
+    order -.通知适配.-> send
+    send --> channels
+    settlement -.模拟渠道适配.-> channels
+    file --> mysql
+```
+
+### 一次交易请求的主要链路
+
+1. 客户端向网关提交 JWT 请求；网关完成路由、身份声明重建和基础访问控制。
+2. 订单服务读取商品、地址、促销和库存服务，完成实时校验、多商家拆单、优惠计算和库存预占。
+3. 结算服务创建本地模拟支付单；支付成功后订单确认库存、核销优惠券并进入商家待发货状态。
+4. 商家发货、买家签收等状态变化写入订单事件 Outbox。Outbox 的 `PENDING` 只代表本地已持久化，不能视为外部消息或工作流已经送达。
+
+各服务在 Compose 网络内运行，业务服务端口默认不直接暴露宿主机；外部请求应统一经过 `9632` 网关。短信、邮件、推送和真实支付渠道属于可选外部集成，不是本地启动的必要条件。
+
 ## 版本与技术栈
 
 | 项目版本 | Java | Spring Boot | Spring Cloud | 状态 |
@@ -40,6 +116,7 @@ micro-server-own 是一个学习型、演示型的多商家商城后端。它将
 
 - [项目定位](#项目定位)
 - [项目概览](#项目概览)
+- [系统架构](#系统架构)
 - [当前实现摘要](#当前实现摘要)
 - [业务模型](#业务模型)
 - [功能清单](#功能清单)
