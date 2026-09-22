@@ -125,13 +125,15 @@ git diff --check
 cp .env.example .env
 ```
 
-启动 Nacos 后，导入仓库中的 Data ID：
+使用 Compose 时，先仅启动基础设施；本地 Nacos 默认关闭认证，仅限本机演示：
 
 ```bash
+docker compose --env-file .env up -d mysql neo4j nacos
+set -a && . ./.env && set +a
 export NACOS_SERVER=http://localhost:8848
-export NACOS_USERNAME=nacos
-export NACOS_PASSWORD='<nacos-password>'
 bash scripts/import-nacos-config.sh
+docker compose --env-file .env --profile app up --build -d
+bash scripts/smoke-test.sh
 ```
 
 配置文件位于 [`deploy/nacos/config`](deploy/nacos/config)。默认 Group 为 `MICRO_SERVER`、Namespace 为 `public`，服务通过 `spring.config.import` 加载 `own-<service>-local.yaml`。
@@ -183,7 +185,7 @@ JAVA_HOME=<jdk17> ./mvnw -pl own-order -am spring-boot:run
 
 ## 部署
 
-Compose 文件仍保留为旧版 Eureka / Config Server 基础设施迁移对照，不能用于验证当前 Nacos + RocketMQ 目标架构。当前 Spring Cloud Alibaba 服务应使用 Nacos 配置启动。可按以下方式部署到目标环境：
+`docker-compose.yml` 已使用 Nacos 3.1.1，且所有业务镜像使用 Java 17；旧 Eureka Server 与 Config Server 已从仓库移除。Compose 中的 Nacos 关闭认证，仅用于本机演示；生产环境必须使用受控 Nacos 并开启认证。
 
 1. 部署受控的 MySQL、Neo4j 和 Nacos，并完成数据库备份与恢复演练。
 2. 使用 `scripts/apply-migrations.sh` 执行 MySQL 前向迁移，使用 Neo4j 运行手册完成图数据副本验证。

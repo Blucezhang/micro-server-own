@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:5.7.44
@@ -8,45 +6,11 @@ services:
     environment:
       MYSQL_DATABASE: micro
       MYSQL_USER: micro
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?copy .env.example to .env and set MYSQL_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./database/mysql/micro.sql:/docker-entrypoint-initdb.d/01-micro.sql:ro
-      - ./database/mysql/02-trade-schema.sql:/docker-entrypoint-initdb.d/02-trade-schema.sql:ro
-      - ./database/mysql/03-trade-reliability.sql:/docker-entrypoint-initdb.d/03-trade-reliability.sql:ro
-      - ./database/mysql/04-merchant-operations.sql:/docker-entrypoint-initdb.d/04-merchant-operations.sql:ro
-      - ./database/mysql/05-merchant-operations-finish.sql:/docker-entrypoint-initdb.d/05-merchant-operations-finish.sql:ro
-      - ./database/mysql/06-after-sale-foundation.sql:/docker-entrypoint-initdb.d/06-after-sale-foundation.sql:ro
-      - ./database/mysql/07-logistics-and-auto-receipt.sql:/docker-entrypoint-initdb.d/07-logistics-and-auto-receipt.sql:ro
-      - ./database/mysql/08-after-sale-refund-ledger.sql:/docker-entrypoint-initdb.d/08-after-sale-refund-ledger.sql:ro
-      - ./database/mysql/09-after-sale-reminder.sql:/docker-entrypoint-initdb.d/09-after-sale-reminder.sql:ro
-      - ./database/mysql/10-after-sale-event-link.sql:/docker-entrypoint-initdb.d/10-after-sale-event-link.sql:ro
-      - ./database/mysql/11-sensitive-access-audit.sql:/docker-entrypoint-initdb.d/11-sensitive-access-audit.sql:ro
-      - ./database/mysql/12-sensitive-access-audit-retention.sql:/docker-entrypoint-initdb.d/12-sensitive-access-audit-retention.sql:ro
-      - ./database/mysql/13-buyer-address-default-lock.sql:/docker-entrypoint-initdb.d/13-buyer-address-default-lock.sql:ro
-      - ./database/mysql/14-coupon-reservation-expiry.sql:/docker-entrypoint-initdb.d/14-coupon-reservation-expiry.sql:ro
-      - ./database/mysql/15-low-stock-alert-rule.sql:/docker-entrypoint-initdb.d/15-low-stock-alert-rule.sql:ro
-      - ./database/mysql/16-owned-file-object.sql:/docker-entrypoint-initdb.d/16-owned-file-object.sql:ro
-      - ./database/mysql/17-after-sale-evidence.sql:/docker-entrypoint-initdb.d/17-after-sale-evidence.sql:ro
-      - ./database/mysql/18-after-sale-exchange-ledger.sql:/docker-entrypoint-initdb.d/18-after-sale-exchange-ledger.sql:ro
-      - ./database/mysql/19-merchant-settlement.sql:/docker-entrypoint-initdb.d/19-merchant-settlement.sql:ro
-      - ./database/mysql/20-payment-channel-reference.sql:/docker-entrypoint-initdb.d/20-payment-channel-reference.sql:ro
-      - ./database/mysql/21-auth-refresh-session.sql:/docker-entrypoint-initdb.d/21-auth-refresh-session.sql:ro
-      - ./database/mysql/22-product-favorite.sql:/docker-entrypoint-initdb.d/22-product-favorite.sql:ro
-      - ./database/mysql/23-product-review.sql:/docker-entrypoint-initdb.d/23-product-review.sql:ro
-      - ./database/mysql/24-product-review-governance.sql:/docker-entrypoint-initdb.d/24-product-review-governance.sql:ro
-      - ./database/mysql/25-login-failure-protection.sql:/docker-entrypoint-initdb.d/25-login-failure-protection.sql:ro
-      - ./database/mysql/26-product-review-report.sql:/docker-entrypoint-initdb.d/26-product-review-report.sql:ro
-      - ./database/mysql/27-product-price-audit.sql:/docker-entrypoint-initdb.d/27-product-price-audit.sql:ro
-      - ./database/mysql/28-buyer-order-history-index.sql:/docker-entrypoint-initdb.d/28-buyer-order-history-index.sql:ro
-      - ./database/mysql/29-merchant-coupon-template.sql:/docker-entrypoint-initdb.d/29-merchant-coupon-template.sql:ro
-      - ./database/mysql/30-merchant-coupon-claim-limit.sql:/docker-entrypoint-initdb.d/30-merchant-coupon-claim-limit.sql:ro
-      - ./database/mysql/31-login-failure-retention-index.sql:/docker-entrypoint-initdb.d/31-login-failure-retention-index.sql:ro
-      - ./database/mysql/32-cart-buyer-guard.sql:/docker-entrypoint-initdb.d/32-cart-buyer-guard.sql:ro
-      - ./database/mysql/33-review-prohibited-term.sql:/docker-entrypoint-initdb.d/33-review-prohibited-term.sql:ro
-      - ./database/mysql/34-trade-message-inbox.sql:/docker-entrypoint-initdb.d/34-trade-message-inbox.sql:ro
-      - ./database/mysql/35-order-saga.sql:/docker-entrypoint-initdb.d/35-order-saga.sql:ro
+      - ./database/mysql:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
@@ -59,9 +23,8 @@ services:
     platform: linux/amd64
     restart: unless-stopped
     environment:
-      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:?set NEO4J_PASSWORD in .env}
-    volumes:
-      - neo4j-data:/data
+      NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD:?set NEO4J_PASSWORD in .env}"
+    volumes: ["neo4j-data:/data"]
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:7474 >/dev/null || exit 1"]
       interval: 10s
@@ -69,305 +32,143 @@ services:
       retries: 20
     networks: [backend]
 
-  eureka:
-    build:
-      context: .
-      dockerfile: own-eureka-server/src/main/docker/Dockerfile
+  nacos:
+    image: nacos/nacos-server:v3.1.1
+    platform: linux/amd64
     restart: unless-stopped
     environment:
-      EUREKA_USER: ${EUREKA_USER:-own}
-      EUREKA_PASSWORD: ${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}
-    ports: ["127.0.0.1:8002:8002"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - --user=$${EUREKA_USER} --password=$${EUREKA_PASSWORD} http://localhost:8002/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
-    networks: [backend, frontend]
-
-  config:
-    build:
-      context: .
-      dockerfile: own-config/src/main/docker/Dockerfile
-    restart: unless-stopped
-    environment:
-      SPRING_PROFILES_ACTIVE: native
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
-    ports: ["127.0.0.1:8001:8001"]
-    depends_on: [eureka]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:8001/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
+      MODE: standalone
+      NACOS_AUTH_ENABLE: ${NACOS_AUTH_ENABLED:-false}
+    ports: ["8848:8848"]
     networks: [backend, frontend]
 
   gateway:
-    build:
-      context: .
-      dockerfile: own-api-gateway/src/main/docker/Dockerfile
+    profiles: [app]
+    build: {context: ., dockerfile: own-api-gateway/src/main/docker/Dockerfile}
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: local
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
+      NACOS_SERVER_ADDR: nacos:8848
       JWT_ENABLED: ${JWT_ENABLED:-true}
       JWT_ISSUER: ${JWT_ISSUER:-micro-server-own}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       JWT_PREVIOUS_SECRET: ${JWT_PREVIOUS_SECRET:-}
-      JWT_EXPIRATION_SECONDS: ${JWT_EXPIRATION_SECONDS:-7200}
-      JWT_REFRESH_EXPIRATION_SECONDS: ${JWT_REFRESH_EXPIRATION_SECONDS:-1209600}
-      JWT_REFRESH_SESSION_CLEANUP_DELAY_MS: ${JWT_REFRESH_SESSION_CLEANUP_DELAY_MS:-3600000}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-      GATEWAY_RATELIMIT_BEHIND_PROXY: ${GATEWAY_RATELIMIT_BEHIND_PROXY:-false}
     ports: ["9632:9632"]
-    depends_on: [eureka, config]
+    depends_on: [nacos]
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:9632/health >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:9632/actuator/health >/dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 20
     networks: [backend, frontend]
 
   file:
-    build:
-      context: .
-      dockerfile: own-file/src/main/docker/Dockerfile
+    profiles: [app]
+    build: {context: ., dockerfile: own-file/src/main/docker/Dockerfile}
     restart: unless-stopped
-    environment:
+    environment: &mysql_env
       SPRING_PROFILES_ACTIVE: local
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
+      NACOS_SERVER_ADDR: nacos:8848
       MYSQL_URL: jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false
       MYSQL_USER: micro
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-      INTERNAL_SERVICE_PREVIOUS_TOKEN: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:-}
-      TRADE_SECURITY_SERVICE_BOUNDARY_ENABLED: "true"
-      OWN_FILE_TEMP_ROOT: /data/files/temp
-      OWN_FILE_PERMANENT_ROOT: /data/files/real
-    volumes:
-      - file-temp:/data/files/temp
-      - file-real:/data/files/real
+    volumes: ["file-temp:/data/files/temp", "file-real:/data/files/real"]
     expose: ["6004"]
-    depends_on: [mysql, eureka, config]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:6004/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
+    depends_on: [mysql, nacos]
     networks: [backend]
 
   product:
-    build:
-      context: .
-      dockerfile: own-product/src/main/docker/Dockerfile
+    profiles: [app]
+    build: {context: ., dockerfile: own-product/src/main/docker/Dockerfile}
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: local
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
-      NEO4J_URI: http://neo4j:7474
+      <<: *mysql_env
+      NEO4J_URI: bolt://neo4j:7687
       NEO4J_USER: neo4j
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:?set NEO4J_PASSWORD in .env}
-      MYSQL_URL: jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false
-      MYSQL_USER: micro
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-      INTERNAL_SERVICE_PREVIOUS_TOKEN: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:-}
-      TRADE_SECURITY_SERVICE_BOUNDARY_ENABLED: "true"
-      REVIEW_PROHIBITED_TERMS: ${REVIEW_PROHIBITED_TERMS:-}
-    depends_on: [mysql, neo4j, eureka, config]
     expose: ["6007"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:6007/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
+    depends_on: [mysql, neo4j, nacos]
     networks: [backend]
 
   promotion:
-    build:
-      context: .
-      dockerfile: own-promotion/src/main/docker/Dockerfile
+    profiles: [app]
+    build: {context: ., dockerfile: own-promotion/src/main/docker/Dockerfile}
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: local
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
-      NEO4J_URI: http://neo4j:7474
+      <<: *mysql_env
+      NEO4J_URI: bolt://neo4j:7687
       NEO4J_USER: neo4j
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:?set NEO4J_PASSWORD in .env}
-      MYSQL_URL: jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false
-      MYSQL_USER: micro
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-      INTERNAL_SERVICE_PREVIOUS_TOKEN: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:-}
-      TRADE_SECURITY_SERVICE_BOUNDARY_ENABLED: "true"
-    depends_on: [mysql, neo4j, eureka, config]
     expose: ["6005"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:6005/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
+    depends_on: [mysql, neo4j, nacos]
     networks: [backend]
 
   send:
-    build:
-      context: .
-      dockerfile: own-send-server/src/main/docker/Dockerfile
+    profiles: [app]
+    build: {context: ., dockerfile: own-send-server/src/main/docker/Dockerfile}
     restart: unless-stopped
-    environment:
-      SPRING_PROFILES_ACTIVE: local
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
-      MYSQL_URL: jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false
-      MYSQL_USER: micro
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-      TRADE_SECURITY_SERVICE_BOUNDARY_ENABLED: "true"
-    depends_on: [mysql, eureka, config]
+    environment: *mysql_env
     expose: ["6003"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:6003/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
+    depends_on: [mysql, nacos]
     networks: [backend]
 
   user:
-    build:
-      context: .
-      dockerfile: own-user-party/src/main/docker/Dockerfile
+    profiles: [app]
+    build: {context: ., dockerfile: own-user-party/src/main/docker/Dockerfile}
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: local
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
-      NEO4J_URI: http://neo4j:7474
+      <<: *mysql_env
+      NEO4J_URI: bolt://neo4j:7687
       NEO4J_USER: neo4j
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:?set NEO4J_PASSWORD in .env}
-      MYSQL_URL: jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false
-      MYSQL_USER: micro
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-      TRADE_SECURITY_SERVICE_BOUNDARY_ENABLED: "true"
-      INTERNAL_SERVICE_PREVIOUS_TOKEN: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:-}
       JWT_ISSUER: ${JWT_ISSUER:-micro-server-own}
-      JWT_SECRET: ${JWT_SECRET:-}
-      JWT_PREVIOUS_SECRET: ${JWT_PREVIOUS_SECRET:-}
-      JWT_EXPIRATION_SECONDS: ${JWT_EXPIRATION_SECONDS:-7200}
-      JWT_REFRESH_EXPIRATION_SECONDS: ${JWT_REFRESH_EXPIRATION_SECONDS:-1209600}
-      JWT_REFRESH_SESSION_CLEANUP_DELAY_MS: ${JWT_REFRESH_SESSION_CLEANUP_DELAY_MS:-3600000}
-      LOGIN_MAX_FAILURES: ${LOGIN_MAX_FAILURES:-5}
-      LOGIN_LOCK_MINUTES: ${LOGIN_LOCK_MINUTES:-15}
-      LOGIN_ATTEMPT_RETENTION_DAYS: ${LOGIN_ATTEMPT_RETENTION_DAYS:-90}
-      LOGIN_ATTEMPT_CLEANUP_DELAY_MS: ${LOGIN_ATTEMPT_CLEANUP_DELAY_MS:-86400000}
-    depends_on: [mysql, neo4j, eureka, config]
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
     expose: ["6006"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:6006/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
+    depends_on: [mysql, neo4j, nacos]
     networks: [backend]
 
   workflow:
-    build:
-      context: .
-      dockerfile: own-workflow/src/main/docker/Dockerfile
+    profiles: [app]
+    build: {context: ., dockerfile: own-workflow/src/main/docker/Dockerfile}
     restart: unless-stopped
-    environment:
-      SPRING_PROFILES_ACTIVE: local
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
-      MYSQL_URL: jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false
-      MYSQL_USER: micro
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-      TRADE_SECURITY_SERVICE_BOUNDARY_ENABLED: "true"
-    depends_on: [mysql, eureka, config]
+    environment: *mysql_env
     expose: ["6008"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:6008/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
+    depends_on: [mysql, nacos]
     networks: [backend]
 
   inventory:
-    build:
-      context: .
-      dockerfile: own-inventory/src/main/docker/Dockerfile
+    profiles: [app]
+    build: {context: ., dockerfile: own-inventory/src/main/docker/Dockerfile}
     restart: unless-stopped
-    environment:
-      SPRING_PROFILES_ACTIVE: local
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
-      MYSQL_URL: jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false
-      MYSQL_USER: micro
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-      INTERNAL_SERVICE_PREVIOUS_TOKEN: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:-}
-      TRADE_SECURITY_SERVICE_BOUNDARY_ENABLED: "true"
-    depends_on: [mysql, eureka, config]
+    environment: *mysql_env
     expose: ["6009"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:6009/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
+    depends_on: [mysql, nacos]
     networks: [backend]
 
   order:
-    build:
-      context: .
-      dockerfile: own-order/src/main/docker/Dockerfile
+    profiles: [app]
+    build: {context: ., dockerfile: own-order/src/main/docker/Dockerfile}
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: local
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
-      MYSQL_URL: jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false
-      MYSQL_USER: micro
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-      INTERNAL_SERVICE_PREVIOUS_TOKEN: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:-}
-      ORDER_OUTBOX_WEBHOOK_URL: ${ORDER_OUTBOX_WEBHOOK_URL:-}
-      ORDER_OUTBOX_WEBHOOK_SECRET: ${ORDER_OUTBOX_WEBHOOK_SECRET:-}
-      TRADE_SECURITY_SERVICE_BOUNDARY_ENABLED: "true"
-    depends_on: [mysql, eureka, config, inventory, promotion]
+      <<: *mysql_env
+      TRADE_OUTBOX_ROCKETMQ_ENABLED: ${TRADE_OUTBOX_ROCKETMQ_ENABLED:-false}
+      ROCKETMQ_NAMESRV_ADDR: ${ROCKETMQ_NAMESRV_ADDR:-}
     expose: ["6010"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:6010/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
+    depends_on: [mysql, nacos, inventory, promotion]
     networks: [backend]
 
   settlement:
-    build:
-      context: .
-      dockerfile: own-settlement/src/main/docker/Dockerfile
+    profiles: [app]
+    build: {context: ., dockerfile: own-settlement/src/main/docker/Dockerfile}
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: local
-      EUREKA_DEFAULT_ZONE: "http://${EUREKA_USER:-own}:${EUREKA_PASSWORD:?set EUREKA_PASSWORD in .env}@eureka:8002/eureka"
-      MYSQL_URL: jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false
-      MYSQL_USER: micro
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-      INTERNAL_SERVICE_PREVIOUS_TOKEN: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:-}
+      <<: *mysql_env
       PAYMENT_CHANNEL: ${PAYMENT_CHANNEL:-MOCK_WECHAT}
       PAYMENT_MOCK_CALLBACK_TOKEN: ${PAYMENT_MOCK_CALLBACK_TOKEN:?set PAYMENT_MOCK_CALLBACK_TOKEN in .env}
-      WECHAT_APP_ID: ${WECHAT_APP_ID:-demo-wechat-app-id}
-      WECHAT_MERCHANT_ID: ${WECHAT_MERCHANT_ID:-demo-wechat-merchant-id}
-      WECHAT_API_V3_KEY: ${WECHAT_API_V3_KEY:-demo-only-replace-before-production}
-      ALIPAY_APP_ID: ${ALIPAY_APP_ID:-demo-alipay-app-id}
-      SETTLEMENT_MERCHANT_RATE: ${SETTLEMENT_MERCHANT_RATE:-0.80}
-      SETTLEMENT_PLATFORM_RATE: ${SETTLEMENT_PLATFORM_RATE:-0.20}
-      SETTLEMENT_CYCLE_DAYS: ${SETTLEMENT_CYCLE_DAYS:-7}
-      SETTLEMENT_WITHDRAWAL_MINIMUM: ${SETTLEMENT_WITHDRAWAL_MINIMUM:-100.00}
-      TRADE_SECURITY_SERVICE_BOUNDARY_ENABLED: "true"
-    depends_on: [mysql, eureka, config, order]
     expose: ["6011"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:6011/health >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
+    depends_on: [mysql, nacos, order]
     networks: [backend]
 
 networks:

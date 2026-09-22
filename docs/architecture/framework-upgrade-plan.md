@@ -140,7 +140,7 @@ flowchart LR
 
 组合完成标准：整个 Maven Reactor 在 JDK 17 下 `clean verify` 通过；Nacos 注册与配置、Gateway 路由、JWT/RBAC、路由前缀和直连业务服务拒绝测试全部通过。不能只验证 `own-common` 或单个示例服务。
 
-当前进度：目标 Nacos Data ID 配置集和 Nacos 3 Admin API 导入脚本已建立，配置包含 MySQL 8 驱动、Neo4j Bolt URI 与 Gateway 路由映射。根 POM 已切换到 Java 17、Spring Boot 4.0.0、Spring Cloud 2025.1.0 与 Spring Cloud Alibaba 2025.1.0.0；Eureka、Config Server、Zuul 和 Spotify Docker Maven Plugin 已从 Reactor 启动模块移除。业务服务改为 Nacos Discovery/Config，源端 `bootstrap.yml` 已迁为 `application.yml` 的 `spring.config.import`，网关已切换为 WebFlux Gateway Filter 并保留 JWT/RBAC、内部令牌与关联 ID 重建。Jakarta、Springdoc、MySQL 新坐标、Neo4j 新 Repository 注解/API 与 Micrometer 首轮迁移已通过 JDK 17 全 Reactor `-DskipTests compile`；JUnit 4/旧 Mockito、`TemporaryFolder`、旧 MockMvc multipart 与弃用 Actuator Metrics 测试也已迁为 JUnit 5、`@TempDir`、新版 MockMvc 与 Micrometer，并通过完整 Reactor `test`。但尚未在真实 Nacos、Neo4j、MySQL 或 Compose 环境启动验证；因此本阶段不能标记完成或可发布。
+当前进度：目标 Nacos Data ID 配置集和 Nacos 3 Admin API 导入脚本已建立，配置包含 MySQL、Neo4j Bolt URI 与 Gateway 路由映射。根 POM 已切换到 Java 17、Spring Boot 4.0.0、Spring Cloud 2025.1.0 与 Spring Cloud Alibaba 2025.1.0.0；旧 `own-config`、`own-eureka-server`、Eureka、Config Server、Zuul 和 Spotify Docker Maven Plugin 已移除。业务服务使用 Nacos Discovery/Config，`bootstrap.yml` 已迁为 `application.yml` 的 `spring.config.import`；Compose 使用 Nacos 3.1.1，所有业务 Dockerfile 使用 Java 17。Jakarta、Springdoc、MySQL 新坐标、Neo4j 新 Repository 注解/API 与 Micrometer 首轮迁移已通过 JDK 17 全 Reactor `-DskipTests compile`。真实 Nacos、Neo4j、MySQL、Docker Compose 与 RocketMQ 的联调尚未运行；因此不能将本阶段表述为运行环境验收完成。
 
 ### P4：数据运行时与基础服务迁移
 

@@ -31,7 +31,7 @@ public class OrderApplication {
         return new RestTemplate();
     }
 
-    /** Webhooks are absolute operator URLs, not Eureka service names. */
+    /** Webhooks use absolute operator URLs and bypass service discovery. */
     @Bean(name = "outboxRestTemplate")
     public RestTemplate outboxRestTemplate() {
         return new RestTemplate();

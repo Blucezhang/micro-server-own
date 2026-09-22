@@ -7,6 +7,7 @@ nacos_namespace="${NACOS_NAMESPACE:-public}"
 nacos_group="${NACOS_GROUP:-MICRO_SERVER}"
 nacos_username="${NACOS_USERNAME:?set NACOS_USERNAME}"
 nacos_password="${NACOS_PASSWORD:?set NACOS_PASSWORD}"
+nacos_auth_enabled="${NACOS_AUTH_ENABLED:-true}"
 
 for command_name in curl rg; do
   command -v "$command_name" >/dev/null 2>&1 || {
@@ -15,15 +16,19 @@ for command_name in curl rg; do
   }
 done
 
-login_response="$(curl --fail --silent --show-error --request POST \
-  "${nacos_server%/}/nacos/v3/auth/user/login" \
-  --data-urlencode "username=$nacos_username" \
-  --data-urlencode "password=$nacos_password")"
-access_token="$(printf '%s' "$login_response" | rg -o '"accessToken"\s*:\s*"[^"]+"' | sed -E 's/.*"([^"]+)"/\1/' || true)"
-
-if [ -z "$access_token" ]; then
-  echo "错误：Nacos 登录未返回 accessToken。" >&2
-  exit 1
+access_token=""
+auth_args=()
+if [ "$nacos_auth_enabled" = "true" ]; then
+  login_response="$(curl --fail --silent --show-error --request POST \
+    "${nacos_server%/}/nacos/v3/auth/user/login" \
+    --data-urlencode "username=$nacos_username" \
+    --data-urlencode "password=$nacos_password")"
+  access_token="$(printf '%s' "$login_response" | rg -o '"accessToken"\s*:\s*"[^"]+"' | sed -E 's/.*"([^"]+)"/\1/' || true)"
+  if [ -z "$access_token" ]; then
+    echo "错误：Nacos 登录未返回 accessToken。" >&2
+    exit 1
+  fi
+  auth_args=(--header "accessToken: $access_token")
 fi
 
 for config_file in "$repo_root"/deploy/nacos/config/*.yaml; do
@@ -31,7 +36,7 @@ for config_file in "$repo_root"/deploy/nacos/config/*.yaml; do
   app_name="${data_id%-local.yaml}"
   response="$(curl --fail --silent --show-error --request POST \
     "${nacos_server%/}/nacos/v3/admin/cs/config" \
-    --header "accessToken: $access_token" \
+    "${auth_args[@]}" \
     --data-urlencode "namespaceId=$nacos_namespace" \
     --data-urlencode "groupName=$nacos_group" \
     --data-urlencode "dataId=$data_id" \
