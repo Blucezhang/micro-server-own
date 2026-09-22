@@ -5,8 +5,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.own.face.core.FaceUtil;
 import com.own.face.core.IfException;
 import com.own.face.promotion.CartBean;
@@ -22,12 +20,16 @@ import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
 @RequestMapping(value = "/sale/promotion")
 public class PromotionController  extends BaseController {
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	
 	@Autowired
 	private PromotionDao promotionDao;
@@ -342,16 +344,15 @@ public class PromotionController  extends BaseController {
 		}
 
 		if (!faceUtil.isNullOrEmpty(productJson) && productJson.startsWith("[") && productJson.endsWith("]")) {
-			JSONArray json = productJson != null ? JSONArray.parseArray(productJson) : null;
-			if (!faceUtil.isNullOrEmpty(json) && json.size() > 0) {
-				for (int i = 0; i < json.size(); i++) {
-					JSONObject job = json.getJSONObject(i);
-
-					String productId = job.getString("productId");
-					String productName = job.getString("productName");
-					String productType = job.getString("productType");
-					String productSellerId = job.getString("productSellerId");
-					String price = job.getString("price");
+			try {
+				JsonNode json = OBJECT_MAPPER.readTree(productJson);
+				if (json != null && json.isArray() && json.size() > 0) {
+					for (JsonNode job : json) {
+						String productId = job.path("productId").asText(null);
+						String productName = job.path("productName").asText(null);
+						String productType = job.path("productType").asText(null);
+						String productSellerId = job.path("productSellerId").asText(null);
+						String price = job.path("price").asText(null);
 
 					Product pdt = new Product();
 					pdt.setProductId(productId);
@@ -360,10 +361,13 @@ public class PromotionController  extends BaseController {
 					pdt.setProductSellerId(productSellerId);
 					pdt.setPrice(price);
 
-					Product pro = productDao.save(pdt);// 创建节点
-					// 与活动建立关系
-					productDao.createRelationshipJoin(pro.getId().intValue(), promotionId, "JOIN");
+						Product pro = productDao.save(pdt);// 创建节点
+						// 与活动建立关系
+						productDao.createRelationshipJoin(pro.getId().intValue(), promotionId, "JOIN");
+					}
 				}
+			} catch (JsonProcessingException exception) {
+				throw new IllegalArgumentException("productJson must be a valid JSON array", exception);
 			}
 		}
 	}

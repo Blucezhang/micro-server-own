@@ -1,14 +1,16 @@
 package com.own.face.promotion;
 
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.own.face.core.FaceUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
 //购物结算时，处理参数bean
 @Data
 public class CartBean {
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	
 	/**
 	 * 1.套装促销类型：productJson为json数组字符串，里面包含商品等信息；此时singlePrice为单个套装价格
@@ -32,16 +34,16 @@ public class CartBean {
 		Integer conuters = 0;
 		Double signle = 0d;
 		if (!FaceUtil.isNullOrEmpty(productJson) && productJson.startsWith("[") && productJson.endsWith("]")) {
-			JSONArray json = productJson != null ? JSONArray.parseArray(productJson) : null;
-			if (!FaceUtil.isNullOrEmpty(json) && json.size() > 0) {
-				for (int i = 0; i < json.size(); i++) {
-					JSONObject job = json.getJSONObject(i);
-	
-					String count = job.getString("count");
-					String price = job.getString("price");
-					conuters = Integer.parseInt(count);
-					signle += conuters*Double.parseDouble(price);
+			try {
+				JsonNode json = OBJECT_MAPPER.readTree(productJson);
+				if (json != null && json.isArray() && json.size() > 0) {
+					for (JsonNode job : json) {
+						conuters = job.path("count").asInt();
+						signle += conuters * job.path("price").asDouble();
+					}
 				}
+			} catch (JsonProcessingException exception) {
+				throw new IllegalArgumentException("productJson must be a valid JSON array", exception);
 			}
 			
 		}

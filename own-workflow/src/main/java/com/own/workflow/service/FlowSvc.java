@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.alibaba.fastjson.JSON;
 import com.own.workflow.controller.bean.BizBusinessFlowBean;
 import com.own.workflow.domain.BizBusinessFlowContext;
 import com.own.workflow.domain.BizState;
@@ -14,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * View_ProcOper中同一个Process应该具有多条记录，每个人一条记录
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class FlowSvc {
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	@Autowired
 	private RdbSvc rdbSvc;
@@ -147,8 +149,11 @@ public class FlowSvc {
 		bizContext.setBizTypeId(FlowBean.getBizTypeId());
 		bizContext.setProcessId(FlowBean.getProcessId());
 		entityValue.put("List", FlowBean);
-		bizContext.setBusinessflowContext(JSON.toJSONString(entityValue)
-				.toString());
+		try {
+			bizContext.setBusinessflowContext(OBJECT_MAPPER.writeValueAsString(entityValue));
+		} catch (JsonProcessingException exception) {
+			throw new IllegalArgumentException("Unable to serialize workflow context", exception);
+		}
 		return rdbSvc.save(bizContext);
 	}
 
