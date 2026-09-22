@@ -173,43 +173,28 @@ SYSTEM 还可通过 `PUT /user/api/v1/system/roles/{roleId}/functions` 为既有
 
 ## 快速开始
 
-### 1. 构建并检查代码
+### 环境要求
+
+JDK 8、Maven Wrapper，以及运行 Compose 所需的 Docker Engine 和 Docker Compose v2。
+
+### 1. 构建
 
 ```bash
+git clone https://github.com/Blucezhang/micro-server-own.git
+cd micro-server-own
 ./mvnw -B -ntp clean verify
-bash scripts/validate-migrations.sh
-git diff --check
 ```
 
-### 2. 创建本地配置
+### 2. 配置
 
 ```bash
 cp .env.example .env
 chmod 600 .env
 ```
 
-替换 .env 中所有 change-me 占位值：
+至少替换 MYSQL_ROOT_PASSWORD、MYSQL_PASSWORD、NEO4J_PASSWORD、JWT_SECRET、INTERNAL_SERVICE_TOKEN 和 PAYMENT_MOCK_CALLBACK_TOKEN。完整变量见 [.env.example](.env.example)，不要提交 .env、私钥、证书或真实渠道密钥。
 
-#### 2.1 核心环境变量
-
-| 环境变量 | 说明 |
-| --- | --- |
-| MYSQL_ROOT_PASSWORD | MySQL root 密码 |
-| MYSQL_PASSWORD | 应用 MySQL 用户 micro 的密码 |
-| NEO4J_PASSWORD | Neo4j neo4j 用户密码 |
-| EUREKA_USER | Eureka 基本认证用户，默认 own |
-| EUREKA_PASSWORD | Eureka 基本认证密码 |
-| JWT_ENABLED | 网关是否强制 Bearer JWT，默认 `true` |
-| JWT_SECRET、JWT_PREVIOUS_SECRET | HS256 当前签名密钥与可选上一把密钥；轮换时先配置上一把用于验签，待旧令牌自然过期后清空；示例值必须替换为随机且至少 32 字节的值 |
-| JWT_ISSUER、JWT_EXPIRATION_SECONDS、JWT_REFRESH_EXPIRATION_SECONDS | Access JWT 签发方与有效期（默认 7200 秒），Refresh Session 默认 14 天 |
-| JWT_REFRESH_SESSION_CLEANUP_DELAY_MS | 服务端过期刷新会话清理间隔（默认 3600000 毫秒）；登出撤销刷新会话，已签发 Access JWT 在短有效期内自然失效 |
-| LOGIN_MAX_FAILURES、LOGIN_LOCK_MINUTES | 同一账号连续失败阈值和临时锁定分钟数，默认 5 次/15 分钟；成功登录会清零计数 |
-| LOGIN_ATTEMPT_RETENTION_DAYS、LOGIN_ATTEMPT_CLEANUP_DELAY_MS | 登录失败元数据最长保留天数及清理频率，默认 90 天/24 小时；仍处于锁定期的账号记录不会被清理 |
-| PAYMENT_CHANNEL | 模拟支付默认渠道：`MOCK_WECHAT` 或 `MOCK_ALIPAY` |
-| PAYMENT_MOCK_CALLBACK_TOKEN | 模拟微信/支付宝回调密钥；回调请求使用 `X-Mock-Payment-Token` 传递 |
-| INTERNAL_SERVICE_TOKEN、INTERNAL_SERVICE_PREVIOUS_TOKEN | 网关、订单、库存、优惠券、地址、文件、通知、工作流与结算服务之间的共享密钥。当前值必须是随机且至少 32 个 UTF-8 字节（服务端会拒绝缺失或更短的值）；Compose 会以它开启服务边界校验，网关会替换客户端伪造值。滚动轮换时将旧值短暂放入 `INTERNAL_SERVICE_PREVIOUS_TOKEN`，全部服务切换完成后清空该变量。二者绝不能交给浏览器或写入日志。 |
-
-### 3. 启动演示环境
+### 3. 启动与停止
 
 ```bash
 docker compose --env-file .env config --quiet
@@ -218,126 +203,40 @@ docker compose --env-file .env up --build -d
 set -a
 . ./.env
 set +a
-./scripts/smoke-test.sh
-```
+bash scripts/smoke-test.sh
 
-### 3.1 MySQL 备份与完整性校验
-
-生产环境应在每次数据库迁移前后以及按既定备份策略执行逻辑备份。下面脚本只读取 MySQL，不会执行恢复；`BACKUP_DIR` 必须是仓库外的绝对路径并由备份系统加密保管。迁移与备份脚本仅接受字母、数字和下划线组成的 `MYSQL_DATABASE`，避免错误环境变量被解释为命令参数；校验脚本只接受绝对归档路径，并同时验证 gzip 完整性、单行 SHA-256 清单格式和实际摘要：
-
-```bash
-export MYSQL_HOST=db.example.internal MYSQL_PORT=3306 MYSQL_USER=micro
-export MYSQL_PASSWORD='replace-me' MYSQL_DATABASE=micro
-export BACKUP_DIR=/srv/backups/micro-server-own
-./scripts/backup-mysql.sh
-./scripts/verify-mysql-backup.sh /srv/backups/micro-server-own/micro-YYYYMMDDTHHMMSSZ.sql.gz
-```
-
-MySQL 逻辑备份不包含文件服务的永久对象；文件卷或对象存储必须按同一恢复点目标单独快照和演练恢复。恢复操作会覆盖数据，必须在隔离环境先验证并经过运维变更审批。
-
-SYSTEM 运维排查可在内部令牌保护下调用 `GET /order/api/v1/internal/sensitive-access-audits/page?page=0&size=20&orderNo=...` 分页读取地址访问审计。此接口不会对买家或商家公开。
-
-停止服务并保留本地数据卷：
-
-```bash
 docker compose --env-file .env down
 ```
 
-首次创建 MySQL 数据卷时，容器会执行 `database/mysql/micro.sql` 与当前仓库中的 `02` 至 `32` 号前向迁移。已有数据卷不会自动执行新迁移；请使用下文的受控迁移脚本。
+已有 MySQL 数据卷不会自动执行新增迁移，请使用 `scripts/apply-migrations.sh`；迁移前先备份。
 
-### 4. API 演示
+## 接口示例
 
-#### 4.1 身份认证与会话
+网关地址默认为 `http://localhost:9632`。写请求统一携带 `Idempotency-Key`，受保护接口携带 `Authorization: Bearer <accessToken>`。
 
-先登录获得令牌。角色名遵循 `ROLE_BUYER`、`ROLE_MERCHANT`、`ROLE_SYSTEM`；没有图谱角色的个人用户默认只能以 BUYER 身份登录。网关默认强制 Bearer JWT，并以令牌声明覆写外部 `X-Actor-*` 头；下面所有受保护接口均使用 `Authorization: Bearer`：
-
-首次使用可先匿名创建演示买家。此入口只创建 BUYER，不签发令牌、不创建商家或 SYSTEM 权限；需要使用相同 `Idempotency-Key` 重试时会返回原成功响应。真实短信/邮箱验证与反滥用策略尚未接入，生产环境应在网关外增加相应能力：
+### 注册、登录和加购
 
 ```bash
 BASE=http://localhost:9632
+
 curl -X POST "$BASE/user/api/v1/auth/registrations" \
   -H 'Content-Type: application/json' \
   -H 'Idempotency-Key: buyer-registration-001' \
   -d '{"loginName":"buyer01","password":"replace-me","name":"演示买家","email":"buyer01@example.test","phone":"13800138000"}'
-```
 
-`loginName` 仅允许 3–64 位英文字母、数字、`.`、`_`、`-`；新密码必须为 8–128 个字符且不能包含控制字符。规则仅在创建/改密时生效，不会使既有 BCrypt 密码立即失效。
-
-```bash
 curl -X POST "$BASE/user/login/token" \
   -H 'Content-Type: application/json' \
   -d '{"loginUserName":"buyer01","password":"replace-me","actorType":"BUYER"}'
-# 从返回 data.accessToken 取值并设置：TOKEN=...
-```
 
-登录响应同时包含 `refreshToken`。Access JWT 临近过期时可调用 `POST /user/login/refresh` 轮换；`GET /user/login/sessions` 查看当前账号仍有效的会话，携带 `Idempotency-Key` 的 `DELETE /user/login/sessions/{id}` 可撤销指定会话。两者都会复核 JWT 用户与主体归属。不要把 Refresh Token 放入前端日志或 URL。
-
-若设备丢失或怀疑 Refresh Token 泄露，登录后可调用 `DELETE /user/api/v1/account/sessions` 并携带 `Idempotency-Key` 撤销该账号所有服务端 Refresh Session；服务端会复核 JWT 中的用户、主体归属与请求身份三者，不能借 `X-User-Id` 撤销他人会话。已签发的 Access JWT 不会被服务器逐个收回，只会在其短有效期到达后失效。
-
-使用旧密码修改密码成功后，系统会撤销该账号全部 Refresh Session；已有 Access JWT 仍只在其配置的短有效期内可用。密码修改失败也会进入与登录相同的失败计数和临时锁定保护，不能作为绕过登录限流的验证入口。
-
-登录后可调用 `GET /user/api/v1/account/authorization` 查看当前 JWT 主体对应的持久化 `actorId`、角色和功能权限。该接口会复核 JWT 用户、请求主体与持久化账号的归属关系，只用于买家或商家自查，不能读取其他账号或 SYSTEM 权限。
-
-#### 4.2 订单、购物车与履约
-
-买家历史订单保留兼容的 `GET /order/api/v1/orders` 全量接口；新客户端应使用 `GET /order/api/v1/orders/page?page=0&size=20&status=PAID&from=<epochMillis>&to=<epochMillis>` 分页读取自己的订单。`status`、`from`、`to` 均可省略，单页最大 100 条。
-
-购物车接口为 `POST /order/api/v1/cart/items`、`GET /order/api/v1/cart/items`、`PUT /order/api/v1/cart/items/{cartItemId}` 与 `DELETE /order/api/v1/cart/items/{cartItemId}`；三个写操作都必须携带 `Idempotency-Key`。同一买家再次加入同一 SKU 会合并并累加数量；更新数量会重新验证 SKU 的商家、名称、价格与可售状态，商品发生变化时返回 `409 PRODUCT_CHANGED` 且不改写购物车。
-
-`GET /order/api/v1/orders/{orderNo}/detail` 和售后详情中的 `events` 是面向买家/所属商家的业务时间线，仅包含事件类型、关联子订单/售后单号和发生时间；不会暴露 Outbox 投递状态、失败原因、内部载荷或操作主体。系统排障仍通过受内部令牌保护的 Outbox 接口进行。
-
-商家调用 `GET /order/api/v1/merchant/sub-orders/{subOrderNo}` 时，响应中的 `events` 只包含该子订单的履约事件，不包含同一母订单中其他商家的事件或母订单级内部投递信息。
-
-售后列表同样保留旧接口；新客户端使用 `GET /order/api/v1/after-sales/page?page=0&size=20&status=APPLYING` 查询自己的售后，商家使用 `GET /order/api/v1/after-sales/merchant/page` 查询自有售后。状态可省略，单页最大 100 条。
-
-买家在商家审核前可使用 `POST /order/api/v1/after-sales/{afterSaleNo}/close` 撤销自己的售后申请；该操作只允许 `APPLYING → CLOSED`，不会触发退款、库存变动或物流动作。
-
-登录后的买家和商家可使用 `GET /user/api/v1/account/profile` 读取本人资料，并携带 `Idempotency-Key` 调用 `PUT /user/api/v1/account/profile` 更新 `name`、`email` 或 `phone`。该入口不能修改登录名、密码、主体归属、角色、组织或权限；密码仍只能通过旧密码校验后的 `/user/login/updatePassword` 修改。
-
-换货流程中，商家验收退件后进入 `EXCHANGE_PENDING_SHIPMENT`，填写替换件物流后变为 `EXCHANGE_SHIPPED`；仅原买家可调用 `POST /order/api/v1/after-sales/{afterSaleNo}/exchange-receive` 确认收到替换件，最终进入 `EXCHANGED`。该确认不涉及退款。
-
-`GET /order/api/v1/after-sales/{afterSaleNo}` 可由原买家或所属商家读取；服务端会复核归属，商家不能借该路由读取其他商家的售后单。旧 `/file/**` 与 `/category/**` 接口因缺少商城资源归属模型，网关仅允许 SYSTEM 迁移/维护角色访问；业务客户端须使用 `/file/api/v1/files/**` 和商品公开浏览接口。
-
-同理，旧 `/Info/**` 通知历史和 `/flow/**` 工作流图接口只允许 SYSTEM 维护角色访问，避免短信、邮箱或流程记录被普通业务身份横向读取。它们不是面向买家/商家的通知中心；若以后提供此能力，必须新增按收件人或业务资源隔离的版本化 API。
-
-商家在买家签收前可用 `POST /order/api/v1/sub-orders/{subOrderNo}/shipment-correction` 修正物流公司和单号。每次修正写入物流轨迹和订单事件，不重置原发货时间，签收后返回 `409`。
-
-买家和子订单所属商家均可读取 `GET /order/api/v1/sub-orders/{subOrderNo}/logistics-traces`；追加轨迹的 `POST` 接口仅限该子订单所属商家。订单服务会再次校验订单或商家归属，网关角色通过不代表可以读取他人的轨迹。
-
-买家与所属商家读取售后列表、分页、详情或执行售后状态操作时，响应使用售后展示投影，不返回持久化的 `buyerId`、`merchantId` 或内部数据库主键；双方的归属校验仍在服务端以这些内部字段完成。
-
-商家通过 `GET /product/api/v1/merchant/products?page=0&size=20&saleStatus=OFF_SHELF` 查看自己的完整 SKU 目录（包含下架商品），可按分类、关键词与上下架状态筛选；公开 `GET /product/api/v1/products` 与 `GET /product/api/v1/products/{id}` 始终只返回可售 SKU 的展示投影，不包含初始化库存和销量字段。商家修改 SKU 原价或促销价时可选传 `priceChangeReason`（最多 200 字）；系统保存前后价格和操作者审计记录，可通过 `GET /product/api/v1/merchant/products/{id}/price-audits?page=0&size=20` 查看自有 SKU 的历史。
-
-#### 4.3 商品、评价与优惠券
-
-商品与评价仅开放四个匿名读取路径：`GET /product/api/v1/categories?level=1`、`GET /product/api/v1/products`、`GET /product/api/v1/products/{productId}` 及 `GET /product/api/v1/products/{productId}/reviews?page=0&size=20`。分类 `level` 仅允许 1–9，且只返回 ID、名称和层级；评价返回 `total`、`page`、`size` 与 `items`，单页最大 100 条。公开及商家回复响应只包含展示字段，不暴露买家内部 ID、举报信息或审核状态。买家在子订单签收后，携带 `Idempotency-Key` 调用 `POST` 同一路径提交一次 `{"rating": 1..5, "content":"..."}`；未签收、重复评价或商家身份都会被拒绝。
-
-`REVIEW_PROHIBITED_TERMS` 可配置逗号分隔的评价与商家回复禁用词，作为部署级兜底规则；命中时返回 `422`。SYSTEM 还可用 `GET /product/api/v1/system/review-prohibited-terms?page=0&size=20` 查询持久化词库，以 `POST` 创建 `{"term":"..."}`，并用 `PUT /product/api/v1/system/review-prohibited-terms/{id}` 更新 `{"term":"...","active":true|false}`。这些写操作必须带 `Idempotency-Key`，且词条统一按去除首尾空白后的小写形式去重；静态与持久化词库均会同时校验买家评价和商家回复。它们仍只是第一层拦截，买家举报和 SYSTEM 审核用于后续处置。
-
-遗留 `/product/**` 与 `/sale/**` 图谱接口全部仅限 SYSTEM，用于迁移或维护；买家和商家必须使用本文列出的 `/api/v1` 商城接口。
-
-商家可通过 `POST /sale/api/v1/coupons/merchant/templates` 创建固定金额店铺券模板，字段为 `name`、`totalQuantity`、`minimumAmount`、`discountAmount`、`expiresAt`，可选 `claimStartsAt`、`claimEndsAt`（均为毫秒时间戳）。`GET /sale/api/v1/coupons/merchant/templates` 仅列出自己的模板及实时 `availableQuantity`；`POST /sale/api/v1/coupons/merchant/templates/{id}/status?value=DISABLED` 可停止后续领取。买家以 `{"couponType":"STORE","merchantTemplateId":123}` 调用 `/sale/api/v1/coupons/claim` 领取；同一买家对同一新模板只能成功领取一次，数据库唯一键覆盖并发竞争。模板停用不影响已领取用户券的订单快照与既有状态。
-
-商家可通过 `POST /product/api/v1/merchant/reviews/{reviewId}/reply` 回复自己商品的评价；买家可使用 `POST /product/api/v1/products/{productId}/reviews/{reviewId}/reports` 提交一次 `{"reason":"..."}` 举报。SYSTEM 可通过 `GET /product/api/v1/system/review-reports?status=PENDING` 查看待处理举报、用 `POST /product/api/v1/system/review-reports/{reportId}/resolve` 标记 `RESOLVED` 或 `DISMISSED`，并通过 `PUT /product/api/v1/products/{productId}/reviews/{reviewId}/moderation`（请求体 `{"published":false}`）独立隐藏不当内容，恢复时传 `true`。公开列表只返回 `PUBLISHED` 评价。
-
-#### 4.4 地址与模拟支付
-
-以下示例创建收货地址；返回的 data.id 可在试算和下单时作为 addressId 使用：
-
-```bash
-BASE=http://localhost:9632
 TOKEN=<data.accessToken>
-
-curl -X POST "$BASE/user/api/v1/addresses" \
+curl -X POST "$BASE/order/api/v1/cart/items" \
   -H "Authorization: Bearer $TOKEN" \
-  -H 'Idempotency-Key: address-001' \
+  -H 'Idempotency-Key: cart-001' \
   -H 'Content-Type: application/json' \
-  -d '{"recipientName":"演示买家","mobile":"13800138000","province":"上海市","city":"上海市","district":"浦东新区","detail":"示例路 1 号","defaultAddress":true}'
+  -d '{"productId":1,"quantity":1}'
 ```
 
-完整的多商家下单、模拟支付、发货、签收、整单退款和售后流程见 [商城能力路线图](docs/product/mall-capability-roadmap.md)。
-
-模拟渠道回调使用支付单返回的 `paymentNo`、`providerPaymentNo` 和金额；支付宝示例：
+### 模拟支付
 
 ```bash
 curl -X POST "$BASE/settlement/api/v1/payments/mock-callbacks/MOCK_ALIPAY" \
@@ -346,71 +245,25 @@ curl -X POST "$BASE/settlement/api/v1/payments/mock-callbacks/MOCK_ALIPAY" \
   -d '{"paymentNo":"PAY-...","providerPaymentNo":"ALIPAY-...","amount":128.00,"result":"SUCCESS"}'
 ```
 
-微信将路径中的渠道改为 `MOCK_WECHAT`，并使用支付单返回的 `WXPAY-...` 渠道流水。该入口只用于本地模拟，不会调用真实微信或支付宝。
-
-### 5. 文件举证示例（可选）
-
-售后申请的 `evidenceFileNames` 只能引用新归属文件接口创建、且已由同一买家提升为正式存储的文件。旧 `/file/picture`、`/file/promote` 接口保留兼容性，但不产生归属元数据，不能作为售后举证材料。
-
-```bash
-# 先上传。记录返回 data.storedName。
-curl -X POST "$BASE/file/api/v1/files" \
-  -H "Authorization: Bearer $TOKEN" \
-  -F 'file=@./proof.jpg'
-
-# 再以相同买家身份提升为正式存储。
-curl -X POST "$BASE/file/api/v1/files/<storedName>/promote" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H 'Idempotency-Key: file-promote-001'
-
-# 创建售后时传入："evidenceFileNames":["<storedName>"]
-```
-
-归属文件提升后，所有者可用 `GET /file/api/v1/files/{storedName}/content` 下载二进制内容；该接口要求与文件所有者匹配的 JWT。历史 `/file/Picture/**` 路由仍是旧兼容接口，不具备该私有下载校验。
+模拟支付不调用真实微信或支付宝。完整多商家下单、发货、签收、退款和换货顺序见 [商城能力路线图](docs/product/mall-capability-roadmap.md)。
 
 ## 配置说明
 
-服务配置在 own-config/src/main/resources/config-repo/，Compose 使用 SPRING_PROFILES_ACTIVE=local 加载。生产应使用独立的受控配置，而不是直接修改演示文件。
+服务配置位于 `own-config/src/main/resources/config-repo/`，Compose 使用 `SPRING_PROFILES_ACTIVE=local` 加载。生产环境应使用独立的受控配置。
 
-### 应用配置
+| 配置项 | 默认或用途 |
+| --- | --- |
+| `trade.security.jwt.enabled` | Compose 默认开启 Bearer JWT |
+| `trade.security.jwt.secret` | HS256 密钥，部署时使用随机值 |
+| `trade.security.service-boundary.enabled` | 服务边界校验，Compose 开启 |
+| `trade.idempotency.retention-hours` | 成功幂等记录保留 24 小时 |
+| `trade.inventory.reservation-ttl-minutes` | 库存预占 15 分钟过期 |
+| `trade.order.payment-timeout-minutes` | 待支付订单 15 分钟关闭 |
+| `trade.order.auto-receipt-days` | 7 天自动签收 |
+| `OWN_FILE_TEMP_ROOT`、`OWN_FILE_PERMANENT_ROOT` | 文件存储目录 |
+| `ORDER_OUTBOX_WEBHOOK_URL`、`ORDER_OUTBOX_WEBHOOK_SECRET` | 可选 HTTPS Outbox Webhook |
 
-| 配置 | 默认值 | 说明 |
-| --- | --- | --- |
-| MYSQL_URL、MYSQL_USER、MYSQL_PASSWORD | Compose 内部 MySQL | 交易、地址、券、库存、订单、结算数据源 |
-| NEO4J_URI、NEO4J_USER、NEO4J_PASSWORD | Compose 内部 Neo4j | 商品、用户、促销图数据源 |
-| EUREKA_DEFAULT_ZONE | Eureka 地址 | 服务注册连接串 |
-| OWN_FILE_TEMP_ROOT、OWN_FILE_PERMANENT_ROOT | /data/files/... | 文件临时与永久存储根目录 |
-| REVIEW_PROHIBITED_TERMS | 空 | 可选、逗号分隔的部署级评价/回复禁用词；与 SYSTEM 管理的持久化词库叠加生效 |
-| trade.idempotency.retention-hours | 24 | 成功写请求幂等记录保留时间 |
-| trade.inventory.reservation-ttl-minutes | 15 | 库存预占过期时间 |
-| trade.order.payment-timeout-minutes | 15 | 待支付订单关闭时间 |
-| trade.order.auto-receipt-days | 7 | 自动签收天数 |
-| trade.security.audit-retention-days | 180 | 敏感访问审计元数据保留天数 |
-| trade.security.jwt.enabled | true | 网关是否强制 Bearer JWT；必须配置非空高强度密钥 |
-| trade.security.jwt.secret | 空 | HS256 签名密钥，不能提交到仓库 |
-| trade.security.jwt.expiration-seconds | 7200 | JWT 过期时间 |
-| trade.security.jwt.refresh-expiration-seconds | 1209600 | Refresh JWT 有效期（秒） |
-| trade.security.jwt.refresh-session-cleanup-delay-ms | 3600000 | 服务端过期刷新会话清理间隔（毫秒） |
-| GATEWAY_RATELIMIT_BEHIND_PROXY | false | 网关是否从可信反向代理提供的客户端地址识别来源 IP。只有网关不直接暴露、且前置代理会覆写而非透传客户端伪造的转发头时才可设为 true；否则保持 false。 |
-| trade.security.service-boundary.enabled | false（Compose 为 true） | 启用后，除健康检查外每个业务服务只接受网关注入或受信任服务携带的内部令牌；本地直接启动调试默认关闭，不能把该默认值用于部署环境 |
-| trade.security.login.max-failures、lock-minutes | 5、15 | 持久化账号登录失败阈值和临时锁定分钟数；不保存密码或来源 IP |
-| trade.security.login.attempt-retention-days、attempt-cleanup-delay-ms | 90、86400000 | 登录失败元数据的保留期（天）与清理频率（毫秒）；清理任务保留仍在锁定期的账号记录 |
-| trade.internal.service-token、trade.internal.previous-service-token | 空 | 服务间调用密钥；当前密钥缺失时订单支付/退款回调、结算金额投影、库存预占与回补、优惠券占用/核销/释放、订单读取地址快照、售后举证文件校验、售后退款回调，以及订单 Outbox/敏感审计与结算运维内部接口均拒绝执行。上一把密钥只用于滚动轮换的短暂验签兼容，不能作为长期双密钥配置。 |
-| X-Correlation-Id | 自动生成 | 可选请求关联 ID。网关会将合法值覆写并转发给下游服务，同时在响应中返回；缺失、超过 100 个字符或包含非字母数字、`.`、`_`、`:`、`-` 的值会被替换为新的 UUID。排障时可将该响应头提供给日志检索，不应承载用户信息或密钥。 |
-| ORDER_OUTBOX_WEBHOOK_URL、ORDER_OUTBOX_WEBHOOK_SECRET | 空 | 可选订单事件 Webhook。URL 必须为绝对 HTTPS 地址，且两者同时配置、密钥至少 32 个 UTF-8 字节才启用；请求为 JSON，并携带 `X-Order-Event-Id`、`X-Order-Event-Type` 与覆盖 JSON 请求体的 `X-Order-Event-Signature: sha256=<hex>`。接收方必须先以同一密钥验签、再按事件 ID 去重；缺失/非 HTTPS URL 或弱密钥时事件保持 `PENDING`，不会伪造送达。 |
-| trade.settlement.merchant-rate | 0.80 | 商家应收比例；平台比例为剩余金额 |
-| trade.settlement.cycle-days | 7 | 支付成功后进入结算批次前的等待天数 |
-| trade.settlement.withdrawal-minimum | 100.00 | 提现金额必须严格大于该值 |
-
-商家可以通过 PUT /inventory/api/v1/stocks/{productId}/low-stock-alert-rule 设置自有 SKU 的非负低库存阈值和启停状态；GET /inventory/api/v1/merchant/low-stock-alerts 只返回当前可用库存不高于阈值的自有 SKU。它是实时查询，不表示已发送短信、邮件或推送。
-
-商家可使用 `GET /sale/api/v1/coupons/merchant/summary` 查询自有店铺券的已发放总数及 `available`、`reserved`、`used`、`expired` 聚合数量；该接口不返回买家券号或身份信息。券领取会校验旧券模板配置的领取起止时间。
-
-精确库存读取 `GET /inventory/api/v1/stocks/{productId}?merchantId=...` 仅允许库存所属商家或 SYSTEM；商家 ID 与令牌身份不一致会被拒绝。买家前台不暴露库存数量，仅通过商品可售状态和下单预占结果判断能否购买。
-
-SYSTEM 可通过 `POST /inventory/api/v1/stocks/bootstrap/catalogue` 从商品目录创建尚未存在的库存行。该操作使用数据库唯一键的原子“仅插入”语义：重复执行不会覆盖已售、已预占或人工调整后的库存；要修改现有库存，应使用 SYSTEM 设置库存或商家带原因的库存调整接口。
-
-库存确认扣减与预占过期释放会先锁定同一预占记录并在锁内复核状态，因此两者竞争时只会有一个状态转换成功；已提交的预占不会被过期任务错误回补。
+订单事件 `PENDING` 只表示已写入 Outbox，不表示外部系统已送达。未配置真实消息渠道时不会伪造成功。
 
 ## 生产部署
 
@@ -450,6 +303,13 @@ docker compose --env-file .env config --quiet
 ```
 
 这些命令只证明构建、单元测试、迁移编号与 Compose 语法通过。真实 MySQL/Neo4j、容器运行、支付、物流、消息投递、性能、安全、容灾与合规必须在对应环境单独验收。
+
+## 项目文档
+
+- [商城能力路线图](docs/product/mall-capability-roadmap.md)：功能阶段、业务边界和后续规划。
+- [生产部署与渠道接入计划](docs/production-deployment-plan.md)：部署拓扑、密钥、支付和结算接入要求。
+- [数据库迁移目录](database/mysql/)：MySQL 前向迁移脚本。
+- [环境变量示例](.env.example)：本地 Compose 配置模板。
 
 ## 许可证
 
