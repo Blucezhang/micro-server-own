@@ -30,8 +30,7 @@ public class CommonInfoSvc {
 			try{
 				rdbSvc.save(cif);
 			}catch(Exception e){
-				logger.error("保存公共信息表失败，原因："+e.getMessage());
-				e.printStackTrace();
+				logger.error("保存公共信息表失败", e);
 			}
 		}
 		return cif;
@@ -41,16 +40,27 @@ public class CommonInfoSvc {
 	 * 查询公共信息
 	 * @return
 	 */
-	public List<?> findList(String wheresql){
+	public List<?> findList(Integer id, String title, String content,
+			String sendAccount, String receiveAccount){
 		Map<String,Object> param = new HashMap<String,Object>();
-		String findInfoSql=" from CommonInfo c where 1=1 ";
-		Page<?> result =null;
-		try{
-			result = (Page<?>)rdbSvc.findAll2Page(findInfoSql+wheresql, param);
-			
-		}catch(Exception e){
-			logger.info("查询出现异常，原因："+e.getMessage());;
+		StringBuilder query = new StringBuilder(" from CommonInfo c where 1=1 ");
+		if (id != null) {
+			query.append(" and c.infoId=:id");
+			param.put("id", id);
 		}
-		return  result.getContent();
+		addLikeFilter(query, param, "c.title", "title", title);
+		addLikeFilter(query, param, "c.content", "content", content);
+		addLikeFilter(query, param, "c.sendAccount", "sendAccount", sendAccount);
+		addLikeFilter(query, param, "c.receiveAccount", "receiveAccount", receiveAccount);
+		Page<?> result = (Page<?>) rdbSvc.findAll2Page(query.toString(), param);
+		return result.getContent();
+	}
+
+	private void addLikeFilter(StringBuilder query, Map<String, Object> param,
+			String field, String name, String value) {
+		if (value != null && !value.trim().isEmpty()) {
+			query.append(" and ").append(field).append(" like :").append(name);
+			param.put(name, "%" + value.trim() + "%");
+		}
 	}
 }

@@ -1,6 +1,6 @@
 package com.own.send.server.util;
 
-import com.siaya.util.Util;
+import com.own.face.util.Util;
 
 import cn.jpush.api.JPushClient;
 import cn.jpush.api.common.resp.APIConnectionException;

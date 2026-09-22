@@ -5,15 +5,8 @@ spring:
   application:
     name: own-config
   profiles:
-    active: dev
-  cloud:
-    config:
-      server:
-        git:
-          uri: https://github.com/Blucezhang/center-config.git
-          search-paths: application-*,own-*
-spring:
-  profiles: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
 eureka:
   instance:
     prefer-ip-address: true
@@ -21,4 +14,23 @@ eureka:
     lease-expiration-duration-in-seconds: 20
   client:
     serviceUrl:
-      defaultZone:  http://own:123456@localhost:8002/eureka
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://own:change-me@localhost:8002/eureka}
+
+---
+spring:
+  profiles: dev
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/Blucezhang/center-config.git
+          search-paths: application-*,own-*
+
+---
+spring:
+  profiles: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/config-repo

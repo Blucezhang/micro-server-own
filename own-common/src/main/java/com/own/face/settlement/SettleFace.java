@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class SettleFace extends FaceBase {
 
 
- 	protected String serviceUrl="//SETTLEMENT/";
+	protected String serviceUrl="http://SETTLEMENT/";
 
  	/**
  	 * 支付交易
@@ -51,4 +51,3 @@ public class SettleFace extends FaceBase {
  	}
     
 }
- 

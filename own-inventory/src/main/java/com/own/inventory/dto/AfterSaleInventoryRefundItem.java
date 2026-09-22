@@ -1,0 +1,2 @@
+package com.own.inventory.dto;
+public class AfterSaleInventoryRefundItem { private Long productId; private Long merchantId; private Integer quantity; public Long getProductId(){return productId;} public void setProductId(Long v){productId=v;} public Long getMerchantId(){return merchantId;} public void setMerchantId(Long v){merchantId=v;} public Integer getQuantity(){return quantity;} public void setQuantity(Integer v){quantity=v;} }

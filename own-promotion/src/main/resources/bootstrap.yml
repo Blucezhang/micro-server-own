@@ -2,7 +2,7 @@ spring:
   application:
     name: own-promotion
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   cloud:
     config:
       fail-fast: true
@@ -10,6 +10,11 @@ spring:
         service-id: own-config
         enabled: true
       profile: ${spring.profiles.active}
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://own:change-me@localhost:8002/eureka}
 
 ---
 spring:
@@ -19,7 +24,3 @@ eureka:
     prefer-ip-address: true
     lease-renewal-interval-in-seconds: 5
     lease-expiration-duration-in-seconds: 20
-  client:
-    serviceUrl:
-      defaultZone:  http://own:123456@localhost:8002/eureka
-

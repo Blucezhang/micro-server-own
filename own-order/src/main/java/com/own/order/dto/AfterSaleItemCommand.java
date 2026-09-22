@@ -1,0 +1,1 @@
+package com.own.order.dto; public class AfterSaleItemCommand { private Long orderItemId; private Integer quantity; public Long getOrderItemId(){return orderItemId;} public void setOrderItemId(Long v){orderItemId=v;} public Integer getQuantity(){return quantity;} public void setQuantity(Integer v){quantity=v;} }

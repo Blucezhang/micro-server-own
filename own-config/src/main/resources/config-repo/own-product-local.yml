@@ -1,0 +1,27 @@
+server:
+  port: 6007
+
+spring:
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false}
+    username: ${MYSQL_USER:micro}
+    password: ${MYSQL_PASSWORD:micro}
+    driver-class-name: com.mysql.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+  data:
+    neo4j:
+      uri: ${NEO4J_URI:http://neo4j:7474}
+      username: ${NEO4J_USER:neo4j}
+      password: ${NEO4J_PASSWORD:change-me}
+
+trade:
+  review:
+    prohibited-terms: ${REVIEW_PROHIBITED_TERMS:}
+  internal:
+    service-token: ${INTERNAL_SERVICE_TOKEN:}
+    previous-service-token: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:}
+  idempotency:
+    enabled: true
+    retention-hours: 24

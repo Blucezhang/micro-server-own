@@ -5,14 +5,13 @@
     <parent>
         <artifactId>micro-server-own</artifactId>
         <groupId>com.own</groupId>
-        <version>1.0-ALPHA</version>
+        <version>${revision}</version>
     </parent>
 
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.own</groupId>
     <artifactId>own-send-server</artifactId>
-    <version>${own.version}</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -24,7 +23,6 @@
         <dependency>
             <groupId>com.own</groupId>
             <artifactId>own-common</artifactId>
-            <version>${own.version}</version>
         </dependency>
 
         <dependency>
@@ -40,13 +38,11 @@
         <dependency>
             <groupId>cn.jpush.api</groupId>
             <artifactId>jpush-client</artifactId>
-            <version>3.2.3</version>
         </dependency>
 
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
-            <version>1.8.6</version>
         </dependency>
 
         <dependency>
@@ -60,12 +56,10 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
             </plugin>
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.3</version>
                 <configuration>
                     <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
                     <dockerDirectory>src/main/docker</dockerDirectory>

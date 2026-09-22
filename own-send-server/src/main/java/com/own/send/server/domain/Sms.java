@@ -59,7 +59,6 @@ public class Sms implements Serializable, IDomainBase{
 
 	@Transient
 	public Object getObjectId() {
-		// TODO Auto-generated method stub
 		return this.id;
 	}
 	

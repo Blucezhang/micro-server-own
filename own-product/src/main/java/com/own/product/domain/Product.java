@@ -29,6 +29,9 @@ public class Product {
 	private Long partyId;
 	@Property(name="content")
 	private String content;
+	@Property(name="skuCode") private String skuCode;
+	@Property(name="specification") private String specification;
+	@Property(name="saleStatus") private String saleStatus;
 
 
 }

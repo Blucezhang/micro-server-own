@@ -1,0 +1,1 @@
+package com.own.order.repository; import com.own.order.domain.LogisticsTrace; import java.util.List; import org.springframework.data.jpa.repository.JpaRepository; public interface LogisticsTraceRepository extends JpaRepository<LogisticsTrace,Long>{ List<LogisticsTrace> findBySubOrderNoOrderByIdAsc(String subOrderNo); }

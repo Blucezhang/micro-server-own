@@ -1,0 +1,1 @@
+package com.own.order.dto; public class LogisticsTraceCommand { private String status; private String detail; public String getStatus(){return status;} public void setStatus(String v){status=v;} public String getDetail(){return detail;} public void setDetail(String v){detail=v;} }

@@ -90,7 +90,7 @@ public class WorkFlowFace extends FaceBase {
 	 */
 	public Object putWorkFlow(Map maps){
 		 restTemplate.put(ServiceUrl+"/workflow", maps);
-		return null;
+		return maps;
 	}
 	
 }

@@ -62,7 +62,6 @@ public class Email implements Serializable, IDomainBase{
 
 	@Override
 	public Object getObjectId() {
-		// TODO Auto-generated method stub
 		return this.id;
 	}
 	

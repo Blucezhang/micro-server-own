@@ -26,34 +26,16 @@ public class CommonInfoController{
      */
     @ApiOperation(value = "查询公共信息列表")
     @GetMapping
-    public Resp findCommonInfo(@RequestParam Integer id, String title, String content, String sendAccount, String receiveAccount) {
-        id = id != null ? id : null;
-        title = title != null ? title : null;
-        content = content != null ? content : null;
-        sendAccount = sendAccount != null ? sendAccount : null;
-        receiveAccount = receiveAccount != null ? receiveAccount : null;
-
+    public Resp findCommonInfo(@RequestParam(required = false) Integer id,
+                               @RequestParam(required = false) String title,
+                               @RequestParam(required = false) String content,
+                               @RequestParam(required = false) String sendAccount,
+                               @RequestParam(required = false) String receiveAccount) {
         log.info("查询公共信息列表");
-        StringBuffer wheresql = new StringBuffer();
-
-        log.info("获取参数信息：id:" + id + " title:" + title + "  content:" + content + " sendAccount:" + sendAccount + "  receiveAccount:" + receiveAccount);
-        if (null != id) {
-            wheresql.append(" or c.infoId=" + id);
-        }
-        if (null != title && !"".equals(title)) {
-            wheresql.append(" or c.title like'%" + title + "%'");
-        }
-        if (null != content && !"".equals(content)) {
-            wheresql.append(" or c.content like '%" + content + "%'");
-        }
-        if (null != sendAccount && !"".equals(sendAccount)) {
-            wheresql.append(" or c.sendAccount like '%" + sendAccount + "%'");
-        }
-        if (null != receiveAccount && !"".equals(receiveAccount)) {
-            wheresql.append(" or c.receiveAccount like '%" + receiveAccount + "%'");
-        }
-
-        List cilist = cifSvc.findList(wheresql.toString());
+        log.info("查询公共信息，筛选字段：id={}, titlePresent={}, contentPresent={}, sendAccountPresent={}, receiveAccountPresent={}",
+                id, title != null && !title.trim().isEmpty(), content != null && !content.trim().isEmpty(),
+                sendAccount != null && !sendAccount.trim().isEmpty(), receiveAccount != null && !receiveAccount.trim().isEmpty());
+        List cilist = cifSvc.findList(id, title, content, sendAccount, receiveAccount);
         log.info("获取公共信息集合长度：" + cilist.size());
         return new Resp(cilist);
     }

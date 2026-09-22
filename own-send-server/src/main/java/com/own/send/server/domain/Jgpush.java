@@ -56,7 +56,6 @@ public class Jgpush implements Serializable, IDomainBase{
 	private String string4;
 	@Override
 	public Object getObjectId() {
-		// TODO Auto-generated method stub
 		return this.id;
 	}
 	

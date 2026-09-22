@@ -42,21 +42,13 @@ public class EmailController {
 
     @ApiOperation(value = "查询邮件列表")
    @GetMapping("/email")
-    public @ResponseBody Resp getInfo(@RequestParam Integer id, String title, String content){
+    public @ResponseBody Resp getInfo(@RequestParam(required = false) Integer id,
+                                      @RequestParam(required = false) String title,
+                                      @RequestParam(required = false) String content){
         log.info("Get Emails info !");
-        log.info("获取短信列表信息.....id:"+id+" title:"+title+"  content:"+content);
-        StringBuffer sb = new StringBuffer();
-        if(id!=null && !"".equals(id)){
-            sb.append(" or e.id="+id);
-        }
-        if(null!=title && !"".equals(title)){
-            sb.append(" or e.title like '%"+title+"%'");//like语法，注意单引号
-        }
-
-        if(null!=content && !"".equals(content)){
-            sb.append(" or e.content like '%"+content+"%'");
-        }
-        List list = emailSvc.getEmails(sb.toString());
+        log.info("查询邮件列表，筛选字段：id={}, titlePresent={}, contentPresent={}", id,
+                title != null && !title.trim().isEmpty(), content != null && !content.trim().isEmpty());
+        List list = emailSvc.getEmails(id, title, content);
         log.info("查询集合长度："+list.size());
         return new Resp(list);
     }
@@ -64,13 +56,12 @@ public class EmailController {
     @ApiOperation(value = "发送邮件")
     @PostMapping("/email")
     public Resp sendEmail(@RequestBody Map param) throws Throwable{//use this method to get param value
-        Email mail = (Email)param.get("Email");
-       log.info("传入email:{}",mail.getTitle());
         String result = "";
         String emailAccount = param.get("emailAccount")!=null?param.get("emailAccount").toString():null;//email 账号
         String title =  param.get("title")!=null?param.get("title").toString():null;
         String content =  param.get("content")!=null?param.get("content").toString():null;
-        log.info("邮箱账号："+emailAccount+" 邮件标题："+title+" 邮件内容："+content);
+        log.info("收到邮件发送请求，recipientPresent={}, titlePresent={}, contentPresent={}",
+                emailAccount != null, title != null, content != null);
         if(null!=emailAccount && null!=title && null!=content){
             Email email = new Email();
             SendMail sm = new SendMail();
@@ -127,14 +118,15 @@ public class EmailController {
     @PutMapping("/email")
     public Resp updateSms(@RequestBody Email email){//note:客户端是用requestbody提交的，这里如果写成requestX别的东西，会找不到这个方法
         Email ss = email;
-        log.info("修改短信信息......"+ss.getContent());
         if(ss!=null){
+            log.info("修改邮件信息，id={}, contentPresent={}", ss.getId(),
+                    ss.getContent() != null && !ss.getContent().isEmpty());
             try{
                 emailSvc.save(ss);//保存或修改
                 //更改公共信息表
             }catch(Exception ee){
                 log.error("修改短信失败,原因："+ee.getMessage());
-                ee.printStackTrace();
+                log.error("修改邮件失败", ee);
             }
         }
         return new Resp(ss);

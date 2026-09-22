@@ -11,6 +11,7 @@ import com.own.user.party.dao.OrgDao;
 import com.own.user.party.dao.PersonDao;
 import com.own.user.party.dao.domain.LoginUser;
 import com.own.user.party.dao.domain.Person;
+import com.own.user.party.service.LoginUserService;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,8 @@ public class PerController  {
 	private OrgDao orgDao = null;
 	@Autowired
 	private LoginUserDao loginUserDao = null;
+	@Autowired
+	private LoginUserService loginUserService = null;
 
 	@ApiOperation(value = "查询所有的person用户")
 	@GetMapping("/Person")
@@ -61,8 +64,7 @@ public class PerController  {
 		loginUser.setLoginName(personBean.getLoginUserName());
 		loginUser.setName(personBean.getName());
 		loginUser.setPartyId(person.getId());
-		loginUser.setPassword(personBean.getPassword());
-		loginUserDao.save(loginUser);
+		loginUser = loginUserService.create(loginUser, personBean.getPassword());
 		loginUserDao.createRelationShipWithLoginUser(loginUser.getLoginUserId());
 		loginUserDao.createRelationShipPersonWithLoginUser(person.getId(), loginUser.getLoginUserId());
 		

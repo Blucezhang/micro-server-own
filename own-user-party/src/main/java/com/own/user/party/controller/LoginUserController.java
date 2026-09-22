@@ -1,138 +1,200 @@
 package com.own.user.party.controller;
 
+import com.own.face.party.LoginUserBean;
+import com.own.face.party.UserBean;
+import com.own.face.trade.TradeException;
+import com.own.face.security.JwtTokenService;
+import com.own.face.util.Resp;
+import com.own.user.party.dao.LoginUserDao;
+import com.own.user.party.dao.domain.LoginUser;
+import com.own.user.party.dto.LoginUserResponse;
+import com.own.user.party.dto.TokenLoginCommand;
+import com.own.user.party.auth.dto.RefreshTokenCommand;
+import com.own.user.party.auth.service.RefreshSessionService;
+import com.own.user.party.auth.service.LoginAttemptService;
+import com.own.user.party.service.LoginAuthorization;
+import com.own.user.party.service.LoginUserService;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestHeader;
+import javax.servlet.http.HttpServletRequest;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.own.face.party.LoginUserBean;
-import com.own.face.party.UserBean;
-import com.own.face.util.Resp;
-import com.own.face.util.Util;
-import com.own.user.party.dao.LoginUserDao;
-import com.own.user.party.dao.domain.LoginUser;
-import io.swagger.annotations.ApiOperation;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import java.util.stream.Collectors;
 
 /**
- * 系统用户
- * 
- * @author Blucezhang
+ * 系统用户。
  */
-
-@Slf4j
 @RestController
 @RequestMapping("/login")
 public class LoginUserController {
 
-	@Autowired
-	private LoginUserDao loginUserDao = null;
+    private static final String AUTHENTICATION_FAILED = "authentication_failed";
 
-	@ApiOperation(value = " 用户登录")
-	@PostMapping("/Login")
-	public Resp login(@RequestBody UserBean userBean) {
-		Map result  = new HashMap();
-		String name = Util.toStringAndTrim(userBean.getLoginUserName());
-		String password = Util.toStringAndTrim(userBean.getPassword());
-		LoginUser loginuser = new LoginUser();
-		List lists = loginUserDao.getDetailOfLoginUser(name,password);
+    private final LoginUserService loginUserService;
+    private final LoginUserDao loginUserDao;
+    private final JwtTokenService jwtTokenService;
+    private final RefreshSessionService refreshSessions;
+    private final LoginAttemptService loginAttempts;
 
-		if (lists.size()<=0) {
-			result.put("message", "teller_does_not_exist");
-			return new Resp(result);
-		}
-		result.put("LoginUser", lists.get(0));
-		result.put("person", lists.get(1));
-		return new Resp(result);
-		
-	}
+    public LoginUserController(LoginUserService loginUserService, LoginUserDao loginUserDao, JwtTokenService jwtTokenService, RefreshSessionService refreshSessions, LoginAttemptService loginAttempts) {
+        this.loginUserService = loginUserService;
+        this.loginUserDao = loginUserDao;
+        this.jwtTokenService = jwtTokenService;
+        this.refreshSessions = refreshSessions;
+        this.loginAttempts = loginAttempts;
+    }
 
-	@ApiOperation(value = "根据用户Id查询登录用户的Detail")
-	@GetMapping("/getLoginUser/{loginId}")
-	public Resp getDetail(@PathVariable Long loginId) {
-		LoginUser loginuser = (LoginUser) loginUserDao.getLoginUser(loginId);
-		return new Resp(loginuser);
-	}
+    @ApiOperation(value = "用户登录")
+    @PostMapping("/Login")
+    public Resp login(@RequestBody UserBean userBean) {
+        Map<String, Object> result = new HashMap<String, Object>();
+        if (userBean != null) loginAttempts.requireAllowed(userBean.getLoginUserName());
+        LoginUser user = userBean == null
+                ? null
+                : loginUserService.authenticate(userBean.getLoginUserName(), userBean.getPassword());
+        if (user == null) {
+            if (userBean != null) loginAttempts.failed(userBean.getLoginUserName());
+            result.put("message", AUTHENTICATION_FAILED);
+            return new Resp(result);
+        }
+        loginAttempts.succeeded(userBean.getLoginUserName());
+        result.put("LoginUser", LoginUserResponse.from(user));
+        return new Resp(result);
+    }
 
-	@ApiOperation(value = "修改密码")
-	@PostMapping("/updatePassword")
-	public Resp updatePassword(@RequestBody UserBean userBean) {
-		Map<String, Object> result = new HashMap<String, Object>();
-		String loginName = userBean.getLoginUserName();
-		String password = userBean.getPassword();
-		LoginUser loginUser = new LoginUser();
-		loginUser = (LoginUser) loginUserDao.getDetailOfLoginUser(loginName,
-				password);
-		if (loginUser == null)
-			result.put("message", "the user not exit");
-		else {
-			loginUser = (LoginUser) loginUserDao.updatepassword(
-					userBean.getLoginUserName(), userBean.getPassword(),
-					userBean.getNewpassword());
-			result.put("loginUser", loginUser);
-		}
-		return new Resp(result);
-	}
+    @ApiOperation(value = "获取 JWT 访问令牌")
+    @PostMapping("/token")
+    public Resp token(@RequestBody TokenLoginCommand command) {
+        if (command != null) loginAttempts.requireAllowed(command.getLoginUserName());
+        LoginUser user = command == null ? null : loginUserService.authenticate(command.getLoginUserName(), command.getPassword());
+        if (user == null) { if (command != null) loginAttempts.failed(command.getLoginUserName()); throw TradeException.forbidden(AUTHENTICATION_FAILED); }
+        loginAttempts.succeeded(command.getLoginUserName());
+        LoginAuthorization authorization = loginUserService.authorization(user, command.getActorType());
+        return new Resp(refreshSessions.issue(user, authorization));
+    }
 
-	@ApiOperation(value = "查询所有LoginUser用户")
-	@GetMapping("/LoginUser")
-	public @ResponseBody Resp queryAllLoginUser() {
-		List<LoginUser> LoginUserList = loginUserDao.queryAllLoginUser();
-		return new Resp(LoginUserList);
-	}
+    @PostMapping("/refresh")
+    public Resp refresh(@RequestBody RefreshTokenCommand command) {
+        if (command == null || command.getRefreshToken() == null || command.getRefreshToken().trim().isEmpty()) throw TradeException.badRequest("refreshToken is required");
+        return new Resp(refreshSessions.rotate(command.getRefreshToken()));
+    }
 
-	@ApiOperation(value = "创建LoginUser")
-	@PutMapping("/LoginUser")
-	public @ResponseBody void CreateLoginUser(@RequestBody LoginUserBean userBaen) {
-		LoginUser user = new LoginUser();
-		user.setName(userBaen.getName());
-		user.setEmail(userBaen.getEmail());
-		user.setLoginName(userBaen.getLoginUserName());
-		user.setPhone(userBaen.getPhone());
-		user.setPassword(userBaen.getPassword());
-		loginUserDao.save(user);
-		// 用户登录信息、详细信息、都放在LoginUser节点中
-		loginUserDao.createRelationShipWithLoginUser(user.getLoginUserId());
-		if (userBaen.getPartmentId() != null) {
-			loginUserDao.createRelationShipLoginUserAndOrg(
-					user.getLoginUserId(), userBaen.getPartmentId());
-		} else {
-			loginUserDao.createRelationShipLoginUserAndOrg(
-					user.getLoginUserId(), userBaen.getOrgId());
-		}
-	}
+    @PostMapping("/logout")
+    public Resp logout(@RequestBody RefreshTokenCommand command) {
+        if (command == null || command.getRefreshToken() == null || command.getRefreshToken().trim().isEmpty()) throw TradeException.badRequest("refreshToken is required");
+        refreshSessions.revoke(command.getRefreshToken()); return new Resp("logged_out");
+    }
 
-	@ApiOperation(value = "根据Id修改LoginUser")
-	@PostMapping("/LoginUser/{id}")
-	public void updateLoginUser(@RequestBody LoginUserBean loginUserBean,
-			@PathVariable Long id) {
-		loginUserDao.deleteLoginUserAndOrgs(id);
-		LoginUser user = new LoginUser();
-		user.setName(loginUserBean.getName());
-		user.setEmail(loginUserBean.getEmail());
-		user.setLoginName(loginUserBean.getLoginUserName());
-		user.setName(loginUserBean.getName());
-		user.setPhone(loginUserBean.getPhone());
-		if (loginUserBean.getPartmentId() != null)
-			user.setPartmentId(loginUserBean.getPartmentId());
-		user.setOrgId(loginUserBean.getOrgId());
-		loginUserDao.save(user);
+    @GetMapping("/sessions")
+    public Resp activeSessions(@RequestHeader("X-User-Id") Long userId, HttpServletRequest request) {
+        loginUserService.requireOwnedByActor(userId, com.own.face.trade.TradeHeaders.actor(request));
+        return new Resp(refreshSessions.listActive(userId));
+    }
 
-		if (loginUserBean.getPartmentId() != null) {
-			loginUserDao.createRelationShipLoginUserAndOrg(
-					user.getLoginUserId(), loginUserBean.getPartmentId());
-		} else {
-			loginUserDao.createRelationShipLoginUserAndOrg(
-					user.getLoginUserId(), loginUserBean.getOrgId());
-		}
-	}
+    @DeleteMapping("/sessions/{sessionId}")
+    public Resp revokeSession(@RequestHeader("X-User-Id") Long userId, @PathVariable Long sessionId, HttpServletRequest request) {
+        com.own.face.trade.TradeHeaders.idempotencyKey(request);
+        loginUserService.requireOwnedByActor(userId, com.own.face.trade.TradeHeaders.actor(request));
+        refreshSessions.revokeOwnedSession(userId, sessionId);
+        return new Resp("session_revoked");
+    }
 
+    @ApiOperation(value = "根据用户Id查询登录用户的Detail")
+    @GetMapping("/getLoginUser/{loginId}")
+    public Resp getDetail(@PathVariable Long loginId) {
+        return new Resp(LoginUserResponse.from(loginUserService.getById(loginId)));
+    }
 
-	@ApiOperation(value = "根据ID删除系统用户信息")
-	@DeleteMapping("/LoginUser/{id}")
-	public void deleteLoginUser(@PathVariable Integer id) {
-		loginUserDao.deleteLoginUser(id);
-	}
+    @ApiOperation(value = "修改密码")
+    @PostMapping("/updatePassword")
+    public Resp updatePassword(@RequestBody UserBean userBean) {
+        Map<String, Object> result = new HashMap<String, Object>();
+        if (userBean == null) {
+            result.put("message", AUTHENTICATION_FAILED);
+            return new Resp(result);
+        }
+        try {
+            loginAttempts.requireAllowed(userBean.getLoginUserName());
+            LoginUser changed = loginUserService.changePasswordAndGet(
+                    userBean.getLoginUserName(),
+                    userBean.getPassword(),
+                    userBean.getNewpassword());
+            if (changed != null) {
+                loginAttempts.succeeded(userBean.getLoginUserName());
+                refreshSessions.revokeAllForUser(changed.getLoginUserId());
+            } else {
+                loginAttempts.failed(userBean.getLoginUserName());
+            }
+            result.put("message", changed != null ? "password_updated" : AUTHENTICATION_FAILED);
+        } catch (IllegalArgumentException exception) {
+            result.put("message", "invalid_request");
+        }
+        return new Resp(result);
+    }
 
+    @ApiOperation(value = "查询所有LoginUser用户")
+    @GetMapping("/LoginUser")
+    @ResponseBody
+    public Resp queryAllLoginUser() {
+        List<LoginUserResponse> users = loginUserService.findAll().stream()
+                .map(LoginUserResponse::from)
+                .collect(Collectors.toList());
+        return new Resp(users);
+    }
+
+    @ApiOperation(value = "创建LoginUser")
+    @PutMapping("/LoginUser")
+    @ResponseBody
+    public void createLoginUser(@RequestBody LoginUserBean userBean) {
+        LoginUser user = new LoginUser();
+        user.setName(userBean.getName());
+        user.setEmail(userBean.getEmail());
+        user.setLoginName(userBean.getLoginUserName());
+        user.setPhone(userBean.getPhone());
+        user = loginUserService.create(user, userBean.getPassword());
+
+        loginUserDao.createRelationShipWithLoginUser(user.getLoginUserId());
+        if (userBean.getPartmentId() != null) {
+            loginUserDao.createRelationShipLoginUserAndOrg(
+                    user.getLoginUserId(), userBean.getPartmentId());
+        } else {
+            loginUserDao.createRelationShipLoginUserAndOrg(
+                    user.getLoginUserId(), userBean.getOrgId());
+        }
+    }
+
+    @ApiOperation(value = "根据Id修改LoginUser")
+    @PostMapping("/LoginUser/{id}")
+    public void updateLoginUser(@RequestBody LoginUserBean loginUserBean,
+                                @PathVariable Long id) {
+        LoginUser user = loginUserService.updateProfile(id, loginUserBean);
+        if (user == null) {
+            throw TradeException.notFound("login user was not found");
+        }
+        loginUserDao.deleteLoginUserAndOrgs(id);
+        if (loginUserBean.getPartmentId() != null) {
+            loginUserDao.createRelationShipLoginUserAndOrg(
+                    user.getLoginUserId(), loginUserBean.getPartmentId());
+        } else {
+            loginUserDao.createRelationShipLoginUserAndOrg(
+                    user.getLoginUserId(), loginUserBean.getOrgId());
+        }
+    }
+
+    @ApiOperation(value = "根据ID删除系统用户信息")
+    @DeleteMapping("/LoginUser/{id}")
+    public void deleteLoginUser(@PathVariable Integer id) {
+        loginUserDao.deleteLoginUser(id);
+    }
 }

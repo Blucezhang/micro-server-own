@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Collections;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -159,8 +160,9 @@ public class RdbBaseDao{
 		query.setMaxResults(pageable.getPageSize());
 		List<Object[]> list = query.getResultList();
 		
-		if(list==null||list.size()==0)
-			return null;
+		if (list == null || list.isEmpty()) {
+			return new PageImpl<Object>(Collections.emptyList(), pageable, count);
+		}
 		List<Map<String,Object>> resList = genarateResultList(sql,list);
 		Page<?> page = new PageImpl(resList,pageable,count);
 		return page;

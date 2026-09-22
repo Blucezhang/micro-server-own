@@ -32,6 +32,6 @@ public class BizBusinessFlowContext implements Serializable,IDomainBase {
 
 	@Override
 	public Object getObjectId() {
-		return null;
+		return businessflowId;
 	}
 }

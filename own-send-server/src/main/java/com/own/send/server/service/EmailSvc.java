@@ -55,13 +55,27 @@ public class EmailSvc {
 	
 	/**
 	 * 查询邮件列表
-	 * @param wheresql
+	 * @param id optional email id
+	 * @param title optional title filter
+	 * @param content optional content filter
 	 * @return
 	 */
-	public List<?> getEmails(String wheresql) {
+	public List<?> getEmails(Integer id, String title, String content) {
 		Map<String,Object> param = new HashMap<String,Object>();
-		String findSmsSql = " from Email e where 1=1 ";
-		Page<?> result = (Page<?>)rdbSvc.findAll2Page(findSmsSql+wheresql, param);
+		StringBuilder query = new StringBuilder(" from Email e where 1=1 ");
+		if (id != null) {
+			query.append(" and e.id=:id");
+			param.put("id", id);
+		}
+		if (title != null && !title.trim().isEmpty()) {
+			query.append(" and e.title like :title");
+			param.put("title", "%" + title.trim() + "%");
+		}
+		if (content != null && !content.trim().isEmpty()) {
+			query.append(" and e.content like :content");
+			param.put("content", "%" + content.trim() + "%");
+		}
+		Page<?> result = (Page<?>)rdbSvc.findAll2Page(query.toString(), param);
 		return  result.getContent();
 	}
 }

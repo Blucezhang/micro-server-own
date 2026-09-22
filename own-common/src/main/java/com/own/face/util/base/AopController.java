@@ -10,9 +10,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Aspect
@@ -23,19 +20,20 @@ public class AopController {
     public void CutResp(){ }
 
     @Around("CutResp()")
-    public Map<String,Object> HandleResp(ProceedingJoinPoint proceedingJoinPoint){
-        //最后会做日志处理
-        Map<String,Object> result = new HashMap<>();
+    public Object HandleResp(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = attributes.getRequest();
-        log.info("HTTP:",request.getMethod());
-        log.info("URL:",request.getRequestURL());
-        log.info("PARAMS:", Arrays.toString(proceedingJoinPoint.getArgs()));
-        log.info("METHED_CLASS",proceedingJoinPoint.getSignature().getDeclaringTypeName()+"."+proceedingJoinPoint.getSignature().getName());
-        result.put("HTTP",request.getMethod());
-        result.put("URL",request.getRequestURI());
-        result.put("PARAMS",Arrays.toString(proceedingJoinPoint.getArgs()));
-        result.put("METHED_CLASS",proceedingJoinPoint.getSignature().getDeclaringTypeName()+"."+proceedingJoinPoint.getSignature().getName());
-        return result;
+        if (attributes != null) {
+            HttpServletRequest request = attributes.getRequest();
+            log.info("HTTP: {}", request.getMethod());
+            log.info("URL: {}", request.getRequestURL());
+        }
+        // Controller arguments routinely contain credentials, tokens, addresses and
+        // message bodies. Record only their count; request correlation belongs in
+        // the correlation ID/MDC path rather than in serialized argument logs.
+        Object[] args = proceedingJoinPoint.getArgs();
+        log.info("ARGUMENT_COUNT: {}", args == null ? 0 : args.length);
+        log.info("METHOD_CLASS: {}.{}", proceedingJoinPoint.getSignature().getDeclaringTypeName(),
+                proceedingJoinPoint.getSignature().getName());
+        return proceedingJoinPoint.proceed();
     }
 }

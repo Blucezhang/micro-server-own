@@ -1,0 +1,1 @@
+package com.own.order.dto; public class AfterSaleAuditCommand { private boolean approved; private String remark; public boolean isApproved(){return approved;} public void setApproved(boolean v){approved=v;} public String getRemark(){return remark;} public void setRemark(String v){remark=v;} }

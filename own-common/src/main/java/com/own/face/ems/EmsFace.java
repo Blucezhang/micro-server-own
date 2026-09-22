@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.own.face.core.FaceBase;
 import com.own.face.core.IfException;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class EmsFace extends FaceBase {
 
     protected String serviceUrl = "http://EMSERVER/";
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 获取邮件信息
@@ -38,12 +41,16 @@ public class EmsFace extends FaceBase {
      */
     public boolean sendMsg(String mobile, String content) throws IfException {
         try {
-            String requestBody = "{\"Action\":\"send\",\"mobile\":\"" + mobile + "\",\"content\":\"" + content + "\"}";
-            String responseText = post(serviceUrl + "/Info/sms", requestBody, String.class, new HashMap<>());
-            log.info("获取响应内容：" + responseText);
-            return true;
+            Map<String, Object> requestBody = new HashMap<String, Object>();
+            requestBody.put("Action", "send");
+            requestBody.put("mobile", mobile);
+            requestBody.put("content", content);
+            String responseText = post(serviceUrl + "/Info/sms", requestBody, String.class, new HashMap<String, Object>());
+            boolean succeeded = accepted(responseText);
+            log.info("短信服务响应已接收，accepted={}", succeeded);
+            return succeeded;
         } catch (Exception ee) {
-            ee.printStackTrace();
+            log.warn("短信发送失败", ee);
         }
         return false;
     }
@@ -56,12 +63,16 @@ public class EmsFace extends FaceBase {
      */
     public boolean receiveMsg(String mobile, String content) throws IfException {
         try {
-            String requestBody = "{\"Action\":\"receive\",\"mobile\":\"" + mobile + "\",\"content\":\"" + content + "\"}";//传入服务端类型为map，后续可以改为对象提交
-            String responseText = post(serviceUrl + "/Info/sms", requestBody, String.class, new HashMap<>());
-            log.debug("获取响应内容：" + responseText);
-            return true;
+            Map<String, Object> requestBody = new HashMap<String, Object>();
+            requestBody.put("Action", "receive");
+            requestBody.put("mobile", mobile);
+            requestBody.put("content", content);
+            String responseText = post(serviceUrl + "/Info/sms", requestBody, String.class, new HashMap<String, Object>());
+            boolean succeeded = accepted(responseText);
+            log.debug("短信记录服务响应已接收，accepted={}", succeeded);
+            return succeeded;
         } catch (Exception ee) {
-            ee.printStackTrace();
+            log.warn("短信接收失败", ee);
         }
         return false;
     }
@@ -90,10 +101,11 @@ public class EmsFace extends FaceBase {
         try {
             sms = get(serviceUrl + "/Info/sms/{id}", Sms.class, id);
             if (sms != null) {
-                log.debug("短信id：" + sms.getId() + " 短信内容：" + sms.getContent() + " 短信创建时间:" + sms.getCreateTime());
+                log.debug("短信查询完成，id={}, contentPresent={}, createdAtPresent={}", sms.getId(),
+                        sms.getContent() != null && !sms.getContent().isEmpty(), sms.getCreateTime() != null);
             }
         } catch (Exception ee) {
-            ee.printStackTrace();
+            log.warn("邮件发送失败", ee);
         }
         return sms;
     }
@@ -120,10 +132,10 @@ public class EmsFace extends FaceBase {
         try {
             email = get(serviceUrl + "/Info/email/{id}", Email.class, id);
             if (email != null) {
-                log.debug("短信id：" + email.getId() + " 短信内容：" + email.getContent() + " 短信创建时间:" + email.getCreateTime());
+                log.debug("邮件查询完成，createdAtPresent={}", email.getCreateTime() != null);
             }
         } catch (Exception ee) {
-            ee.printStackTrace();
+            log.warn("短信查询失败", ee);
         }
         return email;
     }
@@ -137,15 +149,33 @@ public class EmsFace extends FaceBase {
      */
     public boolean sendEmail(String receiveAccount, String title, String content) throws IfException {
         try {
-            String requestBody = "{\"emailAccount\":\"" + receiveAccount + "\",\"title\":\"" + title + "\",\"content\":\"" + content + "\"}";
-            String responseText = post(serviceUrl + "/Info/email", requestBody, String.class, new HashMap<>());
-            log.debug("获取响应内容：" +responseText);
-            return true;
+            Map<String, Object> requestBody = new HashMap<String, Object>();
+            requestBody.put("emailAccount", receiveAccount);
+            requestBody.put("title", title);
+            requestBody.put("content", content);
+            String responseText = post(serviceUrl + "/Info/email", requestBody, String.class, new HashMap<String, Object>());
+            boolean succeeded = accepted(responseText);
+            log.debug("邮件服务响应已接收，accepted={}", succeeded);
+            return succeeded;
         } catch (Exception ee) {
-            ee.printStackTrace();
+            log.warn("邮件查询失败", ee);
         }
         return false;
 
+    }
+
+    /** A transport-level 200 is not delivery success; require the shared envelope's success payload. */
+    private boolean accepted(String responseText) {
+        if (responseText == null || responseText.trim().isEmpty()) return false;
+        try {
+            JsonNode response = objectMapper.readTree(responseText);
+            return response.path("status").asInt(0) >= 200
+                    && response.path("status").asInt(0) < 300
+                    && "success".equalsIgnoreCase(response.path("data").asText());
+        } catch (Exception exception) {
+            log.warn("消息服务返回非预期响应格式");
+            return false;
+        }
     }
 
     /**
@@ -167,10 +197,9 @@ public class EmsFace extends FaceBase {
      * @return
      */
     public Email updateEmail(Email email) {
-        log.info("修改邮件内容....");
-        log.info("值修改前：" + email.toString());
+        log.info("邮件更新请求已构造");
         email =  put(serviceUrl + "/Info/email",email,Email.class);
-        log.info("值修改后：" + email.toString());
+        log.info("邮件更新请求已完成，resultPresent={}", email != null);
         return email;
     }
 
@@ -205,9 +234,15 @@ public class EmsFace extends FaceBase {
      * @return
      */
     public String sendJgpush(String title, String content, String platform, String sendId, String releaseFun) {
-        String requestBody = "{\"platform\":\"" + platform + "\",\"sendId\":\"" + sendId + "\",\"releaseFun\":\"" + releaseFun + "\",\"title\":\"" + title + "\",\"content\":\"" + content + "\"}";
-        log.info("请求参数：" + requestBody);
-        String result = post(serviceUrl + "/Info/jgpush", requestBody, String.class,new HashMap<>());
+        Map<String, Object> requestBody = new HashMap<String, Object>();
+        requestBody.put("platform", platform);
+        requestBody.put("sendId", sendId);
+        requestBody.put("releaseFun", releaseFun);
+        requestBody.put("title", title);
+        requestBody.put("content", content);
+        log.info("极光推送请求已构造，platformPresent={}, recipientPresent={}, releaseFunctionPresent={}",
+                platform != null, sendId != null, releaseFun != null);
+        String result = post(serviceUrl + "/Info/jgpush", requestBody, String.class, new HashMap<String, Object>());
         log.info("请求响应结果：" + result);
         return result;
     }
@@ -224,7 +259,7 @@ public class EmsFace extends FaceBase {
         map.put("content", "a");
         map.put("sendAccount", "132");
         map.put("receiveAccount", "1112");
-        System.out.println("参数：" + map.toString());
+        log.debug("公共通知信息查询请求已构造");
         String param = "/Info?id={id}&title={title}";
         param += "&content={content}&sendAccount={sendAccount}&receiveAccount={receiveAccount}";
         List list = get(serviceUrl + param, List.class, map);

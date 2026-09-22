@@ -7,6 +7,7 @@ import com.own.face.party.RoleBean;
 import com.own.face.util.Resp;
 import com.own.user.party.dao.RoleDao;
 import com.own.user.party.dao.domain.Role;
+import com.own.user.party.service.RoleFunctionGrantService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,9 @@ public class RoleController {
 
 	@Autowired
 	private RoleDao roleDao = null;
+
+	@Autowired
+	private RoleFunctionGrantService roleFunctionGrants;
 
 	/**
 	 * 查询所有的Role
@@ -108,8 +112,11 @@ public class RoleController {
 	 * @param roleBean
 	 */
 	@RequestMapping(value="/Role/addFun",method=RequestMethod.PUT)
-	public void createRelationShipRoleAndFun(@RequestBody RoleBean roleBean){
-
+	public Resp createRelationShipRoleAndFun(@RequestBody RoleBean roleBean, javax.servlet.http.HttpServletRequest request){
+		com.own.face.trade.TradeHeaders.actor(request).require(com.own.face.trade.ActorType.SYSTEM);
+		com.own.face.trade.TradeHeaders.idempotencyKey(request);
+		if (roleBean == null) throw com.own.face.trade.TradeException.unprocessable("role payload is required");
+		return new Resp(roleFunctionGrants.grant(roleBean.getRole(), roleBean.getFunIdsList()), 200, "role_functions_granted");
 	}
 	
 }

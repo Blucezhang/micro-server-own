@@ -2,7 +2,7 @@ spring:
   application:
     name: own-file
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   cloud:
     config:
       fail-fast: true
@@ -14,6 +14,17 @@ spring:
    # hibernate:
     #  ddl-auto: create
 
+own:
+  file:
+    storage:
+      temporary-root: ${OWN_FILE_TEMP_ROOT:/opt/temp}
+      permanent-root: ${OWN_FILE_PERMANENT_ROOT:/opt/real}
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://own:change-me@localhost:8002/eureka}
+
 ---
 spring:
   profiles: dev
@@ -22,8 +33,3 @@ eureka:
     prefer-ip-address: true
     lease-renewal-interval-in-seconds: 5
     lease-expiration-duration-in-seconds: 20
-  client:
-    serviceUrl:
-      defaultZone:  http://own:123456@localhost:8002/eureka
-
-

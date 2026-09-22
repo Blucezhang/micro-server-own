@@ -1,0 +1,13 @@
+management:
+  security:
+    enabled: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://own:change-me@eureka:8002/eureka}
+
+spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false

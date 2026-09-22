@@ -5,8 +5,8 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.http.HttpEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,19 +52,7 @@ public class FaceBase implements IErrCode {
 	 */
 	protected <T> T put(String url, Object request, Class<T> classType) {
 		RestTemplateExt rte = new RestTemplateExt(restTemplate);
-		ObjectMapper m = new ObjectMapper();
-		String requestBody = null;
-		HttpEntity response = null; 
-		try {
-			 requestBody = m.writeValueAsString(request);
-			 MultiValueMap<String, Object> headers = new LinkedMultiValueMap<String, Object>();
-			 headers.add("Accept", "application/json");
-		     headers.add("Content-Type", "application/json;charset=UTF-8");
-		     response = new HttpEntity(requestBody, headers);
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
+		HttpEntity<?> response = jsonEntity(request);
 		return rte.put(url, response, classType);
 	}
 	
@@ -77,20 +65,23 @@ public class FaceBase implements IErrCode {
 	 * @return <T> T
 	 */
 	protected <T> T post(String url, Object request, Class<T> classType,Map<String, ?> map) {
-		ObjectMapper m = new ObjectMapper();
-		String requestBody = null;
-		HttpEntity response = null; 
-		try {
-			 requestBody = m.writeValueAsString(request);
-			 MultiValueMap<String, Object> headers = new LinkedMultiValueMap<String, Object>();
-			 headers.add("Accept", "application/json");
-		     headers.add("Content-Type", "application/json;charset=UTF-8");
-		     response = new HttpEntity(requestBody, headers);
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		return restTemplate.postForObject(url, request, classType, map);
+		HttpEntity<?> response = jsonEntity(request);
+		return restTemplate.postForObject(url, response, classType, map);
+	}
+
+	private HttpEntity<?> jsonEntity(Object request) {
+		Object body = request;
+		if (!(request instanceof String)) {
+			try {
+				body = new ObjectMapper().writeValueAsString(request);
+			} catch (JsonProcessingException exception) {
+				throw new IllegalArgumentException("Request cannot be serialized as JSON", exception);
+			}
+		}
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
+		headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+		return new HttpEntity<Object>(body, headers);
 	}
 	
 	/**

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderFace extends FaceBase {
 
-	protected String serviceUrl="//ORDER/";
+	protected String serviceUrl="http://ORDER/";
 	/**
 	 * 订单查询
 	 * @param id
@@ -23,7 +23,7 @@ public class OrderFace extends FaceBase {
 	 */
 	public OrderBean getOrder(String id){
 		 OrderBean o = get (serviceUrl+ "/Order/{id}", OrderBean.class, id);
-		 log.info("OrderId "+o.getOrderId()+"OrderNo "+o.getOrderNo()+"CreateDate "+o.getCreateDate());
+		 log.info("订单查询完成，found={}", o != null);
 		 return o;
 	}
 	
@@ -32,7 +32,7 @@ public class OrderFace extends FaceBase {
 	 */
 	
 	public List getOrderDetial(Map parms){
-		log.info(parms.toString()+"入参");
+		log.info("订单明细查询请求已构造");
 		List ss = get (serviceUrl+ "/Order?orderDetailId={orderDetailId}", List.class, parms);
 		return ss;
 	}

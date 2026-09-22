@@ -30,13 +30,12 @@ public class SendMail {
         props.put("mail.smtp.auth", iocMailSmtpAuth);
         Session mailSession = Session.getDefaultInstance(props);
         Transport transport = mailSession.getTransport(iocSmtp);
-        mailSession.setDebug(true);//是否在控制台显示debug信息
+        mailSession.setDebug(false);//SMTP 调试输出可能包含认证协商信息，生产日志默认关闭
         Message message = new MimeMessage(mailSession);
         try {
             message.setFrom(new InternetAddress(MimeUtility.encodeText(iocMailFrom), "汇金贷"));
         } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+			throw new MessagingException("Unable to encode sender address", e);
         }//发件人
         message.setRecipient(Message.RecipientType.TO, new InternetAddress(email));//收件人
         message.setSubject(title);//邮件主题

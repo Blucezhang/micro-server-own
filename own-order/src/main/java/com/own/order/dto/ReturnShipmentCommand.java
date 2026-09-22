@@ -1,0 +1,1 @@
+package com.own.order.dto; public class ReturnShipmentCommand { private String logisticsCompany; private String trackingNo; public String getLogisticsCompany(){return logisticsCompany;} public void setLogisticsCompany(String v){logisticsCompany=v;} public String getTrackingNo(){return trackingNo;} public void setTrackingNo(String v){trackingNo=v;} }

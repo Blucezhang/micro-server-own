@@ -1,9 +1,7 @@
 package com.own.promotion.controller;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -60,7 +58,15 @@ public class PromotionController  extends BaseController {
 	@ApiOperation(value = "保存活动信息，此处暂时先实现单品促销，对于别的促销方式，后续采用java引擎规则实现")
 	@PostMapping
 	public @ResponseBody Resp save(@RequestBody Map param) {
-		Integer typeId = Integer.valueOf(FaceUtil.toStringAndTrim(param.get("promotionTypeId")));
+		if (param == null || FaceUtil.isNullOrEmpty(param.get("promotionTypeId"))) {
+			throw new IllegalArgumentException("promotionTypeId is required");
+		}
+		Integer typeId;
+		try {
+			typeId = Integer.valueOf(FaceUtil.toStringAndTrim(param.get("promotionTypeId")));
+		} catch (NumberFormatException exception) {
+			throw new IllegalArgumentException("promotionTypeId must be an integer", exception);
+		}
 		Map<String, Object> result = new HashMap<String, Object>();
 		if (typeId == 12) {//折扣
 			Promotion promotion = new Promotion();
@@ -79,11 +85,11 @@ public class PromotionController  extends BaseController {
 			String storeTicketId = param.get("storeTicketId")!=null?param.get("storeTicketId").toString():null;
 			
 			//商城券与活动建立关系
-			if(mallTicketId!=null && !mallTicketId.equals("null") && mallTicketId!="null" && !mallTicketId.equals("")){
+			if(mallTicketId != null && !mallTicketId.trim().isEmpty() && !"null".equalsIgnoreCase(mallTicketId)){
 				mallTicketDao.createRelationship(Integer.valueOf(mallTicketId), pro.getId().intValue(), "BELONG");
 			}
 			//店铺券与活动建立关系
-			if(storeTicketId!=null && !storeTicketId.equals("null") && storeTicketId!="null" && !storeTicketId.equals("")){
+			if(storeTicketId != null && !storeTicketId.trim().isEmpty() && !"null".equalsIgnoreCase(storeTicketId)){
 				storeTicketDao.createRelationship(Integer.valueOf(storeTicketId), pro.getId().intValue(), "BELONG");
 			}
 			log.info("活动信息："+promotion.getId()+"  "+promotion.getSaleName());
@@ -150,6 +156,8 @@ public class PromotionController  extends BaseController {
 					FaceUtil.toStringAndTrim(param.get("productJson")));
 			result.put("Obj", nmpro);
 			result.put("promotionType", typeId);
+		} else {
+			throw new IllegalArgumentException("Unsupported promotion type: " + typeId);
 		}
 		return new Resp(result);
 	}
@@ -177,9 +185,13 @@ public class PromotionController  extends BaseController {
 		s.setSellerName(seller.getSellerName());
 		s.setSellerId(seller.getSellerId());
 		s.setCreateTime(seller.getCreateTime());
-		log.info("添加数据结果,id:" + s.getId() + "  sellerName:" + s.getSellerName());
-		sellerDao.createRelationshipJoin(s.getId().intValue(), seller.getPromotionId(), "JOIN");// 关联id和活动id
-		return new Resp(s);
+		Seller saved = sellerDao.save(s);
+		if (saved.getId() == null) {
+			throw new IllegalStateException("Seller id was not generated after save");
+		}
+		log.info("添加数据结果,id:{} sellerName:{}", saved.getId(), saved.getSellerName());
+		sellerDao.createRelationshipJoin(saved.getId().intValue(), seller.getPromotionId(), "JOIN");
+		return new Resp(saved);
 	}
 
 	@ApiOperation(value = "根据商品信息，查询对应的活动")
@@ -192,87 +204,29 @@ public class PromotionController  extends BaseController {
 	@ApiOperation(value = "根据卖家信息，查询对应的活动")
 	@GetMapping("/typePromotion")
 	public @ResponseBody Resp findPromotionByTypeId(@RequestParam Long typeId) {
-		List<Promotion> list = new ArrayList<Promotion>();
-		return new Resp();
+		return new Resp(promotionDao.findProByTypeInfo(typeId));
 	}
 
 	@ApiOperation(value = "根据地域信息，查询对应的活动")
 	@GetMapping("/zonePromotion")
 	public @ResponseBody Resp findPromotionByZoneId(@RequestParam Long zoneId) {
-		List<Promotion> list = new ArrayList<Promotion>();
-		return new Resp();
+		return new Resp(promotionDao.findProByZoneInfo(zoneId));
 	}
 
 
 	@ApiOperation(value = "结算方式2")
 	@GetMapping("/calculates")
 	public @ResponseBody Resp calculates(@RequestParam Map map) throws NumberFormatException, IfException {
-		Map<String,Object> insert = new HashMap<String,Object>();
-		CartBean cb = new CartBean();
-		cb.setPromotionTypeId(Long.valueOf(map.get("promotionTypeId").toString()));
-		cb.setSinglePrice(Double.valueOf(map.get("singlePrice").toString()));
-		cb.setJoin(Boolean.valueOf(map.get("join").toString()));
-		cb.setProductId(map.get("productId").toString());
-		cb.setAmount(Integer.valueOf(map.get("amount").toString()));
-		cb.setPromotionId(map.get("promotionId").toString());
-		cb.setProductName(map.get("productName").toString());
-		cb.setProductJson(FaceUtil.toStringAndTrim(map.get("productJson")));
-		cb.setProductTotolCount(Double.valueOf(map.get("productTotolCount").toString()));
-		if(cb.getPromotionTypeId()==12){
-			
-		}else if(cb.getPromotionTypeId()==26){
-			FullPromotion fullpromotion = (FullPromotion)promotionDao.findNode(Long.parseLong(FaceUtil.toStringAndTrim(cb.getPromotionId())));
-			if(cb.isJoin()){
-				insert.put("cartBean", cb);
-				insert.put("fullpromotion", fullpromotion);
-				cb = ruleResult(insert);
-				System.out.println(cb.getAfterTotal()+"FullPro");
-			}else{
-				Double values = (double) (cb.getSinglePrice() *cb.getAmount());
-				cb.setAfterTotal(values);
-			}
-		}else if(cb.getPromotionTypeId()==28){
-			FullCut fullCut = (FullCut)promotionDao.findNode(Long.parseLong(FaceUtil.toStringAndTrim(cb.getPromotionId())));
-			if(cb.isJoin()){
-				insert.put("cartBean", cb);
-				insert.put("fullCut", fullCut);
-				cb = ruleResult(insert);
-				System.out.println(cb.getAfterTotal()+"FullCut");
-			}else{
-				Double values = (double) (cb.getSinglePrice() * cb.getAmount());
-				cb.setAfterTotal(values);
-			}
-			
-		}else if(cb.getPromotionTypeId()==18){
-			
-			SetPromotion setPromotion = (SetPromotion)promotionDao.findNode(Long.parseLong(FaceUtil.toStringAndTrim(cb.getPromotionId())));
-			if(cb.isJoin()){
-				insert.put("cartBean", cb);
-				insert.put("setPromotion", setPromotion);
-				cb = ruleResult(insert);
-				
-				System.out.println(cb.getAfterTotal()+"SetPro");
-				
-			}else{
-				Double values = (double) (cb.getSinglePrice() * cb.getAmount());
-				cb.setAfterTotal(values);
-			}
-			
-		}/*else if(cb.getPromotionTypeId()==30){//阶梯满减
-			SaveFullLadder saveFullLadder = (SaveFullLadder)promotionDao.findNode(Long.parseLong(FaceUtil.toStringAndTrim(cb.getPromotionId())));
-			mapBean.put("SaveFullLadder", saveFullLadder);
-			cb = ruleResult(mapBean);
-		}else if(cb.getPromotionTypeId()==1){//满赠促销
-			PromotionalGifts promotionalGifts = (PromotionalGifts)promotionDao.findNode(Long.parseLong(FaceUtil.toStringAndTrim(cb.getPromotionId())));
-			mapBean.put("PromotionalGifts", promotionalGifts);
-			cb = ruleResult(mapBean);
-		}*/
-		return new Resp(cb);
+		return new Resp(calculateCart(map));
 	}
 
 	@ApiOperation(value = "结算")
 	@GetMapping("/calculate")
 	public @ResponseBody Resp calculate(@RequestParam Map map) throws NumberFormatException, IfException{
+		return new Resp(calculateCart(map));
+	}
+
+	CartBean calculateCart(Map map) throws NumberFormatException, IfException {
 		Map<String,Object> insert = new HashMap<String,Object>();
 		CartBean cb = new CartBean();
 //		cartb = (CartBean)FaceUtil.transMap2Bean(map,cartb);
@@ -286,7 +240,21 @@ public class PromotionController  extends BaseController {
 		cb.setProductJson(FaceUtil.toStringAndTrim(map.get("productJson")));
 		cb.setProductTotolCount(Double.valueOf(map.get("productTotolCount").toString()));
 		if(cb.getPromotionTypeId()==12){
-			
+			Double originalTotal = cb.getSinglePrice() * cb.getAmount();
+			if (!cb.isJoin()) {
+				cb.setAfterTotal(originalTotal);
+			} else {
+				Promotion promotion = (Promotion) promotionDao.findNode(
+						Long.parseLong(FaceUtil.toStringAndTrim(cb.getPromotionId())));
+				if (promotion == null || promotion.getDisCount() == null) {
+					throw new IllegalArgumentException("Discount promotion does not exist");
+				}
+				Double discount = promotion.getDisCount();
+				if (discount <= 0D || discount > 1D) {
+					throw new IllegalArgumentException("Discount must be greater than 0 and at most 1");
+				}
+				cb.setAfterTotal(originalTotal * discount);
+			}
 		}else if(cb.getPromotionTypeId()==26){
 			FullPromotion fullpromotion = (FullPromotion)promotionDao.findNode(Long.parseLong(FaceUtil.toStringAndTrim(cb.getPromotionId())));
 			if(cb.isJoin()){
@@ -342,7 +310,7 @@ public class PromotionController  extends BaseController {
 				cb.setAfterTotal(cb.getSinglePrice()*cb.getAmount());
 			}
 		}
-		return new Resp(cb);
+		return cb;
 	}
 	
 	/**

@@ -1,0 +1,20 @@
+server:
+  port: 6004
+
+trade:
+  internal:
+    service-token: ${INTERNAL_SERVICE_TOKEN:}
+    previous-service-token: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:}
+
+spring:
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false}
+    username: ${MYSQL_USER:micro}
+    password: ${MYSQL_PASSWORD:micro}
+    driver-class-name: com.mysql.jdbc.Driver
+
+own:
+  file:
+    storage:
+      temporary-root: ${OWN_FILE_TEMP_ROOT:/data/files/temp}
+      permanent-root: ${OWN_FILE_PERMANENT_ROOT:/data/files/real}

@@ -38,7 +38,6 @@ public class CommonInfo implements Serializable, IDomainBase{
 	private Date receiveTime;
 	@Override
 	public Object getObjectId() {
-		// TODO Auto-generated method stub
 		return this.id;
 	}
 	

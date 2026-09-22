@@ -41,15 +41,17 @@ public class FlowSvc {
 	 */
 	public Object doFlow(Map params) {
 
-		if (params.get("processId") == null){
-			log.info("流程处理的Id不能为空！！！");
+		if (params == null || params.get("processId") == null) {
+			throw new IllegalArgumentException("processId is required");
 		}
-			// throw new IFException("流程处理的Id不能为空！！！");
-		if(params.get("funName")==null){
-			log.info("工作流名称不能为空");
+		if (params.get("funName") == null || params.get("funName").toString().trim().isEmpty()) {
+			throw new IllegalArgumentException("funName is required");
 		}
 		// 1.获取处理流程的当前状态
 		FlowView bizView = getUniqueFlowView(Long.parseLong(params.get("processId").toString()), params.get("funName").toString().trim());
+		if (bizView == null) {
+			throw new IllegalStateException("No workflow transition matches the current state");
+		}
 		Integer nextState = bizView.getNextStatus();
 		// 2.变更状态
 		BizState bizState=(BizState) changeState(Long.parseLong(params.get("processId").toString()), nextState);

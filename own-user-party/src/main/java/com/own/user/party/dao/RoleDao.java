@@ -18,6 +18,13 @@ public interface RoleDao extends BaseDao<Role> {
 	public List<Role> getAllRole();
 
 	/**
+	 * Marketplace roles were introduced after the legacy graph.  Accept the
+	 * historical "merchant" spelling as well as the canonical claim name.
+	 */
+	@Query("MATCH (r:Role) WHERE toUpper(r.name) IN ['MERCHANT','ROLE_MERCHANT'] RETURN r ORDER BY id(r) ASC LIMIT 1")
+	Role findMarketplaceMerchantRole();
+
+	/**
 	 * 创建Role数据
 	 * @param id
 	 */
@@ -36,7 +43,7 @@ public interface RoleDao extends BaseDao<Role> {
 	 * @param endNode funids
 	 * @param startNode roleid
 	 */
-	@Query("START startNode = node({0}),endNode = node({1}) CREATE (endNode)-[flr:FbelongR]->(startNode)")
+	@Query("START startNode = node({0}),endNode = node({1}) MERGE (endNode)-[:FbelongR]->(startNode)")
 	public void createRelationShipRoleAndFun(Long endNode ,Long startNode);
 
 

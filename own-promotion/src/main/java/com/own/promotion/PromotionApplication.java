@@ -9,7 +9,9 @@ import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Created by Bluce on 2018/4/4.
@@ -17,9 +19,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableFeignClients
-@EntityScan(basePackages = "com.own.promotion.dao.domain")
+@EnableScheduling
+@EntityScan(basePackages = {"com.own.promotion.dao.domain", "com.own.promotion.coupon.domain", "com.own.face.trade.idempotency"})
 @EnableNeo4jRepositories(basePackages = "com.own.promotion.dao")
-@ComponentScan(basePackages = {"com.own.promotion.controller","com.own.face"})
+@EnableJpaRepositories(basePackages = {"com.own.promotion.coupon.repository", "com.own.face.trade.idempotency"})
+@ComponentScan(basePackages = {"com.own.promotion", "com.own.face"})
 public class PromotionApplication {
 
     public static void main(String[] args){

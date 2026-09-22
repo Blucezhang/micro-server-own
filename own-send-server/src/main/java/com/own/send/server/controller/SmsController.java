@@ -7,17 +7,15 @@ import com.own.send.server.prop.ConfigProperty;
 import com.own.send.server.service.CommonInfoSvc;
 import com.own.send.server.service.SmsSvc;
 import com.own.send.server.util.SendSms;
-import com.siaya.action.core.MsgResult;
+import com.own.send.server.util.sms.MsgResult;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Created by Bluce on 2018/4/4.
@@ -36,21 +34,12 @@ public class SmsController {
 
     @ApiOperation(value = "查询短信列表（搜索功能，无搜索条件时，查所有）")
     @GetMapping("/sms")
-    public Resp getMessageList(@RequestParam Integer id, String title, String content) {
-        log.info("获取短信列表信息.....id:" + id + " title:" + title + "  content:" + content);
-        StringBuffer sb = new StringBuffer();
-        if (id != null && !"".equals(id)) {
-            sb.append(" or s.id=" + id);
-        }
-        if (null != title && !"".equals(title)) {
-            sb.append(" or s.title like '%" + title + "%'");//like语法，注意单引号
-        }
-
-        if (null != content && !"".equals(content)) {
-            sb.append(" or s.content like '%" + content + "%'");
-        }
-
-        List list = smsSvc.getSms(sb.toString());
+    public Resp getMessageList(@RequestParam(required = false) Integer id,
+                               @RequestParam(required = false) String title,
+                               @RequestParam(required = false) String content) {
+        log.info("查询短信列表，筛选字段：id={}, titlePresent={}, contentPresent={}", id,
+                title != null && !title.trim().isEmpty(), content != null && !content.trim().isEmpty());
+        List list = smsSvc.getSms(id, title, content);
         log.info("查询集合长度：" + list.size());
         return new Resp(list);
 
@@ -80,10 +69,8 @@ public class SmsController {
             if (null != Action && !"".equals(Action)) {
                 if ("send".equals(Action)) {
                     log.info("发送信息.....");
-                    Properties props = PropertiesLoaderUtils.loadAllProperties("Properties/Action.properties");
-
                     Sms msg = new Sms();
-                    log.info("手机号：" + mobile + " 短信内容：" + content + " 发送短信url：" + props.getProperty("sms.serviceURL"));
+                    log.info("发送短信请求已通过基础格式校验");
                     if (mobile != null && content != null) {
 
                         //短信发送测试成功，暂时注释掉
@@ -104,7 +91,7 @@ public class SmsController {
                         msg.setFlag(0);//是否删除，0否
 
                         msg = smsSvc.save(msg);
-                        if (null != msg.getId() && 0 < msg.getId()) {
+                        if (msg != null && msg.getId() != null && 0 < msg.getId()) {
                             log.info("保存成功,返回id：" + msg.getId());//此时会生成新的id并返回
                             //此时要保存公共信息表
                             CommonInfo cif = new CommonInfo();
@@ -128,13 +115,13 @@ public class SmsController {
                         }
 
                     } else {
-                        System.out.println("input params is null ！");
+                        log.warn("短信发送请求缺少必要内容");
                         result = "failed";
                     }
                 } else if ("receive".equals(Action)) {
                     log.info("接收信息.....");
                     Sms msg = new Sms();
-                  log.info("手机号：" + mobile + " 短信内容：" + content);
+                  log.info("接收短信记录请求已通过手机号格式校验");
                     if (mobile != null && content != null) {
                         //将信息入库
                         msg.setSendMobile(mobile);
@@ -147,7 +134,7 @@ public class SmsController {
                         msg.setDraft(0);//是否草稿，1否
                         msg.setFlag(0);//是否删除，0否
                         msg = smsSvc.save(msg);
-                        if (null != msg.getId() && 0 < msg.getId()) {
+                        if (msg != null && msg.getId() != null && 0 < msg.getId()) {
                             log.info("保存成功,返回id：" + msg.getId());//此时会生成新的id并返回
                             CommonInfo cif = new CommonInfo();
                             cif.setSendAccount(mobile);
@@ -169,7 +156,7 @@ public class SmsController {
                             log.info("保存失败");
                         }
                     } else {
-                        System.out.println("input params is null ！");
+                        log.warn("短信接收记录请求缺少必要内容");
                         result = "failed";
                     }
                 }
@@ -197,14 +184,14 @@ public class SmsController {
     @PutMapping("/sms")
     public Resp updateSms(@RequestBody Sms sms) {
         Sms ss = sms;
-        log.info("修改短信信息......" + ss.getContent());
         if (ss != null) {
+            log.info("修改短信信息，id={}, contentPresent={}", ss.getId(),
+                    ss.getContent() != null && !ss.getContent().isEmpty());
             try {
                 smsSvc.updateSms(ss);
                 //更改公共信息表
             } catch (Exception ee) {
-                log.error("修改短信失败,原因：" + ee.getMessage());
-                ee.printStackTrace();
+                log.error("修改短信失败", ee);
             }
         }
         return new Resp(sms);

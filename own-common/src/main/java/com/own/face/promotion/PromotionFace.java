@@ -18,7 +18,7 @@ import org.springframework.util.MultiValueMap;
 @Service
 public class PromotionFace extends FaceBase {
 
-	protected String serviceUrl="//PROMOTIONWJJ/sale";
+	protected String serviceUrl="http://PROMOTIONWJJ/sale";
 	/**
 	 * 查询活动信息
 	 * @param id

@@ -1,6 +1,7 @@
 package com.own.product.controller;
 
 import com.own.face.core.FaceUtil;
+import com.own.face.trade.TradeException;
 import com.own.face.product.ProductBean;
 import com.own.face.product.TemplateBean;
 import com.own.face.util.Resp;
@@ -38,7 +39,10 @@ public class ProductController extends BaseController {
     public @ResponseBody
     Resp getProduct(@PathVariable Long id) {
         Product product = productDao.queryProductById(id);
-        log.info("product:{}",product.toString());
+        if (product == null) {
+            throw TradeException.notFound("product was not found");
+        }
+        log.info("product:{}", product);
         return new Resp(product);
     }
 
@@ -51,10 +55,10 @@ public class ProductController extends BaseController {
         //根据产品类型、店家查询
         if (!Util.isNullOrEmpty(parms.get("categoryId"))) {
             String categoryStr = parms.get("categoryId").toString();
-            String[] categoryIds = categoryStr.split(",");
+            String[] categoryIds = numericIds(categoryStr, "categoryId");
             String partyId = "";
             if (!Util.isNullOrEmpty(parms.get("partyId"))) {
-                partyId = parms.get("partyId").toString();
+                partyId = numericId(parms.get("partyId").toString(), "partyId");
             }
             String cypher = createQueryCypher(categoryIds, partyId, "product");
             iterable = template.queryForObjects(Product.class, cypher, new HashMap());
@@ -62,17 +66,19 @@ public class ProductController extends BaseController {
         }
         //根据产品id查询
         else if (!Util.isNullOrEmpty(parms.get("productId"))) {
+            String productId = numericId(parms.get("productId").toString(), "productId");
             StringBuffer sb = new StringBuffer();
             sb.append("start n=node(");
-            sb.append(parms.get("productId").toString());
+            sb.append(productId);
             sb.append(") return n");
             iterable = template.queryForObjects(Product.class, sb.toString(), new HashMap());
         }
         //只根据店家查询（不包括产品类型）
         else if (!Util.isNullOrEmpty(parms.get("partyId")) && Util.isNullOrEmpty(parms.get("categoryId"))) {
+            String partyId = numericId(parms.get("partyId").toString(), "partyId");
             StringBuffer sb = new StringBuffer();
             sb.append("match(n:Product {partyId:");
-            sb.append(parms.get("partyId"));
+            sb.append(partyId);
             sb.append("}) return n");
             iterable = template.queryForObjects(Product.class, sb.toString(), new HashMap());
         } else {
@@ -132,6 +138,22 @@ public class ProductController extends BaseController {
         int i = 65;
         char letter = (char) (i + num);
         return String.valueOf(letter);
+    }
+
+    private String[] numericIds(String source, String name) {
+        String[] values = source == null ? new String[0] : source.split(",");
+        if (values.length == 0 || values.length > 26) {
+            throw TradeException.unprocessable(name + " must contain 1..26 numeric ids");
+        }
+        for (int i = 0; i < values.length; i++) values[i] = numericId(values[i], name);
+        return values;
+    }
+
+    private String numericId(String value, String name) {
+        if (value == null || !value.matches("[1-9][0-9]*")) {
+            throw TradeException.unprocessable(name + " must be a positive numeric id");
+        }
+        return value;
     }
 
     @ApiOperation(value = "添加产品")

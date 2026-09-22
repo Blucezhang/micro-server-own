@@ -72,15 +72,9 @@ public class JgpushController{
 
     @ApiOperation(value ="搜索信息列表" )
     @GetMapping("/jgpush")
-    public Resp findJgpushs(@RequestParam String title, String content) {
-        String wheresql = " or ";
-        if (null != title && !"".equals(title)) {
-            wheresql += " jp.title like '%" + title + "%' ";
-        }
-        if (null != content && !"".equals(content)) {
-            wheresql += " or jp.content like '%" + content + "%' ";
-        }
-        List jps = jgpushSvc.findJgpushs(wheresql);
+    public Resp findJgpushs(@RequestParam(required = false) String title,
+                            @RequestParam(required = false) String content) {
+        List jps = jgpushSvc.findJgpushs(title, content);
         return new Resp(jps);
     }
 

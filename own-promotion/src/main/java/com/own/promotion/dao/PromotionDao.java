@@ -69,8 +69,8 @@ public interface PromotionDao extends BaseDao {
      * @param productId
      * @return
      */
-    @Query("match (p:Product)-[r]->(m:Promotion)-[t]->(type:PromotionType) where p.productId='111' return m,type ")
-    public List findProByProductInfo(String productId);
+	    @Query("match (p:Product)-[r]->(m:Promotion)-[t]->(type:PromotionType) where p.productId={0} return m,type ")
+	    public List findProByProductInfo(String productId);
     
     
     /**
@@ -83,21 +83,21 @@ public interface PromotionDao extends BaseDao {
     
     
     /**
-     * 根据传入的商品类型，查询对应的活动
-     * @param typeId
-     * @return
+     * 根据促销类型节点查询活动。
+     * @param typeId Neo4j 节点 id
+     * @return matching promotions
      */
-//    @Query("match (pt:PromotionType)-[r]->(m:Promotion) where pt.typeId={0} return m ")
-//    public List<Promotion> findProByTypeInfo(Long typeId);
+    @Query("match (m:Promotion)-[:BELONG]->(pt:PromotionType) where id(pt)={0} return m ")
+    public List<Promotion> findProByTypeInfo(Long typeId);
     
     
     /**
-     * 根据传入的地域信息，查询对应的活动
-     * @param zoneId
-     * @return
+     * 根据活动范围节点查询活动。
+     * @param zoneId Neo4j Scope 节点 id
+     * @return matching promotions
      */
-//    @Query("match (z:Zone)-[r]->(m:Promotion) where z.zoneId={0} return m ")
-//    public List<Promotion> findProByZoneInfo(Long zoneId);
+    @Query("match (m:Promotion)-[:BELONG]->(z:Scope) where id(z)={0} return m ")
+    public List<Promotion> findProByZoneInfo(Long zoneId);
     
     
     

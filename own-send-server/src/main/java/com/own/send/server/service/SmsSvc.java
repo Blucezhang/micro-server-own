@@ -25,10 +25,22 @@ public class SmsSvc {
 	 * 查询短信列表,搜索功能
 	 * @return
 	 */
-	public List<?> getSms(String wheresql) {
+	public List<?> getSms(Integer id, String title, String content) {
 		Map<String,Object> param = new HashMap<String,Object>();
-	 
-		Page<?> result = (Page<?>)rdbSvc.findAll2Page(findSmsSql+wheresql, param);
+		StringBuilder query = new StringBuilder(findSmsSql);
+		if (id != null) {
+			query.append(" and s.id=:id");
+			param.put("id", id);
+		}
+		if (title != null && !title.trim().isEmpty()) {
+			query.append(" and s.title like :title");
+			param.put("title", "%" + title.trim() + "%");
+		}
+		if (content != null && !content.trim().isEmpty()) {
+			query.append(" and s.content like :content");
+			param.put("content", "%" + content.trim() + "%");
+		}
+		Page<?> result = (Page<?>)rdbSvc.findAll2Page(query.toString(), param);
 		return  result.getContent();
 	}
 	
@@ -43,8 +55,7 @@ public class SmsSvc {
 			sms = (Sms)rdbSvc.save(sms);
 			
 		}catch(Exception ee){
-			log.error("短信保存失败!失败原因："+ee.getMessage());
-			ee.printStackTrace();
+			log.error("短信保存失败", ee);
 		}
 		
 		return sms;
@@ -63,8 +74,7 @@ public class SmsSvc {
 		try{
 			sms = (Sms)rdbSvc.findObject(findSmsHql, map);
 		}catch(Exception ee){
-			log.error(ee.getMessage());
-			ee.printStackTrace();
+			log.error("短信查询失败", ee);
 		}
 		return sms;
 	}
@@ -80,8 +90,7 @@ public class SmsSvc {
 			msg = (Sms)rdbSvc.save(sms);//save方法同时也是一个更新方法
 			log.info("更新短信成功!id:"+sms.getId());
 		}catch(Exception ee){
-			log.error(ee.getMessage());
-			ee.printStackTrace();
+			log.error("短信更新失败", ee);
 		}
 		return msg;
 	}

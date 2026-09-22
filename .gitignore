@@ -1,11 +1,19 @@
 /own-config/target/
+/own-common/target/
+**/target/
+.idea/
+**/logs/
+# Local, unrelated script accidentally placed under the Java source tree.
+/own-common/src/main/java/com/own/face/config/shell.py
+.env
+.env.*
+!.env.example
 /own-api-gateway/own-api-gateway.iml
 /own-send-server/own-send-server.iml
 /own-api-gateway/target/
 /own-config/own-config.iml
 /own-eureka-server/own-eureka-server.iml
 /micro-server-own.iml
-/own-product/src/test/
 /own-product/own-product.iml
 /own-eureka-server/target/
 /own-promotion/own-promotion.iml
@@ -18,9 +26,3 @@
 /own-promotion/target/
 /own-file/target/
 /own-common/own-common.iml
-/own-workflow/src/test/
-/own-user-party/src/test/
-/own-send-server/src/test/
-/own-promotion/src/test/
-/own-file/src/test/
-#/own-common/src/test/

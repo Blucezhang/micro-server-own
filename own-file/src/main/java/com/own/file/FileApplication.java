@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Created by Bluce on 2018/4/4.
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.ComponentScan;
 @SpringBootApplication
 @EnableDiscoveryClient
 @EntityScan(basePackages = {"com.own.file.domain"})
+@EnableJpaRepositories(basePackages = {"com.own.file.repository"})
 @ComponentScan(basePackages = {"com.own.file","com.own.face"})
 public class FileApplication {
 

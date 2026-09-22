@@ -13,6 +13,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
+
 @Slf4j
 @Service
 public class RdbSvc{
@@ -32,13 +34,13 @@ public class RdbSvc{
 	 */
 	@Transactional
 	public Object save(Object obj){
-		IDomainBase objPo =  (IDomainBase)obj ;
+		IDomainBase objPo = requireDomain(obj);
  
 		if(objPo.getObjectId()!=null){
 			objPo = (IDomainBase)baseDao.find(obj,objPo.getObjectId());
-			if(objPo==null)
-				//throw new IFException("要更新的实体记录不存在！");
-				log.info("要更新的实体记录不存在！");
+			if (objPo == null) {
+				throw new EntityNotFoundException("Entity to update does not exist");
+			}
 			BeanUtils.copyProperties(obj,objPo);
 			baseDao.save(objPo);
 			return objPo;
@@ -54,10 +56,14 @@ public class RdbSvc{
 	 */
 	@Transactional
 	public Object update(Object obj){
-		Object objPo = baseDao.find(obj, ((IDomainBase)obj).getObjectId());
-		if(objPo==null)
-			//throw new IFException("要更新的实体记录不存在！");
-		log.info("要更新的实体记录不存在！");
+		IDomainBase domain = requireDomain(obj);
+		if (domain.getObjectId() == null) {
+			throw new IllegalArgumentException("Entity identifier is required for update");
+		}
+		Object objPo = baseDao.find(obj, domain.getObjectId());
+		if (objPo == null) {
+			throw new EntityNotFoundException("Entity to update does not exist");
+		}
 		BeanUtils.copyProperties(obj,objPo);
 		
 		baseDao.save(objPo);
@@ -70,12 +76,15 @@ public class RdbSvc{
 	 * @param obj
 	 */
 	public <T> void delete(Object obj){
-		if(!(obj instanceof IDomainBase))
-		log.info("该实体没有继承IDomainBase！！！");
-		Object key = ((IDomainBase)obj).getObjectId();
+		IDomainBase domain = requireDomain(obj);
+		Object key = domain.getObjectId();
+		if (key == null) {
+			throw new IllegalArgumentException("Entity identifier is required for delete");
+		}
 		Object object = baseDao.find(obj, key);
-		if(obj==null)
-			log.info("要删除的实体不存在或已被删除！");
+		if (object == null) {
+			throw new EntityNotFoundException("Entity to delete does not exist");
+		}
 		baseDao.remove(object);
 	}
 	
@@ -86,17 +95,14 @@ public class RdbSvc{
 	 * @return
 	 */
 	public Object find(Object obj){
-		if(!(obj instanceof IDomainBase))
-			log.info("该实体没有继承IDomainBase！！！");
-		Object key = ((IDomainBase)obj).getObjectId();
+		Object key = requireDomain(obj).getObjectId();
 		Object returnO = baseDao.find(obj, key);
 		return returnO;
 	}
 	
 	//根据实体和key进行查找
 	public Object find(Object obj,Object key){
-		if(!(obj instanceof IDomainBase))
-			log.info("该实体没有继承IDomainBase！！！");
+		requireDomain(obj);
   		Object returnO = baseDao.find(obj, key);
 		return returnO;
 	}
@@ -155,5 +161,12 @@ public class RdbSvc{
 	
 	public List<?> findList(String jsql,Map paramMap){
 		return baseDao.findList(jsql, paramMap);
+	}
+
+	private IDomainBase requireDomain(Object obj) {
+		if (!(obj instanceof IDomainBase)) {
+			throw new IllegalArgumentException("Entity must implement IDomainBase");
+		}
+		return (IDomainBase) obj;
 	}
 }

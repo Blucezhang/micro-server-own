@@ -15,7 +15,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 @Service
 public class PartyFace extends FaceBase {
 
-	protected String serviceUrl = "//PARTY/";
+	protected String serviceUrl = "http://PARTY/";
 
 	/**
 	 * 根据PersonId查询用户的常用信息
@@ -73,7 +73,7 @@ public class PartyFace extends FaceBase {
 	 * @throws JsonProcessingException 
 	 */
 	public Map<String, Object> UpdatePerson(PersonBean personBean) {
-		Map<String,Object> result = post(serviceUrl, personBean, Map.class, null);
+		Map<String,Object> result = post(serviceUrl, personBean, Map.class, new HashMap<String, Object>());
 		return result;
 	}
 	
@@ -135,7 +135,7 @@ public class PartyFace extends FaceBase {
 	 * @param userBean
 	 */
 	public void updataPassword(UserBean userBean) {
-		post(serviceUrl + "/updatePassword", userBean, null, null);
+		post(serviceUrl + "/updatePassword", userBean, Map.class, new HashMap<String, Object>());
 	}
 
 	/**

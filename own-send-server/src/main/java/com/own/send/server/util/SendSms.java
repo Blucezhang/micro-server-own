@@ -11,14 +11,15 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import com.siaya.action.core.MsgResult;
-import com.siaya.exception.StateException;
-import com.siaya.util.Util;
+import com.own.face.util.Util;
+import com.own.send.server.util.sms.MsgResult;
+import com.own.send.server.util.sms.SmsGatewayException;
 
 
 public class SendSms {
@@ -30,61 +31,57 @@ public class SendSms {
 	 * 发送短信
 	 */
 	public MsgResult sendSms(String mobile,String content,String serviceUrl,String sn,String pwd) {
-		try{
-			content = URLEncoder.encode(content+"","utf-8");
+		if (Util.isNullOrEmpty(mobile) || Util.isNullOrEmpty(content)) {
+			throw new IllegalArgumentException("mobile and content are required");
+		}
+		if (Util.isNullOrEmpty(serviceUrl) || Util.isNullOrEmpty(sn) || Util.isNullOrEmpty(pwd)) {
+			throw new IllegalArgumentException("SMS gateway configuration is incomplete");
+		}
+
+		String encodedContent;
+		try {
+			encodedContent = URLEncoder.encode(content, "UTF-8");
+		} catch (UnsupportedEncodingException exception) {
+			throw new IllegalStateException("UTF-8 encoding is unavailable", exception);
+		}
+
+		String gatewayResponse = Util.toStringAndTrim(
+				mdsmssend(mobile, encodedContent, "", "", "", "", serviceUrl, sn, pwd));
+		logger.info("SMS gateway response: " + gatewayResponse);
+		if (gatewayResponse.isEmpty()) {
+			throw new SmsGatewayException("SMS gateway returned an empty response", gatewayResponse, "-000002");
+		}
+
+		try {
+			if (Long.parseLong(gatewayResponse) < 0) {
+				throw new SmsGatewayException("SMS gateway rejected the message", gatewayResponse, "-000002");
 			}
-		catch(UnsupportedEncodingException e){
-			e.printStackTrace();
-			}
+		} catch (NumberFormatException exception) {
+			throw new SmsGatewayException("SMS gateway returned an invalid response", gatewayResponse,
+					"-000002", exception);
+		}
 
-		MsgResult result = new MsgResult();
-
-		String result_mt = Util.toStringAndTrim(mdsmssend(mobile,content,"","","","",serviceUrl,sn,pwd));
-		logger.info("sendSms result:"+result_mt);
-		if("".equals(result_mt))
-			throw new StateException(result_mt,"-000002");
-
-		if(Long.parseLong(result_mt)<0)
-			throw new StateException(result_mt,"-000002");
-
-		return result;
-		
-		
+		return MsgResult.success(gatewayResponse);
 	}
 	
 	
-	public String getMD5(String sourceStr) throws UnsupportedEncodingException {
-		String resultStr = "";
+	public String getMD5(String sourceStr) {
 		try {
-			byte[] temp = sourceStr.getBytes();
+			byte[] temp = sourceStr.getBytes(StandardCharsets.UTF_8);
 			MessageDigest md5 = MessageDigest.getInstance("MD5");
-			md5.update(temp);
-			// resultStr = new String(md5.digest());
-			byte[] b = md5.digest();
-			for (int i = 0; i < b.length; i++) {
-				char[] digit = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
-						'9', 'A', 'B', 'C', 'D', 'E', 'F' };
-				char[] ob = new char[2];
-				ob[0] = digit[(b[i] >>> 4) & 0X0F];
-				ob[1] = digit[b[i] & 0X0F];
-				resultStr += new String(ob);
+			byte[] digest = md5.digest(temp);
+			StringBuilder result = new StringBuilder(digest.length * 2);
+			for (byte value : digest) {
+				result.append(String.format("%02X", value & 0xff));
 			}
-			return resultStr;
+			return result.toString();
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			return null;
+			throw new IllegalStateException("MD5 algorithm is unavailable", e);
 		}
 	}
 	
 	public String getPwd(String sn,String pwd) {
-		String md5pwd =null;
-		try {
-			md5pwd = getMD5(sn + pwd);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return md5pwd;
+		return getMD5(sn + pwd);
 	}
 	
 	/**
@@ -107,58 +104,70 @@ public class SendSms {
 		xml.append("<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">");
 		xml.append("<soap:Body>");
 		xml.append("<mdsmssend  xmlns=\"http://entinfo.cn/\">");
-		xml.append("<sn>" + sn + "</sn>");
-		xml.append("<pwd>" + getPwd(sn,pwd) + "</pwd>");
-		xml.append("<mobile>" + mobile + "</mobile>");
-		xml.append("<content>" + content + "</content>");
-		xml.append("<ext>" + ext + "</ext>");
-		xml.append("<stime>" + stime + "</stime>");
-		xml.append("<rrid>" + rrid + "</rrid>");
-		xml.append("<msgfmt>" + msgfmt + "</msgfmt>");
+		xml.append("<sn>").append(escapeXml(sn)).append("</sn>");
+		xml.append("<pwd>").append(escapeXml(getPwd(sn, pwd))).append("</pwd>");
+		xml.append("<mobile>").append(escapeXml(mobile)).append("</mobile>");
+		xml.append("<content>").append(escapeXml(content)).append("</content>");
+		xml.append("<ext>").append(escapeXml(ext)).append("</ext>");
+		xml.append("<stime>").append(escapeXml(stime)).append("</stime>");
+		xml.append("<rrid>").append(escapeXml(rrid)).append("</rrid>");
+		xml.append("<msgfmt>").append(escapeXml(msgfmt)).append("</msgfmt>");
 		xml.append("</mdsmssend>");
 		xml.append("</soap:Body>");
 		xml.append("</soap:Envelope>");
 		
-		logger.info("发送短信，请求报文:"+xml);
+		logger.info("Sending SMS request to gateway: " + serviceURL);
 
 		URL url;
+		HttpURLConnection httpconn = null;
 		try {
 			url = new URL(serviceURL);
 
 			URLConnection connection = url.openConnection();
-			HttpURLConnection httpconn = (HttpURLConnection) connection;
+			httpconn = (HttpURLConnection) connection;
 			ByteArrayOutputStream bout = new ByteArrayOutputStream();
-			bout.write(xml.toString().getBytes());
+			bout.write(xml.toString().getBytes(StandardCharsets.UTF_8));
 			byte[] b = bout.toByteArray();
 			httpconn.setRequestProperty("Content-Length", String
 					.valueOf(b.length));
 			httpconn.setRequestProperty("Content-Type",
-					"text/xml; charset=gb2312");
+					"text/xml; charset=UTF-8");
 			httpconn.setRequestProperty("SOAPAction", soapAction);
 			httpconn.setRequestMethod("POST");
 			httpconn.setDoInput(true);
 			httpconn.setDoOutput(true);
+			httpconn.setConnectTimeout(5000);
+			httpconn.setReadTimeout(10000);
 
-			OutputStream out = httpconn.getOutputStream();
-			out.write(b);
-			out.close();
+			try (OutputStream out = httpconn.getOutputStream()) {
+				out.write(b);
+			}
 
-			InputStreamReader isr = new InputStreamReader(httpconn
-					.getInputStream());
-			BufferedReader in = new BufferedReader(isr);
-			String inputLine;
-			while (null != (inputLine = in.readLine())) {
-				Pattern pattern = Pattern.compile("<mdsmssendResult>(.*)</mdsmssendResult>");
-				Matcher matcher = pattern.matcher(inputLine);
-				while (matcher.find()) {
-					result = matcher.group(1);
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(httpconn.getInputStream(), StandardCharsets.UTF_8))) {
+				String inputLine;
+				while (null != (inputLine = in.readLine())) {
+					Pattern pattern = Pattern.compile("<mdsmssendResult>(.*)</mdsmssendResult>");
+					Matcher matcher = pattern.matcher(inputLine);
+					while (matcher.find()) {
+						result = matcher.group(1);
+					}
 				}
 			}
 			return result;
 		} catch (Exception e) {
-			e.printStackTrace();
-			return "";
+			throw new SmsGatewayException("SMS gateway request failed", "", "-000003", e);
+		} finally {
+			if (httpconn != null) httpconn.disconnect();
 		}
+	}
+
+	private String escapeXml(String value) {
+		return Util.toStringAndTrim(value)
+				.replace("&", "&amp;")
+				.replace("<", "&lt;")
+				.replace(">", "&gt;")
+				.replace("\"", "&quot;")
+				.replace("'", "&apos;");
 	}
 	
 	/** 
@@ -168,13 +177,7 @@ public class SendSms {
      * @return 验证通过返回true 
      */  
     public boolean isMobile(String str) {   
-        Pattern p = null;  
-        Matcher m = null;  
-        boolean b = false;   
-        p = Pattern.compile("^[1][3,4,5,7,8][0-9]{9}$"); // 验证手机号  
-        m = p.matcher(str);  
-        b = m.matches();   
-        return b;  
+        return str != null && Pattern.compile("^1[3-9][0-9]{9}$").matcher(str).matches();
     } 
     
     

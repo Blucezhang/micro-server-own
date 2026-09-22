@@ -1,0 +1,1 @@
+package com.own.order.repository; import com.own.order.domain.AfterSaleItem; import java.util.List; import org.springframework.data.jpa.repository.JpaRepository; public interface AfterSaleItemRepository extends JpaRepository<AfterSaleItem,Long>{ List<AfterSaleItem> findByAfterSaleNo(String afterSaleNo); }

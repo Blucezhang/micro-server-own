@@ -1,0 +1,26 @@
+server:
+  port: 6003
+
+trade:
+  internal:
+    service-token: ${INTERNAL_SERVICE_TOKEN:}
+    previous-service-token: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:}
+
+spring:
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://mysql:3306/micro?useUnicode=true&characterEncoding=UTF-8&useSSL=false}
+    username: ${MYSQL_USER:micro}
+    password: ${MYSQL_PASSWORD:micro}
+    driver-class-name: com.mysql.jdbc.Driver
+
+ems:
+  serviceURL: ${SMS_SERVICE_URL:}
+  sn: ${SMS_SN:}
+  pwd: ${SMS_PASSWORD:}
+  host: ${MAIL_HOST:}
+  auth: ${MAIL_AUTH:false}
+  from: ${MAIL_FROM:}
+  user: ${MAIL_USER:}
+  password: ${MAIL_PASSWORD:}
+  appKey: ${JPUSH_APP_KEY:}
+  masterSecret: ${JPUSH_MASTER_SECRET:}

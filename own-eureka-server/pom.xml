@@ -5,12 +5,11 @@
     <parent>
         <artifactId>micro-server-own</artifactId>
         <groupId>com.own</groupId>
-        <version>1.0-ALPHA</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.own</groupId>
     <artifactId>own-eureka-server</artifactId>
-    <version>1.0-ALPHA</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -45,7 +44,6 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.3</version>
                 <configuration>
                     <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
                     <dockerDirectory>src/main/docker</dockerDirectory>
@@ -66,7 +64,7 @@
             <id>nexus-aliyun</id>
             <name>Nexus aliyun</name>
             <layout>default</layout>
-            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            <url>https://maven.aliyun.com/repository/public</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>

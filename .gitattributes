@@ -1,0 +1,2 @@
+# Keep the Windows Maven wrapper executable on Windows while storing a normalized blob.
+mvnw.cmd text eol=crlf

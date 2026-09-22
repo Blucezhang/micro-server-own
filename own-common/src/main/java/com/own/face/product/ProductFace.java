@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProductFace extends FaceBase {
 
- 	protected String serviceUrl="//PRODUCT/";
+	protected String serviceUrl="http://PRODUCT/";
 
  	/**
  	 * 查询产品
@@ -29,7 +29,7 @@ public class ProductFace extends FaceBase {
  		ProductBean p =  get (serviceUrl+"/Product/{id}", ProductBean.class, map);
  		Map<String,Object> productObjMap = new HashMap<String,Object>();
  		productObjMap.put("result", p);
- 		log.info("productObjMap{}:",productObjMap.toString());
+		log.info("商品查询完成，found={}", p != null);
  		return productObjMap;
  	}
  	 
@@ -41,15 +41,15 @@ public class ProductFace extends FaceBase {
  	public List getProduct(String categoryIds,String partyId) throws IfException{
 		List list= new ArrayList();
 		Map<String,Object> map = new HashMap<String,Object>();
- 		log.info("开始...{}",categoryIds);
+		log.info("商品分类查询请求已构造，categoryFilterPresent={}", categoryIds != null && !categoryIds.trim().isEmpty());
  		map.put("categoryId", categoryIds);
- 		if(partyId!=null&&partyId!=""){
+		if(partyId != null && !partyId.trim().isEmpty()){
  		map.put("partyId", partyId);
  		}else{
  			map.put("partyId", null);
  		}
 
- 		if(categoryIds!=null&&categoryIds!=""){
+		if(categoryIds != null && !categoryIds.trim().isEmpty()){
  		 list =  get(serviceUrl+"/Product?categoryId={categoryId}&partyId={partyId}", List.class, map);
  		}else{
  			 list= get(serviceUrl+"/Product", List.class, map);
@@ -64,7 +64,7 @@ public class ProductFace extends FaceBase {
  	 * @throws IfException
  	 */
  	public List getProductByIds(String productIds) throws IfException{
- 		log.info("开始...{}",productIds);
+		log.info("商品批量查询请求已构造，productFilterPresent={}", productIds != null && !productIds.trim().isEmpty());
  		Map<String,Object> map = new HashMap<String,Object>();
  		map.put("productId", productIds);
  		List list =restTemplate.getForObject(serviceUrl+"/Product?productId={productId}", List.class, map);
@@ -101,7 +101,7 @@ public class ProductFace extends FaceBase {
  	 * @throws IfException
  	 */
  	public void addCategory(CategoryBean c) throws IfException{
- 		log.info("ProductFace {} : ",c.getName());
+		log.info("商品分类创建请求已构造");
  		restTemplate.put(serviceUrl+"/Category", c);
  	}
  	
@@ -111,7 +111,7 @@ public class ProductFace extends FaceBase {
  	 * @throws IfException
  	 */
  	public ProductBean addProduct(ProductBean p) throws IfException{
- 		log.info("object{};",p.toString());
+		log.info("商品创建请求已构造");
  		ProductBean pb = put(serviceUrl+"/Product", p, ProductBean.class);
  		return pb;
  	}

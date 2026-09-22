@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.own.face.trade.TradeException;
 import com.own.face.util.Resp;
 import com.own.workflow.controller.bean.BizBusinessFlowBean;
 import com.own.workflow.domain.BizBusinessFlowContext;
@@ -28,7 +29,7 @@ public class FlowController  {
 	@ApiOperation(value = "根据LoginId查询用户所有的交易")
 	@GetMapping("/workflow")
 	public Resp getUserWorkFlowTransByLoginId(@RequestParam Map params){
-		log.info(params.get("LoginId")+"LoginId");
+		log.info("工作流查询请求已收到，loginIdPresent={}", params.get("LoginId") != null);
 		Map<String, String> result = new HashMap<String,String>();
 		List<?> transList = flowSvc.getUserTransByLoginId(params);
 		return new Resp(transList);
@@ -49,11 +50,11 @@ public class FlowController  {
 	public Resp getTransInfor(@PathVariable Long processId,@PathVariable Integer bizType){
 		Map<String,List<?>> result = new HashMap<String,List<?>>();
 		Map<String,Object> params = new HashMap<String,Object>();
-		if(processId==null)
-			System.out.println("processId不能为空");
+		if(processId==null || processId.longValue() <= 0L)
+			throw TradeException.unprocessable("processId must be positive");
 		params.put("bizType", bizType);
-		if(bizType==null)
-			System.out.println("bizType不能为空");
+		if(bizType==null || bizType.intValue() <= 0)
+			throw TradeException.unprocessable("bizType must be positive");
 		params.put("processId", processId);
 		List<?> returns = flowSvc.queryProcessMater(params);
 		result.put("TransListByProcessId", returns);

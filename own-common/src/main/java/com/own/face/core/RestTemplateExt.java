@@ -91,11 +91,11 @@ public class RestTemplateExt {
 						}
 						if (log.isDebugEnabled()) {
 							if (requestContentType != null) {
-								log.debug("Writing [" + requestBody + "] as \"" + requestContentType +
-										"\" using [" + messageConverter + "]");
+								log.debug("Writing request body as \"" + requestContentType +
+										"\" using [" + messageConverter.getClass().getSimpleName() + "]");
 							}
 							else {
-								log.debug("Writing [" + requestBody + "] using [" + messageConverter + "]");
+								log.debug("Writing request body using [" + messageConverter.getClass().getSimpleName() + "]");
 							}
 						}
 						((HttpMessageConverter<Object>) messageConverter).write(
@@ -168,4 +168,3 @@ public class RestTemplateExt {
 	}
 
 }
-

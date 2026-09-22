@@ -5,12 +5,11 @@
     <parent>
         <artifactId>micro-server-own</artifactId>
         <groupId>com.own</groupId>
-        <version>1.0-ALPHA</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.own</groupId>
     <artifactId>own-promotion</artifactId>
-    <version>1.0-ALPHA</version>
     <packaging>jar</packaging>
 
 
@@ -22,7 +21,6 @@
         <dependency>
             <groupId>com.own</groupId>
             <artifactId>own-common</artifactId>
-            <version>${own.version}</version>
         </dependency>
 
         <dependency>
@@ -36,15 +34,23 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
-            <version>3.4.0-alpha10</version>
         </dependency>
 
         <dependency>
             <groupId>org.kie</groupId>
             <artifactId>kie-api</artifactId>
-            <version>7.7.0.Final</version>
         </dependency>
 
     </dependencies>
@@ -54,12 +60,10 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
             </plugin>
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.3</version>
                 <configuration>
                     <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
                     <dockerDirectory>src/main/docker</dockerDirectory>

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class JgpushSvc {
 
-	Logger log = Logger.getLogger(SmsSvc.class);
+	Logger log = Logger.getLogger(JgpushSvc.class);
 	
 	@Autowired
 	private RdbSvc rdbSvc;
@@ -27,7 +27,7 @@ public class JgpushSvc {
 		try{
 			rdbSvc.save(jp);
 		}catch(Exception ee){
-			ee.printStackTrace();
+			log.error("极光推送记录保存失败", ee);
 		}
 		return jp;
 	}
@@ -39,28 +39,39 @@ public class JgpushSvc {
 	 */
 	public Jgpush findJgpushById(Integer id){
 		String findsql = " from Jgpush jp where jp.id=:id ";
-		Map<String,String> param = new HashMap<String,String>();
+		Map<String,Object> param = new HashMap<String,Object>();
+		param.put("id", id);
 		Jgpush jp = null;
 		try{
 			jp = (Jgpush)rdbSvc.findObject(findsql,param);
 		}catch(Exception ee){
-			ee.printStackTrace();
+			log.error("极光推送记录查询失败", ee);
 		}
 		return jp;
 	}
 	
 	/**
 	 * 查询列表信息
-	 * @param wheresql
+	 * @param title optional title filter
+	 * @param content optional content filter
 	 * @return
 	 */
-	public List<?> findJgpushs(String wheresql){
-		String findsql = " from Jgpush jp where 1=1 ";
-		List<?> jlist = new ArrayList();
+	public List<?> findJgpushs(String title, String content){
+		StringBuilder findsql = new StringBuilder(" from Jgpush jp where 1=1 ");
+		Map<String,Object> param = new HashMap<String,Object>();
+		if (title != null && !title.trim().isEmpty()) {
+			findsql.append(" and jp.title like :title");
+			param.put("title", "%" + title.trim() + "%");
+		}
+		if (content != null && !content.trim().isEmpty()) {
+			findsql.append(" and jp.content like :content");
+			param.put("content", "%" + content.trim() + "%");
+		}
+		List<?> jlist = new ArrayList<Object>();
 		try{
-			jlist = rdbSvc.findList(findsql, null);
+			jlist = rdbSvc.findList(findsql.toString(), param);
 		}catch(Exception ee){
-			ee.printStackTrace();
+			log.error("极光推送记录列表查询失败", ee);
 		}
 		return jlist;
 	}

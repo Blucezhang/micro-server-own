@@ -1,5 +1,6 @@
 package com.own.user.party.dao.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -16,10 +17,12 @@ public class LoginUser {
 	@Property(name="loginId")
 	private Integer loginId;
 	@Property(name="password")
+	@JsonIgnore
 	private String password;
 	@Property(name="partyId")
 	private Long partyId;
 	@Property(name="trspwd")
+	@JsonIgnore
 	private String trspwd;
 	@Property(name="name")
 	private String name;

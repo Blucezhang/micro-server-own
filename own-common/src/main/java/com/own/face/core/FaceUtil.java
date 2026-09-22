@@ -130,7 +130,7 @@ public class FaceUtil {
                     // 得到property对应的getter方法  
                     Method getter = property.getReadMethod();  
                     Object value = getter.invoke(obj);  
-                    if(value!=null && value!=""){
+	                    if(value != null && !(value instanceof String && ((String) value).isEmpty())){
                     	map.put(key, value);  
                     }
                 }  
