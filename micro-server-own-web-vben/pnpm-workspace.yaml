@@ -66,7 +66,7 @@ catalog:
   '@tanstack/vue-form': ^1.33.2
   '@tanstack/vue-query': ^5.102.3
   '@tanstack/vue-store': ^0.11.0
-  '@tiptap/core': ^3.30.3
+  '@tiptap/core': ^3.30.5
   '@tiptap/extension-document': ^3.30.3
   '@tiptap/extension-highlight': ^3.30.3
   '@tiptap/extension-image': ^3.30.3
