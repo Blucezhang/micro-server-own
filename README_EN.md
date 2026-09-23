@@ -7,11 +7,13 @@
 [![Vben Admin](https://img.shields.io/badge/Vben%20Admin-5-1677FF?style=flat-square)](https://www.vben.pro/)
 [![GitHub stars](https://img.shields.io/github/stars/Blucezhang/micro-server-own?style=flat-square&logo=github)](https://github.com/Blucezhang/micro-server-own/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/Blucezhang/micro-server-own?style=flat-square&logo=github)](https://github.com/Blucezhang/micro-server-own/network/members)
-[![License status](https://img.shields.io/badge/License-pending%20confirmation-F59E0B?style=flat-square)](#license)
+[![License](https://img.shields.io/badge/License-Apache--2.0-D22128?style=flat-square)](LICENSE)
 
 [简体中文](README.md) · English
 
 > A multi-merchant marketplace microservices project for learning, demonstration, and incremental engineering practice. Its current baseline is Java 17, Spring Cloud Alibaba, Nacos, and Vben Admin 5, covering accounts, catalog, promotions, inventory, orders, payments, after-sales, and merchant settlement.
+
+![micro-server-own project preview](.github/social-preview.png)
 
 ## Project scope
 
@@ -211,10 +213,14 @@ See [`.env.example`](.env.example) for the full template. Provide secrets only t
 
 Maven tests verify source code, unit contracts, and the build. Nacos, RocketMQ, MySQL, Neo4j, payment channels, logistics, message delivery, and container orchestration still need integration acceptance in the target environment. See the [framework upgrade and business migration plan](docs/architecture/framework-upgrade-plan.md) for current progress and open verification items.
 
-> `.github/workflows/main.yml` is still pinned to JDK 8 and does not represent the Java 17 baseline. The README deliberately does not display a potentially misleading CI status badge.
+> `.github/workflows/main.yml` now uses JDK 17 for Maven verification. The remote workflow result remains the acceptance evidence for merging and releasing, so the README does not make a static CI claim.
 
 ## Documentation
 
+- [Contribution guide](CONTRIBUTING.md)
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [Support and feedback](SUPPORT.md)
+- [Changelog](CHANGELOG.md)
 - [Framework upgrade and business migration plan](docs/architecture/framework-upgrade-plan.md)
 - [Framework upgrade compatibility inventory](docs/architecture/framework-upgrade-inventory.md)
 - [Neo4j data-access modernization runbook](docs/architecture/neo4j-modernization-runbook.md)
@@ -225,4 +231,4 @@ Maven tests verify source code, unit contracts, and the build. Nacos, RocketMQ, 
 
 ## License
 
-This repository does not currently provide an identifiable, executable open-source license text. [`LICENSE.htm`](LICENSE.htm) is not a clear grant of permission either. This README makes no additional open-source, commercial-use, or redistribution promise. Before use, distribution, or commercial deployment, the repository maintainer should add and confirm an applicable license.
+This project is licensed under the [Apache License 2.0](LICENSE). When using, modifying, or redistributing the project, comply with its terms and retain applicable copyright, patent, trademark, and attribution notices.

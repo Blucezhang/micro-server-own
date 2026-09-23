@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest a focused improvement with a concrete use case.
+title: "[Feature]: "
+labels: [enhancement, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: Please describe the problem first, then the smallest useful outcome. Product ideas are discussed publicly and do not imply a delivery commitment.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or user scenario
+      description: Who is affected and what cannot be done today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: Describe the externally visible behavior, not only an implementation preference.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and discussions first.
+          required: true
+        - label: I can provide acceptance examples if the proposal is accepted.
+          required: true

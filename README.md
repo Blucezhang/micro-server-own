@@ -7,11 +7,13 @@
 [![Vben Admin](https://img.shields.io/badge/Vben%20Admin-5-1677FF?style=flat-square)](https://www.vben.pro/)
 [![GitHub stars](https://img.shields.io/github/stars/Blucezhang/micro-server-own?style=flat-square&logo=github)](https://github.com/Blucezhang/micro-server-own/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/Blucezhang/micro-server-own?style=flat-square&logo=github)](https://github.com/Blucezhang/micro-server-own/network/members)
-[![License status](https://img.shields.io/badge/License-pending%20confirmation-F59E0B?style=flat-square)](#许可证)
+[![License](https://img.shields.io/badge/License-Apache--2.0-D22128?style=flat-square)](LICENSE)
 
 简体中文 · [English](README_EN.md)
 
 > 一个面向学习、演示与演进实践的多商家商城微服务项目。项目以 Java 17、Spring Cloud Alibaba、Nacos 和 Vben Admin 5 为当前基线，覆盖从账户、商品与营销，到库存、订单、支付、售后和商家结算的核心交易链路。
+
+![micro-server-own 项目预览](.github/social-preview.png)
 
 ## 项目定位
 
@@ -221,10 +223,14 @@ npx -y pnpm@11.16.0 --filter @vben/web-antd run build
 
 Maven 测试用于验证代码、单元契约和构建。Nacos、RocketMQ、MySQL、Neo4j、支付渠道、物流、消息投递和容器编排仍需在实际目标环境进行集成验收。实施进度与待验证项见 [框架升级与业务迁移计划](docs/architecture/framework-upgrade-plan.md)。
 
-> 当前 `.github/workflows/main.yml` 仍固定使用 JDK 8，尚不代表本项目的 Java 17 基线；因此 README 不展示可能误导的 CI 状态徽章。
+> `.github/workflows/main.yml` 已使用 JDK 17 验证 Maven 构建；远程工作流结果仍应作为合并与发布的验收依据。README 不展示可能误导的静态 CI 结论。
 
 ## 文档
 
+- [贡献指南](CONTRIBUTING.md)
+- [行为准则](CODE_OF_CONDUCT.md)
+- [支持与反馈入口](SUPPORT.md)
+- [变更日志](CHANGELOG.md)
 - [框架升级与业务迁移计划](docs/architecture/framework-upgrade-plan.md)
 - [框架升级兼容性基线](docs/architecture/framework-upgrade-inventory.md)
 - [Neo4j 数据访问现代化运行手册](docs/architecture/neo4j-modernization-runbook.md)
@@ -235,4 +241,4 @@ Maven 测试用于验证代码、单元契约和构建。Nacos、RocketMQ、MySQ
 
 ## 许可证
 
-仓库当前未提供可识别、可执行的开源许可证文本；[`LICENSE.htm`](LICENSE.htm) 也不构成明确的授权声明。因此本 README 不作额外的开源、商用或再分发许可承诺。在使用、分发或商用前，请由仓库维护者补充并确认适用许可证。
+本项目采用 [Apache License 2.0](LICENSE)。使用、修改和再分发时，请遵守该许可证的条款，并保留适用的版权、专利、商标和归属声明。

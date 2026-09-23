@@ -15,11 +15,11 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Set up JDK 8
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '8'
+          java-version: '17'
           cache: maven
 
       - name: Verify all Maven modules
@@ -30,7 +30,6 @@ jobs:
           MYSQL_ROOT_PASSWORD: ci-root-password
           MYSQL_PASSWORD: ci-mysql-password
           NEO4J_PASSWORD: ci-neo4j-password
-          EUREKA_PASSWORD: ci-eureka-password
         run: docker compose config --quiet
 
       - name: Upload test reports
