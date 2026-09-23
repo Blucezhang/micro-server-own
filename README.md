@@ -21,7 +21,6 @@
 | --- | --- |
 | `master` | 当前维护主线：Java 17、Spring Boot 4、Spring Cloud Alibaba 与 Nacos 配置基线。 |
 | `jdk17` | 与当前主线同步的 Java 17 升级分支，便于独立验证与回溯升级改动。 |
-| `jdk8` | Java 8 旧技术栈保留分支；不承载新的 Java 17 框架能力。 |
 
 ## 架构
 
@@ -167,6 +166,35 @@ JAVA_HOME=<jdk17> ./mvnw -pl own-order -am spring-boot:run
 
 网关入口默认为 `http://localhost:9632`。网关将 `/user/**`、`/product/**`、`/sale/**`、`/inventory/**`、`/order/**`、`/settlement/**` 路由到对应服务。
 
+## Vben 5 商城前端
+
+前端工程位于 `micro-server-own-web-vben`，基于 Vue 3、TypeScript、Vite 和 Vben Admin 5 构建，为买家、商家和系统管理员提供按角色隔离的工作台与业务页面。
+
+| 门户 | 主要页面 |
+| --- | --- |
+| 买家 | 商品浏览、购物车、地址簿、结算、订单/支付、售后。 |
+| 商家 | 商品发布/编辑、价格审计、库存、履约发货、优惠券、运费、结算提现。 |
+| 系统 | 账号商家角色授权、角色功能授权、评价举报治理。 |
+
+### 前端本地运行
+
+前端默认通过 Vite 代理将 `/api` 转发至网关 `http://localhost:9632`。建议使用 Vben 当前支持的 Node 22.18+ 或 Node 24.12+；在前端目录运行：
+
+```bash
+cd micro-server-own-web-vben/apps/web-antd
+npm run dev
+```
+
+访问 `http://127.0.0.1:5176/auth/login`。开发模式登录页提供买家、商家和系统三个“演示”入口，仅创建浏览器内本地身份用于 UI 验收，不会请求网关或写入真实业务数据；生产构建不显示该入口。
+
+前端质量检查：
+
+```bash
+cd micro-server-own-web-vben
+npx -y pnpm@11.16.0 --filter @vben/web-antd run typecheck
+npx -y pnpm@11.16.0 --filter @vben/web-antd run build
+```
+
 ## 关键配置
 
 | 配置 | 用途 |
@@ -205,6 +233,7 @@ JAVA_HOME=<jdk17> ./mvnw -pl own-order -am spring-boot:run
 - [Neo4j 数据访问现代化运行手册](docs/architecture/neo4j-modernization-runbook.md)
 - [Nacos 配置交付](deploy/nacos/README.md)
 - [商城能力路线图](docs/product/mall-capability-roadmap.md)
+- [前端项目交接说明](docs/frontend/frontend-project-brief.md)
 - [生产部署与渠道接入计划](docs/production-deployment-plan.md)
 
 ## 许可证
