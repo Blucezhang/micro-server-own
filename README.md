@@ -1,32 +1,50 @@
 # micro-server-own
 
-一个用于学习和演示的多商家商城微服务后端。项目覆盖账号、商品、促销、库存、订单、售后、支付与商家结算的核心交易链路，并将服务治理迁移到 Spring Cloud Alibaba + Nacos。
+[![Java](https://img.shields.io/badge/Java-17-437291?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.0-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Spring Cloud Alibaba](https://img.shields.io/badge/Spring%20Cloud%20Alibaba-2025.1.0.0-1677FF?style=flat-square)](https://sca.aliyun.com/)
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white)](https://vuejs.org/)
+[![Vben Admin](https://img.shields.io/badge/Vben%20Admin-5-1677FF?style=flat-square)](https://www.vben.pro/)
+[![GitHub stars](https://img.shields.io/github/stars/Blucezhang/micro-server-own?style=flat-square&logo=github)](https://github.com/Blucezhang/micro-server-own/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Blucezhang/micro-server-own?style=flat-square&logo=github)](https://github.com/Blucezhang/micro-server-own/network/members)
+[![License status](https://img.shields.io/badge/License-pending%20confirmation-F59E0B?style=flat-square)](#许可证)
 
-## 项目概览
+简体中文 · [English](README_EN.md)
 
-| 项目 | 当前基线 |
+> 一个面向学习、演示与演进实践的多商家商城微服务项目。项目以 Java 17、Spring Cloud Alibaba、Nacos 和 Vben Admin 5 为当前基线，覆盖从账户、商品与营销，到库存、订单、支付、售后和商家结算的核心交易链路。
+
+## 项目定位
+
+`micro-server-own` 将商城交易中常见的领域拆分为可独立运行、可组合验证的服务：买家下单与售后、商家商品运营和履约、平台账号与内容治理，以及相应的库存、券、支付和结算协同。
+
+项目保留了清晰的工程边界：本地事务、幂等、Outbox、Inbox 与 Saga 补偿是当前一致性实现方向；真实支付、物流、消息消费者和生产部署仍需要在目标环境完成集成验收。
+
+## 技术基线
+
+| 分类 | 当前选择 |
 | --- | --- |
-| Java | 17 |
-| Maven | 3.9.16（Wrapper） |
-| Spring Boot | 4.0.0 |
-| Spring Cloud | 2025.1.0 |
-| Spring Cloud Alibaba | 2025.1.0.0 |
-| 注册与配置 | Nacos 3 |
-| 网关 | Spring Cloud Gateway |
-| 数据库 | MySQL 5.7（交易数据）、Neo4j（既有用户/商品/促销图数据） |
+| 后端语言与构建 | Java 17、Maven Wrapper 3.9.16 |
+| 应用框架 | Spring Boot 4.0.0、Spring Cloud 2025.1.0 |
+| 服务治理 | Spring Cloud Alibaba 2025.1.0.0、Nacos 3 |
+| 网关与安全 | Spring Cloud Gateway、JWT、RBAC、内部服务令牌 |
+| 数据存储 | MySQL 5.7（交易数据）、Neo4j（既有用户/商品/促销图数据） |
+| 前端 | Vue 3、TypeScript、Vite、Vben Admin 5 |
+| 异步能力 | Outbox、Inbox；可选 RocketMQ 订单事件发布 |
 
-## 分支说明
+## 核心能力
 
-| 分支 | 用途 |
-| --- | --- |
-| `master` | 当前维护主线：Java 17、Spring Boot 4、Spring Cloud Alibaba 与 Nacos 配置基线。 |
-| `jdk17` | 与当前主线同步的 Java 17 升级分支，便于独立验证与回溯升级改动。 |
+- **多角色门户**：买家、商家、系统管理员基于 `ROLE_BUYER`、`ROLE_MERCHANT`、`ROLE_SYSTEM` 隔离路由与工作台。
+- **完整交易主链路**：地址簿、购物车、价格校验、按商家拆单、运费、库存预占、支付确认、发货、签收、售后和结算。
+- **商品与营销运营**：商品发布/编辑、上下架、收藏、评价举报、价格审计、平台券、店铺券、领券、占券和核销。
+- **交易可靠性**：写请求使用 `Idempotency-Key`；库存、优惠券、支付与退款在本地边界内处理幂等、确认、释放与回补。
+- **可验收前端**：内置 Vben 5 商城控制台，开发模式提供纯浏览器内的三类角色 UI 演示入口，不依赖真实账户或后端写入。
 
-## 架构
+## 架构概览
 
 ```mermaid
 flowchart LR
-    client[买家 / 商家 / 管理端] --> gateway[own-api-gateway\nGateway + JWT/RBAC]
+    client[买家 / 商家 / 系统管理员] --> web[Vben 5 商城前端]
+    web --> gateway[own-api-gateway\nGateway + JWT/RBAC]
     gateway --> nacos[Nacos\n注册发现 / 配置]
     gateway --> user[own-user-party]
     gateway --> product[own-product]
@@ -34,10 +52,7 @@ flowchart LR
     gateway --> inventory[own-inventory]
     gateway --> order[own-order]
     gateway --> settlement[own-settlement]
-    gateway --> file[own-file]
-    gateway --> workflow[own-workflow]
-    gateway --> send[own-send-server]
-
+    gateway --> support[文件 / 工作流 / 消息服务]
     user --> neo4j[(Neo4j)]
     product --> neo4j
     promotion --> neo4j
@@ -47,57 +62,42 @@ flowchart LR
     inventory --> mysql
     order --> mysql
     settlement --> mysql
-    file --> mysql
-    workflow --> mysql
-    send --> mysql
+    support --> mysql
 ```
 
-## 服务说明
+## 服务地图
 
-| 服务 | 职责 | 端口 |
+| 服务 | 主要职责 | 默认端口 |
 | --- | --- | ---: |
 | `own-api-gateway` | 统一入口、JWT/RBAC、路由与关联 ID | 9632 |
 | `own-user-party` | 注册、登录、Refresh Session、角色、地址簿 | 6006 |
-| `own-product` | 商品运营、分类、收藏、评价与价格审计 | 6007 |
+| `own-product` | 商品、分类、收藏、评价、举报与价格审计 | 6007 |
 | `own-promotion` | 促销规则、券模板、领券、占券与核销 | 6005 |
-| `own-inventory` | 库存、预占、回补、调整和低库存阈值 | 6009 |
+| `own-inventory` | 库存、预占、确认、回补、调整与阈值 | 6009 |
 | `own-order` | 购物车、试算、拆单、履约、售后与 Outbox | 6010 |
 | `own-settlement` | 模拟支付、退款、商家应收与模拟结算 | 6011 |
 | `own-file` | 临时/正式文件存储与归属校验 | 6004 |
 | `own-workflow` | 业务流程与状态记录 | 6008 |
-| `own-send-server` | 短信、邮件、推送的服务适配 | 6003 |
+| `own-send-server` | 短信、邮件、推送适配 | 6003 |
 
-## 已实现业务
+## 前端工作台
 
-- 买家注册、BCrypt 登录、HS256 JWT、Refresh Session 轮换与撤销、登录失败保护。
-- 网关路由 RBAC：`ROLE_BUYER`、`ROLE_MERCHANT`、`ROLE_SYSTEM`；服务间请求使用独立内部令牌。
-- 商品以 Product 为可售 SKU：商家创建、编辑、上下架，买家浏览、收藏、评价与举报。
-- 地址簿、购物车、实时价格校验、按商家拆单、固定运费和免邮门槛。
-- 库存悲观锁预占、支付确认、超时释放、退款/换货回补、人工调整和审计台账。
-- 平台券、店铺券、用户券实例、领券、占用、核销与释放。
-- 模拟支付和退款、商家发货、物流轨迹、签收、自动签收、退款/退货退款/同 SKU 换货。
-- 订单状态事件写入 Outbox；未配置投递目标时保留待投递状态，不伪造投递成功。
-- 可选 RocketMQ Outbox 发布：启用后由持久化 Outbox 异步发送订单事件；消费者必须以事件 ID 写入 Inbox 去重。
-- 商家应收、结算周期与模拟提现；真实微信/支付宝渠道参数通过环境变量配置。
+前端工程位于 [`micro-server-own-web-vben`](micro-server-own-web-vben)，以 Vue 3、TypeScript、Vite 和 Vben Admin 5 实现。
 
-## 交易一致性进度
+| 门户 | 页面范围 |
+| --- | --- |
+| 买家 | 商品浏览、购物车、地址簿、结算、订单/支付、售后 |
+| 商家 | 商品发布/编辑、价格审计、库存、履约发货、优惠券、运费、结算提现 |
+| 系统 | 账号/商家角色授权、角色功能授权、评价举报治理 |
 
-交易服务采用“本地事务 + 幂等 + Outbox + Inbox + Saga 补偿”的最终一致性方向；不将 Neo4j、支付渠道、文件或物流操作纳入全局数据库事务。
+开发模式下，登录页的“买家演示 / 商家演示 / 系统演示”只在浏览器中创建临时身份，方便 UI 验收；不会调用网关或写入真实业务数据，生产构建中不显示这些入口。
 
-| 能力 | 当前状态 | 说明 |
-| --- | --- | --- |
-| 本地事务与幂等 | 已实现 | 写请求使用 `Idempotency-Key`，库存、券、支付与退款路径具有本地幂等保护。 |
-| 库存/优惠券补偿 | 已实现于同步链路 | 下单、取消、超时、支付、退款和售后路径具备预占、确认、释放或回补逻辑。 |
-| Outbox | 已实现 | 订单状态与事件同事务写入 `ord_event`；失败按退避重试，未配置目标时保持待投递。 |
-| RocketMQ 发布 | 已实现，默认关闭 | 设置 `TRADE_OUTBOX_ROCKETMQ_ENABLED=true` 后，Outbox 调度器可向 `trade.order.events` 发布事件。 |
-| Inbox 去重 | 基础设施已实现 | 库存、促销、结算服务使用 `trade_message_inbox` 按消费者和事件 ID 去重。 |
-| 异步下单 Saga | 已实现（服务级） | 下单先持久化为 `PROCESSING`，工作器按“库存预占 → 优惠券预占”推进；成功后才转 `PENDING_PAYMENT` 并删除所选购物车项。 |
-| Saga 补偿 | 已实现（服务级） | 任一步失败进入 `COMPENSATING`，释放优惠券与库存成功后才转 `SAGA_FAILED`；补偿失败会按 `trade.saga.retry-seconds` 重试，购物车保留。 |
-| 事件驱动 Saga | 未完成 | RocketMQ 目前只承载订单 Outbox 的可选发布；库存/促销的业务消费者、结果事件、死信和对账尚未接入，不能称为端到端消息 Saga。 |
+## 分支说明
 
-`TRADE_SAGA_ASYNC_ENABLED=true`（默认）启用该持久化工作器；可用 `TRADE_SAGA_DELAY_MILLIS` 与 `TRADE_SAGA_RETRY_SECONDS` 调整扫描与补偿重试。它通过现有内部服务幂等接口工作，不把远程调用伪装为单个数据库事务。
-
-因此，当前 RocketMQ 与 Inbox 不能表述为已完成的端到端分布式事务。它们仍是后续消息驱动 Saga 的可靠消息基础。
+| 分支 | 用途 |
+| --- | --- |
+| `master` | 当前维护主线：Java 17、Spring Boot 4、Spring Cloud Alibaba 与 Nacos 配置基线。 |
+| `jdk17` | 与 `master` 同步的 Java 17 升级分支，便于独立验证和回溯。 |
 
 ## 快速开始
 
@@ -105,41 +105,33 @@ flowchart LR
 
 - JDK 17
 - Docker Compose v2（运行整套环境时需要）
-- MySQL、Neo4j、Nacos 的可访问实例，或使用 Compose 编排
+- 可访问的 MySQL、Neo4j、Nacos 实例，或使用 Compose 编排
+- Node.js 22.18+ 或 24.12+（运行 Vben 前端时需要）
 
-### 2. 构建与测试
+### 2. 构建后端
 
 ```bash
 JAVA_HOME=<jdk17> ./mvnw -B -ntp clean verify
 git diff --check
 ```
 
-根 `pom.xml` 是唯一的版本治理入口。新增依赖或插件时，先在根 POM 管理版本，再由子模块引用；子模块不重复声明项目版本或受管版本。
+根 `pom.xml` 是版本治理入口；新增依赖或插件应先在根 POM 管理版本，再由子模块引用。
 
-### 3. 配置 Nacos
-
-复制并填写环境变量：
+### 3. 启动基础设施并导入配置
 
 ```bash
 cp .env.example .env
-```
-
-使用 Compose 时，先仅启动基础设施；本地 Nacos 默认关闭认证，仅限本机演示：
-
-```bash
 docker compose --env-file .env up -d mysql neo4j nacos
 set -a && . ./.env && set +a
 export NACOS_SERVER=http://localhost:8848
 bash scripts/import-nacos-config.sh
-docker compose --env-file .env --profile app up --build -d
-bash scripts/smoke-test.sh
 ```
 
-配置文件位于 [`deploy/nacos/config`](deploy/nacos/config)。默认 Group 为 `MICRO_SERVER`、Namespace 为 `public`，服务通过 `spring.config.import` 加载 `own-<service>-local.yaml`。
+本机 Compose 的 Nacos 默认关闭认证，只适用于开发演示。Nacos 配置在 [`deploy/nacos/config`](deploy/nacos/config)，默认使用 `MICRO_SERVER` Group 与 `public` Namespace。
 
-### 4. 数据库迁移
+### 4. 迁移数据库
 
-新库可由 Compose 初始化；已有 MySQL 库请先备份，再运行前向迁移：
+新库可由 Compose 初始化；已有 MySQL 数据库必须先备份，再执行前向迁移：
 
 ```bash
 MYSQL_HOST=<host> MYSQL_PORT=3306 MYSQL_USER=<user> \
@@ -147,53 +139,57 @@ MYSQL_PASSWORD='<password>' MYSQL_DATABASE=micro \
   bash scripts/apply-migrations.sh
 ```
 
-Neo4j 图数据升级步骤见 [Neo4j 数据访问现代化运行手册](docs/architecture/neo4j-modernization-runbook.md)。先在隔离副本执行备份恢复、图计数比对和业务回归，再切换服务配置。
+Neo4j 图数据升级请遵循 [Neo4j 数据访问现代化运行手册](docs/architecture/neo4j-modernization-runbook.md)：在隔离副本完成恢复、计数比对和业务回归后再切换服务配置。
 
-### 5. 本地启动
+### 5. 启动后端服务
 
-先启动 Nacos、MySQL 和 Neo4j，导入 Nacos 配置后，按依赖顺序启动：
+导入 Nacos 配置后，建议按下面的依赖顺序启动：
 
 1. `own-user-party`、`own-product`、`own-promotion`
 2. `own-file`、`own-send-server`、`own-workflow`
 3. `own-inventory`、`own-order`、`own-settlement`
 4. `own-api-gateway`
 
-单个服务示例：
+单服务启动示例：
 
 ```bash
 JAVA_HOME=<jdk17> ./mvnw -pl own-order -am spring-boot:run
 ```
 
-网关入口默认为 `http://localhost:9632`。网关将 `/user/**`、`/product/**`、`/sale/**`、`/inventory/**`、`/order/**`、`/settlement/**` 路由到对应服务。
+网关入口默认为 `http://localhost:9632`，负责 `/user/**`、`/product/**`、`/sale/**`、`/inventory/**`、`/order/**`、`/settlement/**` 的路由。
 
-## Vben 5 商城前端
+### 6. 启动前端
 
-前端工程位于 `micro-server-own-web-vben`，基于 Vue 3、TypeScript、Vite 和 Vben Admin 5 构建，为买家、商家和系统管理员提供按角色隔离的工作台与业务页面。
-
-| 门户 | 主要页面 |
-| --- | --- |
-| 买家 | 商品浏览、购物车、地址簿、结算、订单/支付、售后。 |
-| 商家 | 商品发布/编辑、价格审计、库存、履约发货、优惠券、运费、结算提现。 |
-| 系统 | 账号商家角色授权、角色功能授权、评价举报治理。 |
-
-### 前端本地运行
-
-前端默认通过 Vite 代理将 `/api` 转发至网关 `http://localhost:9632`。建议使用 Vben 当前支持的 Node 22.18+ 或 Node 24.12+；在前端目录运行：
+Vite 默认将 `/api` 代理到网关 `http://localhost:9632`：
 
 ```bash
 cd micro-server-own-web-vben/apps/web-antd
 npm run dev
 ```
 
-访问 `http://127.0.0.1:5176/auth/login`。开发模式登录页提供买家、商家和系统三个“演示”入口，仅创建浏览器内本地身份用于 UI 验收，不会请求网关或写入真实业务数据；生产构建不显示该入口。
-
-前端质量检查：
+访问 `http://127.0.0.1:5176/auth/login`。前端静态质量检查：
 
 ```bash
 cd micro-server-own-web-vben
 npx -y pnpm@11.16.0 --filter @vben/web-antd run typecheck
 npx -y pnpm@11.16.0 --filter @vben/web-antd run build
 ```
+
+## 交易一致性状态
+
+交易服务采用“本地事务 + 幂等 + Outbox + Inbox + Saga 补偿”的最终一致性方向；Neo4j、支付渠道、文件和物流操作不被伪装为全局数据库事务。
+
+| 能力 | 当前状态 | 说明 |
+| --- | --- | --- |
+| 本地事务与幂等 | 已实现 | 写请求使用 `Idempotency-Key`；库存、券、支付和退款有本地幂等保护。 |
+| 库存/优惠券补偿 | 已实现于同步链路 | 下单、取消、超时、支付、退款和售后具备预占、确认、释放或回补逻辑。 |
+| Outbox | 已实现 | 订单状态与事件同事务写入 `ord_event`；失败按退避重试。 |
+| RocketMQ 发布 | 已实现，默认关闭 | `TRADE_OUTBOX_ROCKETMQ_ENABLED=true` 时向 `trade.order.events` 发布订单事件。 |
+| Inbox 去重 | 基础设施已实现 | 库存、促销、结算服务按消费者和事件 ID 去重。 |
+| 异步下单与补偿 | 已实现（服务级） | `PROCESSING` 状态按库存预占、优惠券预占推进；失败进入补偿，购物车保留。 |
+| 端到端消息 Saga | 未完成 | 库存/促销业务消费者、结果事件、死信和对账尚未接入。 |
+
+`TRADE_SAGA_ASYNC_ENABLED=true`（默认）启用持久化工作器；可用 `TRADE_SAGA_DELAY_MILLIS` 与 `TRADE_SAGA_RETRY_SECONDS` 调整扫描和补偿重试。当前 RocketMQ 与 Inbox 是后续消息驱动 Saga 的基础，不应表述为完成了端到端分布式事务。
 
 ## 关键配置
 
@@ -206,25 +202,26 @@ npx -y pnpm@11.16.0 --filter @vben/web-antd run build
 | `INTERNAL_SERVICE_TOKEN` | 服务间内部接口令牌 |
 | `PAYMENT_CHANNEL` | 支付模式；默认模拟渠道 |
 | `WECHAT_*`、`ALIPAY_*` | 微信、支付宝渠道配置 |
-| `ORDER_OUTBOX_WEBHOOK_URL`、`ORDER_OUTBOX_WEBHOOK_SECRET` | 可选的订单事件投递目标 |
-| `TRADE_OUTBOX_ROCKETMQ_ENABLED`、`ROCKETMQ_NAMESRV_ADDR` | RocketMQ 订单事件发布开关与 NameServer；默认关闭 |
+| `ORDER_OUTBOX_WEBHOOK_URL`、`ORDER_OUTBOX_WEBHOOK_SECRET` | 可选订单事件投递目标 |
+| `TRADE_OUTBOX_ROCKETMQ_ENABLED`、`ROCKETMQ_NAMESRV_ADDR` | RocketMQ 订单事件发布开关与 NameServer |
 
 完整模板见 [`.env.example`](.env.example)。密钥只能通过环境变量、Secret 管理或受控部署系统提供，不能提交到仓库。
 
-## 部署
+## 部署提示
 
-`docker-compose.yml` 已使用 Nacos 3.1.1，且所有业务镜像使用 Java 17；旧 Eureka Server 与 Config Server 已从仓库移除。Compose 中的 Nacos 关闭认证，仅用于本机演示；生产环境必须使用受控 Nacos 并开启认证。
+`docker-compose.yml` 使用 Nacos 3.1.1，业务镜像基于 Java 17；旧 Eureka Server 和 Config Server 已移除。生产部署应：
 
-1. 部署受控的 MySQL、Neo4j 和 Nacos，并完成数据库备份与恢复演练。
-2. 使用 `scripts/apply-migrations.sh` 执行 MySQL 前向迁移，使用 Neo4j 运行手册完成图数据副本验证。
-3. 将 Nacos 配置导入目标 Namespace/Group，并通过 Secret 注入数据库、JWT、内部令牌和支付渠道密钥。
-4. 构建各模块镜像，先启动领域服务并确认已注册至 Nacos，再启动 Gateway。
-5. 仅公开 Gateway；数据库、Nacos 和业务服务置于私有网络，前置 HTTPS、反向代理、WAF、日志与指标采集。
-6. 发布后验证登录、下单、库存、支付回调、退款、Outbox 积压和备份恢复。
+1. 使用受控的 MySQL、Neo4j、Nacos，并进行备份恢复演练。
+2. 先执行 MySQL 前向迁移，再按照 Neo4j 手册验证图数据副本。
+3. 将 Nacos 配置导入目标 Namespace/Group，并以 Secret 注入数据库、JWT、内部令牌与支付渠道密钥。
+4. 先启动领域服务并确认注册至 Nacos，再启动 Gateway；仅公开 Gateway。
+5. 在发布后验证登录、下单、库存、支付回调、退款、Outbox 积压与备份恢复。
 
 ## 验证边界
 
-本仓库的 Maven 测试用于验证代码、单元契约和构建。Nacos、RocketMQ、MySQL、Neo4j、支付渠道、物流、消息投递与容器编排需要在实际目标环境进行集成验收。当前实施进度与待验证项见 [框架升级与业务迁移计划](docs/architecture/framework-upgrade-plan.md)。
+Maven 测试用于验证代码、单元契约和构建。Nacos、RocketMQ、MySQL、Neo4j、支付渠道、物流、消息投递和容器编排仍需在实际目标环境进行集成验收。实施进度与待验证项见 [框架升级与业务迁移计划](docs/architecture/framework-upgrade-plan.md)。
+
+> 当前 `.github/workflows/main.yml` 仍固定使用 JDK 8，尚不代表本项目的 Java 17 基线；因此 README 不展示可能误导的 CI 状态徽章。
 
 ## 文档
 
@@ -238,4 +235,4 @@ npx -y pnpm@11.16.0 --filter @vben/web-antd run build
 
 ## 许可证
 
-仓库现有许可证文件内容异常，本文档不作额外授权或商业使用承诺。
+仓库当前未提供可识别、可执行的开源许可证文本；[`LICENSE.htm`](LICENSE.htm) 也不构成明确的授权声明。因此本 README 不作额外的开源、商用或再分发许可承诺。在使用、分发或商用前，请由仓库维护者补充并确认适用许可证。
