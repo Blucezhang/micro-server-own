@@ -67,7 +67,7 @@ async function refreshToken() {
   const refreshToken = marketplaceSession.get()?.refreshToken;
   if (!refreshToken) throw new Error('Missing refresh token');
   const response = await baseClient.post<ApiResponse<TokenPair>>(
-    '/api/user/login/refresh',
+    '/user/login/refresh',
     { refreshToken },
   );
   const tokenPair = (response as any).data.data as TokenPair;

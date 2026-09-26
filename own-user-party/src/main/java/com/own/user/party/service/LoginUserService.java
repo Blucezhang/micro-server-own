@@ -105,6 +105,12 @@ public class LoginUserService {
         if (actor == null || (actor.getType() != ActorType.BUYER && actor.getType() != ActorType.MERCHANT)) {
             throw TradeException.forbidden("buyer or merchant actor is required");
         }
+        return requireAuthorizationActor(userId, actor);
+    }
+
+    /** All actor types may read only their own persisted authorization projection. */
+    public LoginUser requireAuthorizationActor(Long userId, TradeActor actor) {
+        if (actor == null) throw TradeException.forbidden("authenticated actor is required");
         LoginUser user = requireById(userId);
         Long expectedActorId = user.getPartyId() == null ? user.getLoginUserId() : user.getPartyId();
         if (expectedActorId == null || !expectedActorId.equals(actor.getId())) {

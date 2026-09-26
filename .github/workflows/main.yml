@@ -2,9 +2,9 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [master]
+    branches: [master, jdk17]
   pull_request:
-    branches: [master]
+    branches: [master, jdk17]
 
 jobs:
   build:
@@ -42,3 +42,38 @@ jobs:
           name: surefire-reports
           path: '**/target/surefire-reports/**'
           if-no-files-found: ignore
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: micro-server-own-web-vben
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.16.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+          cache: pnpm
+          cache-dependency-path: micro-server-own-web-vben/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck Vben frontend
+        run: pnpm --filter @vben/web-antd run typecheck
+
+      - name: Test marketplace response contracts
+        run: pnpm exec vitest run apps/web-antd/src/api/marketplace-models.test.ts
+
+      - name: Build Vben frontend
+        run: pnpm --filter @vben/web-antd run build

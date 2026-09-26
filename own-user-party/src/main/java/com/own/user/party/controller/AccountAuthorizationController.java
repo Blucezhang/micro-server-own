@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Returns the persisted authorization projection for the authenticated marketplace account only. */
+/** Returns the persisted authorization projection for the authenticated account only. */
 @RestController
 @RequestMapping("/api/v1/account/authorization")
 public class AccountAuthorizationController extends BaseController {
@@ -26,7 +26,7 @@ public class AccountAuthorizationController extends BaseController {
     @GetMapping
     public Resp current(HttpServletRequest request) {
         TradeActor actor = TradeHeaders.actor(request);
-        LoginUser user = users.requireOwnedByActor(userId(request), actor);
+        LoginUser user = users.requireAuthorizationActor(userId(request), actor);
         LoginAuthorization authorization = users.authorization(user, actor.getType().name());
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("userId", user.getLoginUserId());

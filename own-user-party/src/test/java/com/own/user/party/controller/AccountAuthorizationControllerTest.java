@@ -1,16 +1,13 @@
 package com.own.user.party.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.own.face.trade.ActorType;
-import com.own.face.trade.TradeException;
 import com.own.face.util.Resp;
 import com.own.user.party.dao.domain.LoginUser;
 import com.own.user.party.service.LoginAuthorization;
@@ -31,7 +28,7 @@ public class AccountAuthorizationControllerTest {
     @Test
     public void returnsOnlyTheAuthenticatedAccountsPersistedAuthorization() {
         LoginUser user = new LoginUser(); user.setLoginUserId(7L); user.setPartyId(11L);
-        when(users.requireOwnedByActor(eq(7L), any(com.own.face.trade.TradeActor.class))).thenReturn(user);
+        when(users.requireAuthorizationActor(eq(7L), any(com.own.face.trade.TradeActor.class))).thenReturn(user);
         when(users.authorization(user, "BUYER")).thenReturn(new LoginAuthorization(11L, ActorType.BUYER,
                 Arrays.asList("ROLE_BUYER"), Collections.<String>emptyList()));
 
@@ -39,19 +36,18 @@ public class AccountAuthorizationControllerTest {
         Map data = (Map) response.getData();
         assertEquals(Long.valueOf(7L), data.get("userId"));
         assertEquals("BUYER", String.valueOf(data.get("actorType")));
-        verify(users).requireOwnedByActor(eq(7L), any(com.own.face.trade.TradeActor.class));
+        verify(users).requireAuthorizationActor(eq(7L), any(com.own.face.trade.TradeActor.class));
     }
 
     @Test
-    public void systemCannotReadMarketplaceAccountAuthorization() {
-        doThrow(TradeException.forbidden("buyer or merchant actor is required"))
-                .when(users).requireOwnedByActor(eq(1L), any(com.own.face.trade.TradeActor.class));
-        try {
-            controller.current(request("SYSTEM", "1", "1"));
-            fail("system actor must be denied");
-        } catch (TradeException expected) {
-            assertEquals(403, expected.getStatus());
-        }
+    public void systemCanReadItsOwnAuthorizationProjection() {
+        LoginUser user = new LoginUser(); user.setLoginUserId(1L);
+        when(users.requireAuthorizationActor(eq(1L), any(com.own.face.trade.TradeActor.class))).thenReturn(user);
+        when(users.authorization(user, "SYSTEM")).thenReturn(new LoginAuthorization(1L, ActorType.SYSTEM,
+                Arrays.asList("ROLE_SYSTEM"), Collections.<String>emptyList()));
+        Resp response = controller.current(request("SYSTEM", "1", "1"));
+        assertEquals("SYSTEM", String.valueOf(((Map) response.getData()).get("actorType")));
+        verify(users).requireAuthorizationActor(eq(1L), any(com.own.face.trade.TradeActor.class));
     }
 
     private MockHttpServletRequest request(String actorType, String actorId, String userId) {

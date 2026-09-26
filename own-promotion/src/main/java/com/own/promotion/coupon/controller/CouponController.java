@@ -18,6 +18,7 @@ import java.util.Map;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,6 +72,13 @@ public class CouponController extends BaseController {
         TradeActor actor = TradeHeaders.actor(request); actor.require(ActorType.MERCHANT); TradeHeaders.idempotencyKey(request);
         MerchantCouponTemplate created = couponService.createMerchantTemplate(actor.getId(), command);
         return new Resp(created, 201, "created");
+    }
+
+    @PutMapping("/merchant/templates/{templateId}")
+    public Resp updateMerchantTemplate(@PathVariable Long templateId, @RequestBody MerchantCouponTemplateCommand command,
+                                      HttpServletRequest request) {
+        TradeActor actor = TradeHeaders.actor(request); actor.require(ActorType.MERCHANT); TradeHeaders.idempotencyKey(request);
+        return new Resp(couponService.updateMerchantTemplate(actor.getId(), templateId, command));
     }
 
     @PostMapping("/merchant/templates/{templateId}/status")

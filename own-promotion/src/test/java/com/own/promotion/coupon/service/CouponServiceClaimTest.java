@@ -15,6 +15,7 @@ import com.own.promotion.coupon.domain.MerchantCouponTemplate;
 import com.own.promotion.coupon.dto.CouponReservationCommand;
 import com.own.promotion.coupon.dto.CouponUse;
 import com.own.promotion.coupon.dto.ClaimCouponCommand;
+import com.own.promotion.coupon.dto.MerchantCouponTemplateCommand;
 import com.own.promotion.coupon.repository.CouponStockRepository;
 import com.own.promotion.coupon.repository.UserCouponRepository;
 import com.own.promotion.coupon.repository.MerchantCouponTemplateRepository;
@@ -163,6 +164,64 @@ public class CouponServiceClaimTest {
         org.junit.jupiter.api.Assertions.assertEquals(Long.valueOf(9L), claimed.getMerchantId());
         org.junit.jupiter.api.Assertions.assertEquals("MERCHANT_TEMPLATE:8", claimed.getSourceKey());
         verify(stocks).insertIfAbsent("MERCHANT_TEMPLATE:8", 3);
+    }
+
+    @Test
+    public void merchantCanEditTemplateBeforeFirstClaim() {
+        CouponStockRepository stocks = mock(CouponStockRepository.class);
+        MerchantCouponTemplateRepository templates = mock(MerchantCouponTemplateRepository.class);
+        Calendar calendar = Calendar.getInstance(); calendar.add(Calendar.DAY_OF_MONTH, 2);
+        MerchantCouponTemplate template = new MerchantCouponTemplate(9L, "old", 3, BigDecimal.ZERO, BigDecimal.ONE, null, null, calendar.getTime());
+        when(templates.findByIdForUpdate(8L)).thenReturn(template);
+        when(templates.save(template)).thenReturn(template);
+        CouponService service = new CouponService(stocks, mock(UserCouponRepository.class), mock(MallTicketDao.class), mock(StoreTicketDao.class), templates, 15);
+
+        MerchantCouponTemplate updated = service.updateMerchantTemplate(9L, 8L, templateCommand(calendar));
+
+        org.junit.jupiter.api.Assertions.assertEquals("updated", updated.getName());
+        org.junit.jupiter.api.Assertions.assertEquals(Integer.valueOf(5), updated.getTotalQuantity());
+        verify(stocks).findByScopeKey("MERCHANT_TEMPLATE:8");
+    }
+
+    @Test
+    public void claimedTemplateCannotBeEdited() {
+        CouponStockRepository stocks = mock(CouponStockRepository.class);
+        MerchantCouponTemplateRepository templates = mock(MerchantCouponTemplateRepository.class);
+        Calendar calendar = Calendar.getInstance(); calendar.add(Calendar.DAY_OF_MONTH, 2);
+        MerchantCouponTemplate template = new MerchantCouponTemplate(9L, "old", 3, BigDecimal.ZERO, BigDecimal.ONE, null, null, calendar.getTime());
+        when(templates.findByIdForUpdate(8L)).thenReturn(template);
+        when(stocks.findByScopeKey("MERCHANT_TEMPLATE:8")).thenReturn(new CouponStock("MERCHANT_TEMPLATE:8", 3));
+        CouponService service = new CouponService(stocks, mock(UserCouponRepository.class), mock(MallTicketDao.class), mock(StoreTicketDao.class), templates, 15);
+
+        try {
+            service.updateMerchantTemplate(9L, 8L, templateCommand(calendar));
+            fail("claimed template must not be edited");
+        } catch (TradeException expected) {
+            org.junit.jupiter.api.Assertions.assertEquals(409, expected.getStatus());
+        }
+    }
+
+    @Test
+    public void merchantCannotEditAnotherMerchantsTemplate() {
+        MerchantCouponTemplateRepository templates = mock(MerchantCouponTemplateRepository.class);
+        Calendar calendar = Calendar.getInstance(); calendar.add(Calendar.DAY_OF_MONTH, 2);
+        when(templates.findByIdForUpdate(8L)).thenReturn(new MerchantCouponTemplate(9L, "old", 3, BigDecimal.ZERO, BigDecimal.ONE, null, null, calendar.getTime()));
+        CouponService service = new CouponService(mock(CouponStockRepository.class), mock(UserCouponRepository.class), mock(MallTicketDao.class), mock(StoreTicketDao.class), templates, 15);
+
+        try {
+            service.updateMerchantTemplate(10L, 8L, templateCommand(calendar));
+            fail("another merchant must not edit template");
+        } catch (TradeException expected) {
+            org.junit.jupiter.api.Assertions.assertEquals(403, expected.getStatus());
+        }
+    }
+
+    private MerchantCouponTemplateCommand templateCommand(Calendar calendar) {
+        MerchantCouponTemplateCommand command = new MerchantCouponTemplateCommand();
+        command.setName("updated"); command.setTotalQuantity(5);
+        command.setMinimumAmount("10"); command.setDiscountAmount("1");
+        command.setExpiresAt(calendar.getTimeInMillis());
+        return command;
     }
 
     private ClaimCouponCommand claimCommand() {

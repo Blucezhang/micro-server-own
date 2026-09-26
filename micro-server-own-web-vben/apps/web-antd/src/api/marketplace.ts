@@ -89,10 +89,10 @@ export const paymentApi = {
 export const merchantApi = {
   saveProduct: (data: Record<string, unknown>, id?: number) => marketplaceRequest({ data, method: id ? 'PUT' : 'POST', url: id ? `/product/api/v1/merchant/products/${id}` : '/product/api/v1/merchant/products' }),
   changeProductStatus: (id: number, value: 'AVAILABLE' | 'OFF_SHELF') => marketplaceRequest({ method: 'POST', params: { value }, url: `/product/api/v1/merchant/products/${id}/sale-status` }),
-  priceAudits: (id: number) => marketplaceRequest({ method: 'GET', params: { page: 0, size: 20 }, url: `/product/api/v1/merchant/products/${id}/price-audits` }),
+  priceAudits: (id: number, page = 0) => marketplaceRequest({ method: 'GET', params: { page, size: 20 }, url: `/product/api/v1/merchant/products/${id}/price-audits` }),
   ship: (no: string, data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: `/order/api/v1/sub-orders/${no}/ship` }),
   coupons: () => marketplaceRequest({ method: 'GET', url: '/sale/api/v1/coupons/merchant/templates' }),
-  saveCoupon: (data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: '/sale/api/v1/coupons/merchant/templates' }),
+  saveCoupon: (data: Record<string, unknown>, id?: number) => marketplaceRequest({ data, method: id ? 'PUT' : 'POST', url: id ? `/sale/api/v1/coupons/merchant/templates/${id}` : '/sale/api/v1/coupons/merchant/templates' }),
   changeCouponStatus: (id: number, value: string) => marketplaceRequest({ method: 'POST', params: { value }, url: `/sale/api/v1/coupons/merchant/templates/${id}/status` }),
   freight: () => marketplaceRequest({ method: 'GET', url: '/order/api/v1/merchant/freight-rule' }),
   saveFreight: (data: Record<string, unknown>) => marketplaceRequest({ data, method: 'PUT', url: '/order/api/v1/merchant/freight-rule' }),

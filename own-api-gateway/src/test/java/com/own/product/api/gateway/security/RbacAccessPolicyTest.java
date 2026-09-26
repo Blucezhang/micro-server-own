@@ -102,10 +102,20 @@ public class RbacAccessPolicyTest {
     }
 
     @Test
-    public void unclassifiedCommandIsLimitedToSystemInsteadOfImplicitlyAllowed() {
+    public void unclassifiedReadsAndCommandsAreLimitedToSystem() {
         assertFalse(policy.decide("/unknown/api/v1/command", "POST", principal(ActorType.BUYER, "ROLE_BUYER")).isAllowed());
         assertTrue(policy.decide("/unknown/api/v1/command", "POST", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
-        assertTrue(policy.decide("/unknown/api/v1/query", "GET", principal(ActorType.BUYER, "ROLE_BUYER")).isAllowed());
+        assertFalse(policy.decide("/unknown/api/v1/query", "GET", principal(ActorType.BUYER, "ROLE_BUYER")).isAllowed());
+        assertTrue(policy.decide("/unknown/api/v1/query", "GET", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
+    }
+
+    @Test
+    public void paymentDetailsAndMerchantAlertsHaveExplicitReadPolicies() {
+        assertTrue(policy.decide("/settlement/api/v1/payments/PAY-1", "GET", principal(ActorType.BUYER, "ROLE_BUYER")).isAllowed());
+        assertTrue(policy.decide("/settlement/api/v1/payments/PAY-1", "GET", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
+        assertFalse(policy.decide("/settlement/api/v1/payments/PAY-1", "GET", principal(ActorType.MERCHANT, "ROLE_MERCHANT")).isAllowed());
+        assertTrue(policy.decide("/inventory/api/v1/merchant/low-stock-alerts", "GET", principal(ActorType.MERCHANT, "ROLE_MERCHANT")).isAllowed());
+        assertFalse(policy.decide("/inventory/api/v1/merchant/low-stock-alerts", "GET", principal(ActorType.BUYER, "ROLE_BUYER")).isAllowed());
     }
 
     @Test
@@ -140,11 +150,12 @@ public class RbacAccessPolicyTest {
     }
 
     @Test
-    public void onlyMarketplaceActorsCanReadTheirOwnAuthorizationProjection() {
+    public void everyActorCanReadOnlyTheAuthorizationProjectionWhileSystemProfileWritesStayDenied() {
         String path = "/user/api/v1/account/authorization";
         assertTrue(policy.decide(path, "GET", principal(ActorType.BUYER, "ROLE_BUYER")).isAllowed());
         assertTrue(policy.decide(path, "GET", principal(ActorType.MERCHANT, "ROLE_MERCHANT")).isAllowed());
-        assertFalse(policy.decide(path, "GET", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
+        assertTrue(policy.decide(path, "GET", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
+        assertFalse(policy.decide(path, "PUT", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
     }
 
     @Test

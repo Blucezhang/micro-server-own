@@ -117,6 +117,21 @@ public class CouponService {
         return merchantTemplateRepository.save(new MerchantCouponTemplate(merchantId, terms.name, terms.totalQuantity, terms.minimumAmount, terms.discountAmount, terms.claimStartsAt, terms.claimEndsAt, terms.expiresAt));
     }
 
+    @Transactional
+    public MerchantCouponTemplate updateMerchantTemplate(Long merchantId, Long templateId, MerchantCouponTemplateCommand command) {
+        if (merchantTemplateRepository == null) throw new IllegalStateException("merchant coupon templates are not configured");
+        MerchantCouponTemplate template = templateId == null ? null : merchantTemplateRepository.findByIdForUpdate(templateId);
+        if (template == null) throw TradeException.notFound("merchant coupon template was not found");
+        if (!merchantId.equals(template.getMerchantId())) throw TradeException.forbidden("merchant does not own coupon template");
+        if (couponStockRepository.findByScopeKey("MERCHANT_TEMPLATE:" + templateId) != null) {
+            throw TradeException.conflict("claimed coupon template cannot be edited");
+        }
+        TemplateTerms terms = validateTemplate(command);
+        template.updateTerms(terms.name, terms.totalQuantity, terms.minimumAmount, terms.discountAmount,
+                terms.claimStartsAt, terms.claimEndsAt, terms.expiresAt);
+        return merchantTemplateRepository.save(template);
+    }
+
     public List<Map<String, Object>> merchantTemplates(Long merchantId) {
         if (merchantTemplateRepository == null) throw new IllegalStateException("merchant coupon templates are not configured");
         List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();

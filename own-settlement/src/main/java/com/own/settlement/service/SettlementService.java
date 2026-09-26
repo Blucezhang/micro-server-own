@@ -146,8 +146,11 @@ public class SettlementService {
 
     public Payment find(TradeActor actor, String paymentNo) {
         Payment payment = requirePayment(paymentNo);
-        if (actor.getType() != ActorType.SYSTEM && !payment.getBuyerId().equals(actor.getId())) {
-            throw TradeException.forbidden("actor does not own this payment");
+        if (actor.getType() != ActorType.SYSTEM) {
+            actor.require(ActorType.BUYER);
+            if (!payment.getBuyerId().equals(actor.getId())) {
+                throw TradeException.forbidden("actor does not own this payment");
+            }
         }
         return payment;
     }

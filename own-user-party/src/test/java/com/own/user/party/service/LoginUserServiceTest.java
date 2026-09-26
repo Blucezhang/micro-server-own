@@ -167,6 +167,18 @@ public class LoginUserServiceTest {
     }
 
     @Test
+    public void systemAuthorizationMustMatchItsPersistedActor() {
+        LoginUser storedUser = user("admin", passwordEncoder.encode("current-password"));
+        storedUser.setLoginUserId(7L);
+        when(loginUserDao.getLoginUser(7L)).thenReturn(storedUser);
+        assertSame(storedUser, loginUserService.requireAuthorizationActor(7L, new TradeActor(7L, ActorType.SYSTEM)));
+        assertThrows(TradeException.class,
+                () -> loginUserService.requireAuthorizationActor(7L, new TradeActor(8L, ActorType.SYSTEM)));
+        assertThrows(TradeException.class,
+                () -> loginUserService.requireOwnedByActor(7L, new TradeActor(7L, ActorType.SYSTEM)));
+    }
+
+    @Test
     public void missingProfileUpdateReturnsNotFound() {
         when(loginUserDao.getLoginUser(99L)).thenReturn(null);
         assertThrows(TradeException.class, () -> loginUserService.updateProfile(99L, new LoginUserBean()));

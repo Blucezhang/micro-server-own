@@ -19,6 +19,19 @@ import org.mockito.InOrder;
 
 public class SettlementServicePaymentTransitionTest {
     @Test
+    public void paymentDetailRequiresBuyerRoleEvenWhenMerchantIdMatchesBuyerId() {
+        Payment payment = new Payment("PAY-1", "ORD-1", 1L, java.math.BigDecimal.ONE, "key-1");
+        PaymentRepository payments = Mockito.mock(PaymentRepository.class);
+        Mockito.when(payments.findByPaymentNo("PAY-1")).thenReturn(payment);
+        SettlementService service = new SettlementService(payments, Mockito.mock(OrderClient.class),
+                Mockito.mock(RefundRepository.class), Mockito.mock(AfterSaleRefundRepository.class));
+
+        Assertions.assertSame(payment, service.find(new TradeActor(1L, ActorType.BUYER), "PAY-1"));
+        Assertions.assertThrows(com.own.face.trade.TradeException.class,
+                () -> service.find(new TradeActor(1L, ActorType.MERCHANT), "PAY-1"));
+    }
+
+    @Test
     public void paymentSuccessLocksPaymentBeforeCallingOrderService() {
         Payment payment = new Payment("PAY-1", "ORD-1", 1L, java.math.BigDecimal.ONE, "key-1");
         PaymentRepository payments = Mockito.mock(PaymentRepository.class);

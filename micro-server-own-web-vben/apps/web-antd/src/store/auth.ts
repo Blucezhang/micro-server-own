@@ -21,6 +21,16 @@ const roleHome = {
 type MarketplaceActor = keyof typeof roleHome;
 const uiDemoEnabled = import.meta.env.DEV;
 
+function demoUserInfo(actorType: MarketplaceActor): UserInfo {
+  const token = `ui-demo-${actorType.toLowerCase()}`;
+  return {
+    avatar: '', desc: '本地 UI 演示身份', homePath: roleHome[actorType],
+    realName: `${actorType} 演示用户`, roles: [actorType], token,
+    userId: `demo-${actorType.toLowerCase()}`,
+    username: `demo-${actorType.toLowerCase()}`,
+  };
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore();
   const userStore = useUserStore();
@@ -28,6 +38,13 @@ export const useAuthStore = defineStore('auth', () => {
   const loginLoading = ref(false);
 
   async function fetchUserInfo() {
+    const demoActor = uiDemoEnabled && /^ui-demo-(buyer|merchant|system)$/.exec(String(accessStore.accessToken || ''))?.[1]?.toUpperCase() as MarketplaceActor | undefined;
+    if (demoActor) {
+      const userInfo = demoUserInfo(demoActor);
+      accessStore.setAccessCodes([]);
+      userStore.setUserInfo(userInfo);
+      return userInfo;
+    }
     const authorization = await marketplaceAuthApi.authorization();
     const userInfo: UserInfo = {
       avatar: '',
@@ -77,16 +94,7 @@ export const useAuthStore = defineStore('auth', () => {
       accessStore.setAccessToken(`ui-demo-${actorType.toLowerCase()}`);
       accessStore.setAccessCodes([]);
       accessStore.setIsAccessChecked(false);
-      userStore.setUserInfo({
-        avatar: '',
-        desc: '本地 UI 演示身份',
-        homePath: roleHome[actorType],
-        realName: `${actorType} 演示用户`,
-        roles: [actorType],
-        token: `ui-demo-${actorType.toLowerCase()}`,
-        userId: `demo-${actorType.toLowerCase()}`,
-        username: `demo-${actorType.toLowerCase()}`,
-      });
+      userStore.setUserInfo(demoUserInfo(actorType));
       await router.push(roleHome[actorType]);
       message.info('已进入本地 UI 演示模式，未连接业务网关');
     } finally {

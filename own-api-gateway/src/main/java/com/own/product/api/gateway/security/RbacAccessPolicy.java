@@ -24,6 +24,9 @@ final class RbacAccessPolicy {
         if (value.startsWith("/user/login/sessions")) return requireBuyerOrMerchant(principal, "auth:session");
         if (value.startsWith("/user/api/v1/system/accounts/")) return require(principal, ActorType.SYSTEM, "user:manage");
         if (value.startsWith("/user/api/v1/system/roles/")) return require(principal, ActorType.SYSTEM, "user:manage");
+        if (value.equals("/user/api/v1/account/authorization") && "GET".equals(verb) && principal.getActorType() == ActorType.SYSTEM) {
+            return require(principal, ActorType.SYSTEM, "user:manage");
+        }
         if (value.startsWith("/user/api/v1/account/")) return requireBuyerOrMerchant(principal, "account:manage");
         if (value.contains("/product/api/v1/system/")) return require(principal, ActorType.SYSTEM, "product:moderate");
         if (value.contains("/product/api/v1/merchant/")) return require(principal, ActorType.MERCHANT, "product:manage");
@@ -56,8 +59,14 @@ final class RbacAccessPolicy {
         if ("GET".equals(verb) && value.matches("^/inventory/api/v1/stocks/[^/]+/?$")) {
             return requireInventoryViewer(principal);
         }
+        if (value.equals("/inventory/api/v1/merchant/low-stock-alerts") && "GET".equals(verb)) {
+            return require(principal, ActorType.MERCHANT, "inventory:manage");
+        }
         if (value.contains("/settlement/api/v1/merchant/settlement/")) return require(principal, ActorType.MERCHANT, "settlement:withdraw");
         if (value.contains("/settlement/api/v1/payments/") && value.contains("/simulate-")) return require(principal, ActorType.SYSTEM, "payment:operate");
+        if ("GET".equals(verb) && value.matches("^/settlement/api/v1/payments/[^/]+/?$")) {
+            return requirePaymentViewer(principal);
+        }
         if (value.contains("/settlement/api/v1/payments") && "POST".equals(verb)) return require(principal, ActorType.BUYER, "payment:create");
         if (value.contains("/file/api/v1/files")) return requireBuyerOrMerchant(principal, "file:manage");
         if (value.startsWith("/file/")) return require(principal, ActorType.SYSTEM, "file:legacy-manage");
@@ -85,11 +94,8 @@ final class RbacAccessPolicy {
                 (value.contains("/order/api/v1/sub-orders/") && value.endsWith("/receive"))) {
             return require(principal, ActorType.BUYER, "order:purchase");
         }
-        // Do not turn a newly added, unclassified command into an authenticated
-        // but unrestricted endpoint.  Read endpoints remain compatible; legacy
-        // maintenance commands remain available to SYSTEM until they are moved
-        // to a versioned, domain-specific policy.
-        return "GET".equals(verb) ? Decision.allowed() : require(principal, ActorType.SYSTEM, "system:operate");
+        // Unknown paths, including reads, remain maintenance-only until classified.
+        return require(principal, ActorType.SYSTEM, "system:operate");
     }
 
     private Decision require(JwtPrincipal principal, ActorType actorType, String permission) {
@@ -122,6 +128,12 @@ final class RbacAccessPolicy {
     private Decision requireInventoryViewer(JwtPrincipal principal) {
         if (principal.getActorType() == ActorType.MERCHANT) return require(principal, ActorType.MERCHANT, "inventory:manage");
         if (principal.getActorType() == ActorType.SYSTEM) return require(principal, ActorType.SYSTEM, "system:operate");
+        return Decision.denied();
+    }
+
+    private Decision requirePaymentViewer(JwtPrincipal principal) {
+        if (principal.getActorType() == ActorType.BUYER) return require(principal, ActorType.BUYER, "payment:create");
+        if (principal.getActorType() == ActorType.SYSTEM) return require(principal, ActorType.SYSTEM, "payment:operate");
         return Decision.denied();
     }
 
