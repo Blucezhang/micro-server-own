@@ -43,29 +43,76 @@ Local transactions, idempotency, Outbox, Inbox, and Saga compensation define the
 
 ## Architecture
 
+The current service boundaries do not need to be split merely to make the diagram more elaborate. Integration acceptance, data ownership, and closing the asynchronous flow are higher priorities. This view separates **entry points, domain services, service governance, and storage**. MySQL is a shared instance, not a separate database per service.
+
 ```mermaid
-flowchart LR
-    client[Buyer / Merchant / System Admin] --> web[Vben 5 Marketplace Console]
-    web --> gateway[own-api-gateway\nGateway + JWT/RBAC]
-    gateway --> nacos[Nacos\nDiscovery / Configuration]
-    gateway --> user[own-user-party]
-    gateway --> product[own-product]
-    gateway --> promotion[own-promotion]
-    gateway --> inventory[own-inventory]
-    gateway --> order[own-order]
-    gateway --> settlement[own-settlement]
-    gateway --> support[File / Workflow / Messaging]
-    user --> neo4j[(Neo4j)]
+flowchart TB
+    actors["Buyer · Merchant · System Admin"] --> web["Vue 3 + Vben 5<br/>Role-specific consoles"]
+    web -->|"/api · JWT"| gateway["API Gateway<br/>Routing · JWT/RBAC · Correlation ID"]
+
+    subgraph domain["Business services · independently deployed domain boundaries"]
+      direction LR
+      user["Identity & access<br/>own-user-party"]
+      product["Catalog & reviews<br/>own-product"]
+      promotion["Promotions & coupons<br/>own-promotion"]
+      inventory["Stock & reservations<br/>own-inventory"]
+      order["Orders · after-sales · Saga · Outbox<br/>own-order"]
+      settlement["Payments · refunds · settlement<br/>own-settlement"]
+      support["Files · workflow · notifications<br/>own-file / own-workflow / own-send-server"]
+    end
+
+    gateway --> user
+    gateway --> product
+    gateway --> promotion
+    gateway --> inventory
+    gateway --> order
+    gateway --> settlement
+    gateway --> support
+    order -->|"Address snapshot"| user
+    order -->|"Catalog check"| product
+    order -->|"Coupon quote / reserve"| promotion
+    order -->|"Stock reserve / release"| inventory
+    settlement -->|"Payment result / refund coordination"| order
+
+    nacos["Nacos 3<br/>Discovery · configuration"] -.-> gateway
+    nacos -.-> order
+    mysql[("MySQL 5.7<br/>Shared instance · transaction tables")]
+    neo4j[("Neo4j<br/>Existing graph data")]
+    domain --> mysql
+    user --> neo4j
     product --> neo4j
     promotion --> neo4j
-    user --> mysql[(MySQL)]
-    product --> mysql
-    promotion --> mysql
-    inventory --> mysql
-    order --> mysql
-    settlement --> mysql
-    support --> mysql
+    order -.->|"Optional Outbox delivery"| mq["RocketMQ / Webhook<br/>Disabled by default"]
+
+    classDef edge fill:#dbeafe,stroke:#2563eb,color:#0f172a
+    classDef business fill:#dcfce7,stroke:#16a34a,color:#0f172a
+    classDef infra fill:#fef3c7,stroke:#d97706,color:#0f172a
+    class actors,web,gateway edge
+    class user,product,promotion,inventory,order,settlement,support business
+    class nacos,mysql,neo4j,mq infra
 ```
+
+Solid lines show current request or data dependencies; dashed lines show governance or optional delivery. Only the principal calls are shown. Every Java service uses Nacos; publishing to RocketMQ/Webhook does not imply that downstream consumers are complete.
+
+### Checkout and consistency flow
+
+```mermaid
+flowchart LR
+    checkout["Checkout request"] --> quote["Address / catalog / freight / coupon quote"]
+    quote --> order["Persist order and Saga state<br/>PROCESSING"]
+    order --> worker["Persistent Saga worker"]
+    worker --> stock["Reserve stock"] --> coupon["Reserve coupons"]
+    coupon -->|"Success"| pending["Await payment<br/>PENDING_PAYMENT"]
+    stock -->|"Failure"| compensate["Release reserved resources"]
+    coupon -->|"Failure"| compensate
+    compensate --> failed["SAGA_FAILED<br/>Cart retained"]
+    pending --> payment["Simulated payment / callback"] --> paid["Confirm order and stock / consume coupons"]
+    order -.-> outbox["Order-event Outbox"]
+    paid -.-> outbox
+    outbox -.->|"When enabled"| publish["Webhook or RocketMQ delivery"]
+```
+
+The diagram shows the default asynchronous ordering mode. The order service advances this Saga through a persistent worker while cross-service calls remain synchronous APIs. Message-driven stock/promotion consumers, result events, dead-letter handling, and reconciliation are **not yet an end-to-end flow**; the dashed path must not be read as a running message-based Saga.
 
 ## Service map
 

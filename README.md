@@ -43,29 +43,76 @@
 
 ## 架构概览
 
+现阶段不建议仅为增加图示复杂度而重拆服务。现有边界已经覆盖身份、商品、营销、库存、订单、结算与支撑能力；更值得优先做的是集成验收、数据所有权与异步链路的闭环。下图按**入口、领域服务、服务治理和存储**展示当前实现；MySQL 是共享实例，不表示每个服务都有独立数据库。
+
 ```mermaid
-flowchart LR
-    client[买家 / 商家 / 系统管理员] --> web[Vben 5 商城前端]
-    web --> gateway[own-api-gateway\nGateway + JWT/RBAC]
-    gateway --> nacos[Nacos\n注册发现 / 配置]
-    gateway --> user[own-user-party]
-    gateway --> product[own-product]
-    gateway --> promotion[own-promotion]
-    gateway --> inventory[own-inventory]
-    gateway --> order[own-order]
-    gateway --> settlement[own-settlement]
-    gateway --> support[文件 / 工作流 / 消息服务]
-    user --> neo4j[(Neo4j)]
+flowchart TB
+    actors["买家 · 商家 · 系统管理员"] --> web["Vue 3 + Vben 5<br/>角色工作台"]
+    web -->|"/api · JWT"| gateway["API Gateway<br/>路由 · JWT/RBAC · 关联 ID"]
+
+    subgraph domain["业务服务 · 独立部署与领域边界"]
+      direction LR
+      user["用户与权限<br/>own-user-party"]
+      product["商品与评价<br/>own-product"]
+      promotion["营销与优惠券<br/>own-promotion"]
+      inventory["库存与预占<br/>own-inventory"]
+      order["订单 · 售后 · Saga · Outbox<br/>own-order"]
+      settlement["支付 · 退款 · 结算<br/>own-settlement"]
+      support["文件 · 工作流 · 通知<br/>own-file / own-workflow / own-send-server"]
+    end
+
+    gateway --> user
+    gateway --> product
+    gateway --> promotion
+    gateway --> inventory
+    gateway --> order
+    gateway --> settlement
+    gateway --> support
+    order -->|"地址快照"| user
+    order -->|"商品校验"| product
+    order -->|"券试算 / 预占"| promotion
+    order -->|"库存预占 / 释放"| inventory
+    settlement -->|"支付结果 / 退款协同"| order
+
+    nacos["Nacos 3<br/>注册发现 · 配置"] -.-> gateway
+    nacos -.-> order
+    mysql[("MySQL 5.7<br/>共享实例 · 交易表")]
+    neo4j[("Neo4j<br/>既有图数据")]
+    domain --> mysql
+    user --> neo4j
     product --> neo4j
     promotion --> neo4j
-    user --> mysql[(MySQL)]
-    product --> mysql
-    promotion --> mysql
-    inventory --> mysql
-    order --> mysql
-    settlement --> mysql
-    support --> mysql
+    order -.->|"可选 Outbox 发布"| mq["RocketMQ / Webhook<br/>默认不启用"]
+
+    classDef edge fill:#dbeafe,stroke:#2563eb,color:#0f172a
+    classDef business fill:#dcfce7,stroke:#16a34a,color:#0f172a
+    classDef infra fill:#fef3c7,stroke:#d97706,color:#0f172a
+    class actors,web,gateway edge
+    class user,product,promotion,inventory,order,settlement,support business
+    class nacos,mysql,neo4j,mq infra
 ```
+
+实线代表当前请求或数据依赖，虚线代表治理关系或可选出口。图中只画关键调用，所有 Java 服务均接入 Nacos；RocketMQ/Webhook 发布不等于下游消费者已完成。
+
+### 下单与一致性主链路
+
+```mermaid
+flowchart LR
+    checkout["结算请求"] --> quote["地址 / 商品 / 运费 / 券试算"]
+    quote --> order["订单与 Saga 状态落库<br/>PROCESSING"]
+    order --> worker["持久化 Saga 工作器"]
+    worker --> stock["预占库存"] --> coupon["预占优惠券"]
+    coupon -->|"成功"| pending["待支付<br/>PENDING_PAYMENT"]
+    stock -->|"失败"| compensate["释放已预占资源"]
+    coupon -->|"失败"| compensate
+    compensate --> failed["SAGA_FAILED<br/>保留购物车"]
+    pending --> payment["模拟支付 / 回调"] --> paid["确认订单与库存 / 核销券"]
+    order -.-> outbox["订单事件 Outbox"]
+    paid -.-> outbox
+    outbox -.->|"配置启用时"| publish["Webhook 或 RocketMQ 发布"]
+```
+
+图中展示的是默认启用的异步下单模式；Saga 由订单服务的持久化工作器推进，跨服务调用仍是同步 API。消息驱动的库存/营销消费者、结果事件与死信对账**尚未闭环**，不应将虚线理解为已投入运行的端到端消息 Saga。
 
 ## 服务地图
 
