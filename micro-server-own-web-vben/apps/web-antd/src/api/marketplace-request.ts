@@ -80,7 +80,7 @@ client.addRequestInterceptor({
     const accessToken = marketplaceSession.get()?.accessToken;
     if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
     config.headers['X-Correlation-Id'] = createCorrelationId();
-    if (isBusinessWrite(config)) config.headers['Idempotency-Key'] = crypto.randomUUID();
+    if (isBusinessWrite(config) && !config.headers['Idempotency-Key']) config.headers['Idempotency-Key'] = crypto.randomUUID();
     return config;
   },
 });

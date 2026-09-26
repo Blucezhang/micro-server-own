@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Button, Card, Empty, Radio, Space, Spin, Tag } from 'ant-design-vue';
+import { Alert, Button, Card, Empty, Radio, Space, Spin, Tag } from 'ant-design-vue';
 
 import { buyerApi } from '#/api/marketplace';
 import { preferredAddressId } from '#/api/marketplace-models';
@@ -14,8 +14,11 @@ const addresses = ref<BuyerAddress[]>([]);
 const addressId = ref<number>();
 const quote = ref<Record<string, any>>();
 const loading = ref(false);
+const submitError = ref('');
 const itemIds = computed(() => String(route.query.items || '').split(',').filter(Boolean).map(Number));
 const command = () => ({ addressId: addressId.value, cartItemIds: itemIds.value });
+// Keep the key after a failed response; only changing the checkout command starts a new attempt.
+const orderAttempt = computed(() => ({ data: command(), key: crypto.randomUUID() }));
 
 async function load() {
   loading.value = true;
@@ -27,11 +30,14 @@ async function load() {
 }
 
 async function submit() {
-  if (!addressId.value) return;
+  if (loading.value || !addressId.value || !itemIds.value.length) return;
   loading.value = true;
+  submitError.value = '';
   try {
-    await buyerApi.createOrder(command());
+    await buyerApi.createOrder(orderAttempt.value.data, orderAttempt.value.key);
     router.replace('/buyer/orders');
+  } catch (error: any) {
+    submitError.value = error?.response?.data?.message || error?.message || '提交结果未确认，请在当前页面重试';
   } finally { loading.value = false; }
 }
 
@@ -43,7 +49,7 @@ onMounted(load);
     <Card :bordered="false"><Tag color="cyan">买家中心</Tag><h1>确认结算</h1><p>订单金额、优惠和库存将以服务端试算结果为准。</p></Card>
     <Spin :spinning="loading">
       <Card :bordered="false" title="收货地址">
-        <Radio.Group v-model:value="addressId" class="addresses">
+        <Radio.Group v-model:value="addressId" :disabled="loading" class="addresses">
           <Radio v-for="address in addresses" :key="address.id" :value="address.id">
             {{ address.recipientName }} · {{ address.mobile }} · {{ address.province }}{{ address.city }}{{ address.district }}{{ address.detail }}
           </Radio>
@@ -55,7 +61,7 @@ onMounted(load);
         <pre v-if="quote" class="quote">{{ JSON.stringify(quote, null, 2) }}</pre>
         <p v-else>请选择购物车商品和收货地址后重新进入结算。</p>
       </Card>
-      <Card :bordered="false"><Space><Button @click="router.back()">返回购物车</Button><Button :disabled="!addressId || !itemIds.length" type="primary" @click="submit">提交订单</Button></Space></Card>
+      <Card :bordered="false"><Alert v-if="submitError" :message="submitError" description="可在当前页面重试；相同结算内容会复用幂等键。" show-icon type="error" /><Space><Button @click="router.back()">返回购物车</Button><Button :disabled="!addressId || !itemIds.length" :loading="loading" type="primary" @click="submit">提交订单</Button></Space></Card>
     </Spin>
   </main>
 </template>

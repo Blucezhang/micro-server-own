@@ -73,7 +73,7 @@ jobs:
         run: pnpm --filter @vben/web-antd run typecheck
 
       - name: Test marketplace response contracts
-        run: pnpm exec vitest run apps/web-antd/src/api/marketplace-models.test.ts
+        run: pnpm exec vitest run apps/web-antd/src/api/marketplace-*.test.ts
 
       - name: Build Vben frontend
         run: pnpm --filter @vben/web-antd run build

@@ -414,7 +414,10 @@ public class CouponService {
         BigDecimal minimum = decimal(command.getMinimumAmount(), "minimumAmount"); BigDecimal discount = decimal(command.getDiscountAmount(), "discountAmount");
         if (discount.compareTo(BigDecimal.ZERO) <= 0 || minimum.compareTo(BigDecimal.ZERO) < 0) throw TradeException.unprocessable("coupon amounts are invalid");
         Date start = command.getClaimStartsAt() == null ? null : new Date(command.getClaimStartsAt()); Date end = command.getClaimEndsAt() == null ? null : new Date(command.getClaimEndsAt()); Date expires = new Date(command.getExpiresAt());
-        if (expires.before(new Date()) || start != null && end != null && start.after(end) || end != null && end.after(expires)) throw TradeException.unprocessable("coupon time range is invalid");
+        if (expires.before(new Date()) || start != null && start.after(expires)
+                || start != null && end != null && start.after(end) || end != null && end.after(expires)) {
+            throw TradeException.unprocessable("coupon time range is invalid");
+        }
         return new TemplateTerms(command.getName().trim(), command.getTotalQuantity(), minimum, discount, start, end, expires);
     }
 

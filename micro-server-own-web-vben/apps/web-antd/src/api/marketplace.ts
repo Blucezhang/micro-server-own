@@ -45,7 +45,7 @@ export const catalogApi = {
 
 export const buyerApi = {
   quote: (data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: '/order/api/v1/checkouts/quote' }),
-  createOrder: (data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: '/order/api/v1/orders' }),
+  createOrder: (data: Record<string, unknown>, requestKey: string) => marketplaceRequest({ data, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: '/order/api/v1/orders' }),
   afterSales: (params: Record<string, unknown>) => marketplaceRequest({ method: 'GET', params, url: '/order/api/v1/after-sales/page' }),
   createAfterSale: (data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: '/order/api/v1/after-sales' }),
   closeAfterSale: (no: string) => marketplaceRequest({ method: 'POST', url: `/order/api/v1/after-sales/${no}/close` }),

@@ -5,6 +5,7 @@ import java.util.List;
 import com.own.face.party.RoleBean;
 import com.own.user.party.dao.domain.Role;
 import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.repository.query.Param;
 
 
 public interface RoleDao extends BaseDao<Role> {
@@ -40,11 +41,11 @@ public interface RoleDao extends BaseDao<Role> {
 
 	/**
 	 * 角色分配功能
-	 * @param endNode funids
-	 * @param startNode roleid
+	 * @param roleId role node ID
+	 * @param functionId function node ID
 	 */
-	@Query("MATCH (startNode:Fun), (endNode:Role) WHERE id(startNode) = $0 AND id(endNode) = $1 MERGE (endNode)-[:FbelongR]->(startNode)")
-	public void createRelationShipRoleAndFun(Long endNode ,Long startNode);
+	@Query("MATCH (function:Fun), (role:Role) WHERE id(role) = $roleId AND id(function) = $functionId MERGE (role)-[:FbelongR]->(function)")
+	public void createRelationShipRoleAndFun(@Param("roleId") Long roleId, @Param("functionId") Long functionId);
 
 
 	/**
