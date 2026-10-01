@@ -63,14 +63,14 @@ Implemented code is not proof of acceptance against real databases or providers.
 | Coupons | Merchant templates, buyer claiming/ownership, quote, reservation and redemption | Merchant templates, buyer wallet, claim by known template ID, and single-coupon checkout quotation/order are connected; no backend API lists publicly claimable offers yet |
 | Favorites and reviews | Favorites, reviews, merchant replies, reporting and moderation APIs | System moderation page exists; buyer favorites/reviews and merchant replies still need UI integration |
 | Accounts and access | Login, refresh, profile/sessions, role/function grants | Role portals and controlled grants exist; integrated profile/session pages, account/role search, current grants and revocation are incomplete |
-| Fulfillment and money | Shipment, manual logistics, simulated payments/refunds, receivables and withdrawal requests | Shipment and settlement pages exist; real logistics, payout providers and financial reconciliation are not integrated |
+| Fulfillment and money | Shipment, manual logistics, after-sales handling, simulated payments/refunds, receivables and withdrawal requests | Shipment and settlement pages exist; merchant after-sales and buyer logistics-trace screens are missing, while real logistics, payout providers and financial reconciliation are not integrated |
 | Reliability and operations | Saga, Outbox, Inbox infrastructure, idempotency records | Missing uncertain-result reconciliation/recovery, complete domain message consumers and an operational console |
 
 ## Near-term priorities
 
 1. Reconciliation: uncertain `PROCESSING` attempts must not be replayed merely because their retention time elapsed. Check business records before deciding how to recover. There is no generic recovery UI; deleting records to "unblock" writes is unsafe.
 2. Isolated integration: verify MySQL/Neo4j transaction-manager selection, atomic batch grants, and order/stock/coupon/refund flows.
-3. Complete frontend journeys: claimable-offer listings, buyer favorites/reviews, profile/sessions, and system account/role lists and revocation. UI visibility never replaces backend RBAC.
+3. Complete frontend journeys: claimable-offer listings, buyer favorites/reviews and logistics traces, merchant after-sales, profile/sessions, and system account/role lists and revocation. UI visibility never replaces backend RBAC.
 4. Production integrations: real payments/payouts, logistics, message consumption, monitoring and recovery exercises require providers and business policies.
 
 See the [frontend review record](docs/frontend/frontend-review-2026-09-30.md) for this round's fixes and verification boundaries, and the [capability roadmap](docs/product/mall-capability-roadmap.md) for broader scope.

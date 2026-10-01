@@ -1,11 +1,20 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { Alert, Button, Card, Form, InputNumber, Space, Table, Tag } from 'ant-design-vue';
 
 import { buyerApi } from '#/api/marketplace';
 import type { BuyerCoupon } from '#/api/marketplace';
 
 const coupons = ref<BuyerCoupon[]>([]);
+const route = useRoute();
+const router = useRouter();
+const checkoutReturn = computed(() => {
+  const redirect = route.query.redirect;
+  return typeof redirect === 'string' && /^\/buyer\/checkout(?:[?#]|$)/.test(redirect)
+    ? redirect
+    : '';
+});
 const listLoading = ref(false);
 const claimLoading = ref(false);
 const listError = ref('');
@@ -83,6 +92,7 @@ onMounted(loadCoupons);
       <Tag color="cyan">买家中心</Tag>
       <h1>我的优惠券</h1>
       <p>已领取优惠券可在结算时选择；最终使用条件由服务端试算确认。</p>
+      <Button v-if="checkoutReturn" class="return-action" @click="router.push(checkoutReturn)">返回结算</Button>
     </Card>
     <Alert
       message="当前尚无公开的可领券活动列表"
@@ -129,5 +139,6 @@ p { color: #64748b; margin: 0; }
 .template-id { width: 100%; }
 .feedback { margin-bottom: 16px; }
 .refresh { margin-bottom: 12px; }
+.return-action { margin-top: 16px; }
 @media (max-width: 640px) { .page { padding: 16px; } }
 </style>
