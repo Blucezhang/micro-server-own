@@ -1,14 +1,18 @@
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { Alert, Button, Card, DatePicker, Form, Input, InputNumber, Space, Table, Tag } from 'ant-design-vue';
 import type { Dayjs } from 'dayjs';
+
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+import { Alert, Button, Card, DatePicker, Form, Input, InputNumber, Space, Table, Tag } from 'ant-design-vue';
 import dayjs from 'dayjs';
+
 import { merchantApi } from '#/api/marketplace';
 import { merchantCouponRows } from '#/api/marketplace-models';
 
 type Row = Record<string, any>;
 const route = useRoute();
+const router = useRouter();
 const loading = ref(false);
 const rows = ref<Row[]>([]);
 const productPage = ref(0);
@@ -165,7 +169,7 @@ watch(() => route.name, () => { resetProductForm(); resetCouponForm(); productPa
         <Space><Button :loading="loading" html-type="submit" type="primary">{{ editingId && route.name === 'MerchantProducts' || couponEditingId && route.name === 'MerchantCoupons' ? '保存编辑' : page.action }}</Button><Button v-if="editingId && route.name === 'MerchantProducts'" :disabled="loading" @click="resetProductForm">取消编辑</Button><Button v-if="couponEditingId && route.name === 'MerchantCoupons'" :disabled="loading" @click="resetCouponForm">取消编辑</Button><Button :disabled="loading" @click="load">刷新</Button></Space>
       </Form>
     </Card>
-    <Card v-if="columns.length" :bordered="false" title="当前记录"><Table :columns="columns" :data-source="rows" :loading="loading" :scroll="{ x: 'max-content' }" :pagination="route.name === 'MerchantProducts' ? { current: productPage + 1, pageSize, total: productTotal, showSizeChanger: false } : route.name === 'MerchantCoupons' ? { pageSize } : false" row-key="id" @change="changeProductPage"><template #bodyCell="{ column, record }"><Space v-if="column.key === 'actions'"><Button v-if="route.name === 'MerchantProducts' || route.name === 'MerchantCoupons' && Number(record.availableQuantity) === Number(record.totalQuantity)" type="link" @click="edit(record)">编辑</Button><Button type="link" @click="changeStatus(record)">{{ route.name === 'MerchantProducts' ? (record.saleStatus === 'AVAILABLE' ? '下架' : '上架') : (record.status === 'ACTIVE' ? '停用' : '启用') }}</Button></Space><span v-else-if="column.key === 'expiresAt'">{{ new Date(record.expiresAt).toLocaleString() }}</span></template></Table></Card>
+    <Card v-if="columns.length" :bordered="false" title="当前记录"><Table :columns="columns" :data-source="rows" :loading="loading" :scroll="{ x: 'max-content' }" :pagination="route.name === 'MerchantProducts' ? { current: productPage + 1, pageSize, total: productTotal, showSizeChanger: false } : route.name === 'MerchantCoupons' ? { pageSize } : false" row-key="id" @change="changeProductPage"><template #bodyCell="{ column, record }"><Space v-if="column.key === 'actions'"><Button v-if="route.name === 'MerchantProducts' || route.name === 'MerchantCoupons' && Number(record.availableQuantity) === Number(record.totalQuantity)" type="link" @click="edit(record)">编辑</Button><Button v-if="route.name === 'MerchantProducts'" type="link" @click="router.push({ path: '/merchant/reviews', query: { productId: String(record.id) } })">评价</Button><Button type="link" @click="changeStatus(record)">{{ route.name === 'MerchantProducts' ? (record.saleStatus === 'AVAILABLE' ? '下架' : '上架') : (record.status === 'ACTIVE' ? '停用' : '启用') }}</Button></Space><span v-else-if="column.key === 'expiresAt'">{{ new Date(record.expiresAt).toLocaleString() }}</span></template></Table></Card>
   </main>
 </template>
 

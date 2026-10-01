@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /** System-only moderation vocabulary management for product reviews and merchant replies. */
 @RestController
-@RequestMapping("/api/v1/system/review-prohibited-terms")
+@RequestMapping("/product/api/v1/system/review-prohibited-terms")
 public class SystemReviewProhibitedTermController extends BaseController {
     private final ReviewProhibitedTermService service;
     public SystemReviewProhibitedTermController(ReviewProhibitedTermService service) { this.service = service; }

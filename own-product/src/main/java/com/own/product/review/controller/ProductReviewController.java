@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/products/{productId}/reviews")
+@RequestMapping("/product/api/v1/products/{productId}/reviews")
 public class ProductReviewController extends BaseController {
     private final ProductReviewService service; public ProductReviewController(ProductReviewService service) { this.service = service; }
     @GetMapping public Resp list(@PathVariable Long productId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) { return new Resp(service.page(productId, page, size)); }

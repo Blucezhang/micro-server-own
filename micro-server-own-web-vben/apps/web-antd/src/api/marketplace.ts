@@ -18,6 +18,29 @@ export interface BuyerCoupon {
   status: 'AVAILABLE' | 'EXPIRED' | 'RESERVED' | 'USED';
 }
 
+export interface BuyerFavorite {
+  id: number;
+  productId: number;
+  createdAt: string;
+}
+
+export interface ProductReview {
+  id: number;
+  productId: number;
+  rating: number;
+  content: string;
+  merchantReply: null | string;
+  repliedAt: null | string;
+  createdAt: string;
+}
+
+export interface ProductReviewPage {
+  items: ProductReview[];
+  page: number;
+  size: number;
+  total: number;
+}
+
 export const marketplaceAuthApi = {
   authorization: () =>
     marketplaceRequest<Authorization>({
@@ -51,9 +74,16 @@ export const catalogApi = {
     }),
   categories: () => marketplaceRequest({ method: 'GET', url: '/product/api/v1/categories' }),
   product: (id: number) => marketplaceRequest({ method: 'GET', url: `/product/api/v1/products/${id}` }),
+  reviews: (productId: number, page = 0, size = 10) =>
+    marketplaceRequest<ProductReviewPage>({ method: 'GET', params: { page, size }, url: `/product/api/v1/products/${productId}/reviews` }),
 };
 
 export const buyerApi = {
+  favorites: () => marketplaceRequest<BuyerFavorite[]>({ method: 'GET', url: '/product/api/v1/favorites' }),
+  addFavorite: (productId: number, requestKey: string) => marketplaceRequest<BuyerFavorite>({ headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/product/api/v1/favorites/${productId}` }),
+  removeFavorite: (productId: number, requestKey: string) => marketplaceRequest({ headers: { 'Idempotency-Key': requestKey }, method: 'DELETE', url: `/product/api/v1/favorites/${productId}` }),
+  createReview: (productId: number, data: { content: string; rating: number }, requestKey: string) => marketplaceRequest({ data, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/product/api/v1/products/${productId}/reviews` }),
+  reportReview: (productId: number, reviewId: number, reason: string, requestKey: string) => marketplaceRequest({ data: { reason }, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/product/api/v1/products/${productId}/reviews/${reviewId}/reports` }),
   coupons: () => marketplaceRequest<BuyerCoupon[]>({ method: 'GET', url: '/sale/api/v1/coupons/me' }),
   claimMerchantCoupon: (merchantTemplateId: number, requestKey: string) =>
     marketplaceRequest<BuyerCoupon>({
@@ -105,6 +135,7 @@ export const paymentApi = {
 };
 
 export const merchantApi = {
+  replyReview: (reviewId: number, content: string, requestKey: string) => marketplaceRequest<ProductReview>({ data: { content }, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/product/api/v1/merchant/reviews/${reviewId}/reply` }),
   saveProduct: (data: Record<string, unknown>, id: number | undefined, requestKey: string) => marketplaceRequest({ data, headers: { 'Idempotency-Key': requestKey }, method: id ? 'PUT' : 'POST', url: id ? `/product/api/v1/merchant/products/${id}` : '/product/api/v1/merchant/products' }),
   changeProductStatus: (id: number, value: 'AVAILABLE' | 'OFF_SHELF') => marketplaceRequest({ method: 'POST', params: { value }, url: `/product/api/v1/merchant/products/${id}/sale-status` }),
   priceAudits: (id: number, page = 0) => marketplaceRequest({ method: 'GET', params: { page, size: 20 }, url: `/product/api/v1/merchant/products/${id}/price-audits` }),

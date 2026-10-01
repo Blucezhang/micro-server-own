@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/merchant/reviews")
+@RequestMapping("/product/api/v1/merchant/reviews")
 public class MerchantReviewController extends BaseController {
     private final ProductReviewService service; public MerchantReviewController(ProductReviewService service) { this.service = service; }
     @PostMapping("/{reviewId}/reply") public Resp reply(@PathVariable Long reviewId, @RequestBody ReviewReplyCommand command, HttpServletRequest request) {

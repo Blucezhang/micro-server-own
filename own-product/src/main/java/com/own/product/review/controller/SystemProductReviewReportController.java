@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/system/review-reports")
+@RequestMapping("/product/api/v1/system/review-reports")
 public class SystemProductReviewReportController extends BaseController {
     private final ProductReviewService service;
     public SystemProductReviewReportController(ProductReviewService service) { this.service = service; }

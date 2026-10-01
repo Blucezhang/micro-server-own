@@ -8,16 +8,19 @@ const BuyerCheckout = () => import('#/views/marketplace/buyer-checkout.vue');
 const BuyerCoupons = () => import('#/views/marketplace/buyer-coupons.vue');
 const BuyerOrders = () => import('#/views/marketplace/buyer-orders.vue');
 const BuyerCatalog = () => import('#/views/marketplace/buyer-catalog.vue');
+const BuyerFavorites = () => import('#/views/marketplace/buyer-favorites.vue');
 const MerchantConsole = () => import('#/views/marketplace/merchant-console.vue');
 const MerchantFulfillment = () => import('#/views/marketplace/merchant-fulfillment.vue');
 const MerchantInventory = () => import('#/views/marketplace/merchant-inventory.vue');
 const MerchantPriceAudits = () => import('#/views/marketplace/merchant-price-audits.vue');
+const MerchantReviews = () => import('#/views/marketplace/merchant-reviews.vue');
 const SystemAdministration = () => import('#/views/marketplace/system-administration.vue');
 const SystemReviews = () => import('#/views/marketplace/system-reviews.vue');
 
 const buyerChildren: RouteRecordRaw[] = [
   { component: Workspace, name: 'BuyerWorkspace', path: 'workspace', meta: { affixTab: true, icon: 'lucide:layout-dashboard', title: '买家工作台' } },
   { component: BuyerCatalog, name: 'BuyerCatalog', path: 'catalog', meta: { icon: 'lucide:store', title: '商品浏览' } },
+  { component: BuyerFavorites, name: 'BuyerFavorites', path: 'favorites', meta: { icon: 'lucide:heart', title: '我的收藏' } },
   { component: BuyerCart, name: 'BuyerCart', path: 'cart', meta: { icon: 'lucide:shopping-cart', title: '购物车' } },
   { component: BuyerCoupons, name: 'BuyerCoupons', path: 'coupons', meta: { icon: 'lucide:ticket-percent', title: '我的优惠券' } },
   { component: BuyerOrders, name: 'BuyerOrders', path: 'orders', meta: { icon: 'lucide:receipt-text', title: '订单中心' } },
@@ -30,6 +33,7 @@ const merchantChildren: RouteRecordRaw[] = [
   { component: Workspace, name: 'MerchantWorkspace', path: 'workspace', meta: { affixTab: true, icon: 'lucide:layout-dashboard', title: '商家工作台' } },
   { component: MerchantConsole, name: 'MerchantProducts', path: 'products', meta: { icon: 'lucide:package-search', title: '商品管理' } },
   { component: MerchantPriceAudits, name: 'MerchantPriceAudits', path: 'price-audits', meta: { icon: 'lucide:badge-dollar-sign', title: '价格审计' } },
+  { component: MerchantReviews, name: 'MerchantReviews', path: 'reviews', meta: { icon: 'lucide:messages-square', title: '商品评价' } },
   { component: MerchantInventory, name: 'MerchantInventory', path: 'inventory', meta: { icon: 'lucide:boxes', title: '库存管理' } },
   { component: MerchantFulfillment, name: 'MerchantOrders', path: 'orders', meta: { icon: 'lucide:truck', title: '履约工作台' } },
   { component: MerchantConsole, name: 'MerchantCoupons', path: 'coupons', meta: { icon: 'lucide:ticket-percent', title: '营销优惠' } },
