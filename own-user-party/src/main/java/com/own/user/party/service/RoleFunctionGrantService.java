@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Maintains legacy role-function graph edges without accepting dangling IDs. */
 @Service
@@ -23,6 +24,7 @@ public class RoleFunctionGrantService {
         this.functions = functions;
     }
 
+    @Transactional(transactionManager = "neo4jTransactionManager")
     public List<Long> grant(Long roleId, List<Long> functionIds) {
         if (roleId == null || roleId.longValue() <= 0L) {
             throw TradeException.unprocessable("role id must be positive");
@@ -39,10 +41,12 @@ public class RoleFunctionGrantService {
             }
             distinctIds.add(functionId);
         }
-        List<Long> granted = new ArrayList<Long>();
         for (Long functionId : distinctIds) {
             Fun function = functions.findById(functionId).orElse(null);
             if (function == null) throw TradeException.notFound("function was not found");
+        }
+        List<Long> granted = new ArrayList<Long>();
+        for (Long functionId : distinctIds) {
             roles.createRelationShipRoleAndFun(roleId, functionId);
             granted.add(functionId);
         }

@@ -4,7 +4,7 @@ import type { ProductReview } from '#/api/marketplace';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { Alert, Button, Card, Form, Input, InputNumber, Space, Table, Tag } from 'ant-design-vue';
+import { Alert, Button, Form, Input, InputNumber, Space, Table } from 'ant-design-vue';
 
 import { catalogApi, merchantApi } from '#/api/marketplace';
 
@@ -76,35 +76,40 @@ onMounted(() => { if (!currentProductId.value) feedback.value = '可从商品管
 </script>
 
 <template>
-  <main class="page">
-    <Card :bordered="false"><Tag color="purple">商家运营</Tag><h1>商品评价</h1><p>按商品查看公开评价；回复时服务端会校验商品归属。</p></Card>
-    <Card :bordered="false" title="选择商品">
+  <main class="market-page">
+    <header class="market-head">
+      <div>
+        <span class="market-overline">MERCHANT · REVIEWS</span>
+        <h1 class="market-heading">商品评价</h1>
+        <p class="market-subtitle">按商品查看公开评价；回复时服务端会校验商品归属。</p>
+      </div>
+    </header>
+    <section class="market-panel" aria-labelledby="review-query-title">
+      <h2 id="review-query-title" class="market-panel-title">选择商品</h2>
       <Form :model="{ productId }" layout="inline" @finish="selectProduct">
         <Form.Item label="商品 ID"><InputNumber v-model:value="productId" :min="1" :precision="0" /></Form.Item>
         <Space><Button html-type="submit" type="primary">查看评价</Button><Button @click="router.push('/merchant/products')">前往商品管理</Button></Space>
       </Form>
-    </Card>
-    <Card :bordered="false" :title="currentProductId ? `商品 ${currentProductId} 的评价` : '商品评价'">
+    </section>
+    <section class="market-panel" aria-labelledby="review-list-title">
+      <h2 id="review-list-title" class="market-panel-title">{{ currentProductId ? `商品 ${currentProductId} 的评价` : '商品评价' }}</h2>
       <Alert v-if="error" :message="error" show-icon type="error" class="notice" />
       <Alert v-if="feedback" :message="feedback" show-icon type="success" class="notice" />
       <Table :columns="columns" :data-source="rows" :loading="loading" :pagination="{ current: page + 1, pageSize: 10, total, showSizeChanger: false }" :scroll="{ x: 680 }" row-key="id" @change="changePage">
         <template #bodyCell="{ column, record }"><Button v-if="column.key === 'actions'" type="link" @click="beginReply(record)">{{ record.merchantReply ? '修改回复' : '回复' }}</Button></template>
       </Table>
-    </Card>
-    <Card v-if="replyForm.reviewId" :bordered="false" :title="`回复评价 #${replyForm.reviewId}`">
+    </section>
+    <section v-if="replyForm.reviewId" class="market-panel" aria-labelledby="reply-title">
+      <h2 id="reply-title" class="market-panel-title">回复评价 #{{ replyForm.reviewId }}</h2>
       <Form :model="replyForm" layout="vertical" @finish="submitReply">
         <Form.Item label="回复内容" name="content" :rules="[{ required: true, message: '请填写回复内容' }]"><Input.TextArea v-model:value="replyForm.content" :maxlength="500" :rows="3" show-count /></Form.Item>
         <Space><Button html-type="submit" type="primary" :loading="replyLoading">保存回复</Button><Button :disabled="replyLoading" @click="replyForm.reviewId = undefined">取消</Button></Space>
       </Form>
-    </Card>
+    </section>
   </main>
 </template>
 
+<style src="./marketplace-page.css"></style>
 <style scoped>
-.page { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; padding: 24px; }
-.page > :deep(.ant-card) { min-width: 0; }
-h1 { font-size: 24px; margin: 10px 0 6px; }
-p { color: #64748b; margin: 0; }
 .notice { margin-bottom: 16px; }
-@media (max-width: 640px) { .page { padding: 16px; } }
 </style>

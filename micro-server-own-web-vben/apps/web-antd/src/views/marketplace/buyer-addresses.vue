@@ -1,11 +1,12 @@
 <script lang="ts" setup>
+import type { BuyerAddress } from '#/api/marketplace-models';
+
 import { onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { Button, Card, Drawer, Form, Input, Popconfirm, Switch, Tag, message } from 'ant-design-vue';
+import { Button, Drawer, Form, Input, message, Popconfirm, Space, Switch, Tag } from 'ant-design-vue';
 
 import { buyerApi } from '#/api/marketplace';
-import type { BuyerAddress } from '#/api/marketplace-models';
 
 const route = useRoute();
 const router = useRouter();
@@ -59,14 +60,21 @@ onMounted(load);
 </script>
 
 <template>
-  <main class="addresses-page">
-    <Card :bordered="false">
-      <div class="heading">
-        <div><Tag color="cyan">买家中心</Tag><h1>收货地址</h1><p>订单会保存当前收货信息快照。</p></div>
-        <div class="actions"><Button v-if="route.query.redirect" @click="returnToCheckout">返回结算</Button><Button type="primary" @click="openForm()">新增地址</Button><Button @click="load">刷新</Button></div>
+  <main class="market-page">
+    <header class="market-head">
+      <div>
+        <span class="market-overline">BUYER · ADDRESS</span>
+        <h1 class="market-heading">收货地址</h1>
+        <p class="market-subtitle">订单会保存当前收货信息快照；默认地址可用于预选结算。</p>
       </div>
-    </Card>
-    <Card :bordered="false" :loading="loading">
+      <Space wrap>
+        <Button v-if="route.query.redirect" @click="returnToCheckout">返回结算</Button>
+        <Button type="primary" @click="openForm()">新增地址</Button>
+        <Button :loading="loading" @click="load">刷新</Button>
+      </Space>
+    </header>
+    <section class="market-panel" :aria-busy="loading" aria-labelledby="address-list-title">
+      <h2 id="address-list-title" class="market-panel-title">地址簿</h2>
       <div v-if="addresses.length" class="address-grid">
         <article v-for="address in addresses" :key="address.id" class="address-card">
           <div><strong>{{ address.recipientName }}</strong><span>{{ address.mobile }}</span></div>
@@ -80,7 +88,7 @@ onMounted(load);
         </article>
       </div>
       <p v-else class="empty">暂无收货地址，请先新增地址。</p>
-    </Card>
+    </section>
     <Drawer :open="drawerOpen" :title="editingId ? '编辑地址' : '新增地址'" width="480" @close="drawerOpen = false">
       <Form :model="form" layout="vertical" @finish="save">
         <Form.Item label="收货人" name="recipientName" :rules="[{ required: true, message: '请填写收货人' }]"><Input v-model:value="form.recipientName" /></Form.Item>
@@ -96,16 +104,12 @@ onMounted(load);
   </main>
 </template>
 
+<style src="./marketplace-page.css"></style>
 <style scoped>
-.addresses-page { display: grid; gap: 16px; padding: 24px; }
-.heading, .actions { align-items: center; display: flex; justify-content: space-between; gap: 12px; }
-h1 { font-size: 24px; margin: 10px 0 6px; }
-p { color: #64748b; margin: 0; }
 .address-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-.address-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; }
-.address-card span { color: #64748b; margin-left: 12px; }
+.address-card { border: 1px solid var(--market-line); border-radius: 12px; padding: 18px; }
+.address-card span { color: var(--market-muted); margin-left: 12px; }
 .address-card p { line-height: 1.7; margin: 14px 0; }
 .address-card footer { margin-top: 16px; }
-.empty { padding: 30px; }
-@media (max-width: 640px) { .addresses-page { padding: 16px; } .heading { align-items: stretch; flex-direction: column; } .actions { flex-wrap: wrap; } }
+.empty { color: var(--market-muted); padding: 30px 0; }
 </style>

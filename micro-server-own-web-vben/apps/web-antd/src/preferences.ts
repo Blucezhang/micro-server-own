@@ -19,19 +19,30 @@ interface WebAntdPreferencesExtension {
 export const overridesPreferences = defineOverridesPreferences({
   // overrides
   app: {
+    authPageLayout: 'panel-right',
+    contentCompact: 'wide',
     defaultHomePath: '/buyer/workspace',
     enableRefreshToken: true,
     locale: 'zh-CN',
-    name: import.meta.env.VITE_APP_TITLE,
+    name: import.meta.env.VITE_APP_TITLE || '微服务商城运营台',
   },
   copyright: {
     ...appCopyrightPreferences,
     companyName: '微服务商城',
     companySiteLink: '',
+    date: '2026',
     enable: true,
     icp: '',
     icpLink: '',
     settingShow: false,
+  },
+  theme: {
+    fontSize: 14,
+    radius: '0.5',
+  },
+  widget: {
+    languageToggle: false,
+    timezone: false,
   },
 });
 

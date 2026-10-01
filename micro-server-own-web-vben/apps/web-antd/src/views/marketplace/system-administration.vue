@@ -1,12 +1,14 @@
 <script lang="ts" setup>
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { Alert, Button, Card, Form, Input, InputNumber, Space, Tag } from 'ant-design-vue';
+
+import { Alert, Button, Form, Input, InputNumber, Space } from 'ant-design-vue';
+
 import { systemApi } from '#/api/marketplace';
 
 const route = useRoute();
 const loading = ref(false);
-const feedback = ref<{ text: string; type: 'error' | 'success' } | null>(null);
+const feedback = ref<null | { text: string; type: 'error' | 'success' }>(null);
 const form = reactive({
   functionIds: '',
   loginUserId: undefined as number | undefined,
@@ -19,7 +21,7 @@ watch(
   () => { feedback.value = null; },
 );
 
-function parseFunctionIds(value: string): number[] | null {
+function parseFunctionIds(value: string): null | number[] {
   const parts = value.split(',').map((part) => part.trim());
   if (parts.some((part) => !/^[1-9]\d*$/.test(part))) return null;
   const ids = parts.map(Number);
@@ -62,20 +64,23 @@ async function submit() {
 </script>
 
 <template>
-  <main class="page">
-    <Card :bordered="false">
-      <Tag color="red">系统治理</Tag>
-      <h1>{{ isAccount ? '账号与商家授权' : '角色权限授权' }}</h1>
-      <p>所有写操作由服务端以 SYSTEM 身份、权限和幂等键再次校验。</p>
-    </Card>
-    <Alert
-      :message="isAccount ? '账号列表接口尚未由后端提供' : '角色/功能列表接口尚未由后端提供'"
-      description="此页保留当前后端已交付的受控授权能力；请从已审核的数据源填入 ID。"
-      show-icon
-      type="info"
-    />
-    <Card :bordered="false">
-      <Form :model="form" layout="vertical" @finish="submit">
+  <main class="market-page">
+    <header class="market-head">
+      <div>
+        <span class="market-overline">SYSTEM · ACCESS</span>
+        <h1 class="market-heading">{{ isAccount ? '账号与商家授权' : '角色权限授权' }}</h1>
+        <p class="market-subtitle">所有写操作由服务端以 SYSTEM 身份和权限再次校验。</p>
+      </div>
+    </header>
+    <section class="market-panel">
+      <Alert
+        :message="isAccount ? '账号列表接口尚未由后端提供' : '角色/功能列表接口尚未由后端提供'"
+        description="此页仅保留后端已交付的受控授权能力；请从已审核的数据源填入 ID。"
+        class="notice"
+        show-icon
+        type="info"
+      />
+      <Form :model="form" class="grant-form" layout="vertical" @finish="submit">
         <template v-if="isAccount">
           <Form.Item label="登录账号 ID" required>
             <InputNumber v-model:value="form.loginUserId" class="full" />
@@ -97,15 +102,14 @@ async function submit() {
           </Button>
         </Space>
       </Form>
-    </Card>
+    </section>
   </main>
 </template>
 
+<style src="./marketplace-page.css"></style>
 <style scoped>
-.page { display: grid; gap: 16px; padding: 24px; }
-h1 { font-size: 24px; margin: 10px 0 6px; }
-p { color: #64748b; margin: 0; }
+.grant-form { max-width: 560px; }
 .full { width: 100%; }
+.notice,
 .feedback { margin: 0 0 16px; }
-@media (max-width: 640px) { .page { padding: 16px; } }
 </style>

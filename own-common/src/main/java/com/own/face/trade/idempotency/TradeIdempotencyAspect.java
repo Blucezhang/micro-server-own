@@ -47,15 +47,18 @@ public class TradeIdempotencyAspect {
         String hash = requestHash(joinPoint.getArgs());
         IdempotencyRecord record = store.begin(serviceName, actor, path, key, hash, retentionHours);
         if ("COMPLETED".equals(record.getStatus())) return objectMapper.readValue(record.getResponseBody(), Resp.class);
+        Object result;
         try {
-            Object result = joinPoint.proceed();
-            if (!(result instanceof Resp)) throw new IllegalStateException("trade write must return Resp");
-            store.complete(record.getId(), (Resp) result);
-            return result;
+            result = joinPoint.proceed();
         } catch (Throwable throwable) {
             store.abandon(record.getId());
             throw throwable;
         }
+        // Business state may already be committed. Never unlock its key if storing
+        // the response fails; the uncertain attempt must be reconciled, not replayed.
+        if (!(result instanceof Resp)) throw new IllegalStateException("trade write must return Resp");
+        store.complete(record.getId(), (Resp) result);
+        return result;
     }
 
     static boolean isTradeWrite(HttpServletRequest request) {

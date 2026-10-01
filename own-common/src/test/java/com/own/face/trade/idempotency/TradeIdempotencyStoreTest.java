@@ -14,6 +14,34 @@ public class TradeIdempotencyStoreTest {
     private final TradeActor buyer = new TradeActor(1L, ActorType.BUYER);
 
     @Test
+    void expiredProcessingRecordCannotBeDeletedAndReplayed() {
+        TradeIdempotencyRecordTransactions operations = Mockito.mock(TradeIdempotencyRecordTransactions.class);
+        IdempotencyRecord uncertain = new IdempotencyRecord("order", 1L, "BUYER", "/api/v1/orders", "key", "hash",
+                new java.util.Date(System.currentTimeMillis() - 1000));
+        Mockito.when(operations.lookup("order", buyer, "/api/v1/orders", "key")).thenReturn(uncertain);
+        com.own.face.trade.TradeException error = Assertions.assertThrows(com.own.face.trade.TradeException.class,
+                () -> new TradeIdempotencyStore(operations).begin("order", buyer, "/api/v1/orders", "key", "hash", 24));
+        Assertions.assertEquals(409, error.getStatus());
+        Mockito.verify(operations, Mockito.never()).delete(Mockito.any());
+        Mockito.verify(operations, Mockito.never()).create(Mockito.anyString(), Mockito.any(), Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyInt());
+    }
+
+    @Test
+    void completedRecordStillExpiresAfterItsRetentionWindow() {
+        TradeIdempotencyRecordTransactions operations = Mockito.mock(TradeIdempotencyRecordTransactions.class);
+        IdempotencyRecord completed = new IdempotencyRecord("order", 1L, "BUYER", "/api/v1/orders", "key", "hash",
+                new java.util.Date(System.currentTimeMillis() - 1000));
+        completed.complete(200, "{}");
+        IdempotencyRecord next = new IdempotencyRecord("order", 1L, "BUYER", "/api/v1/orders", "key", "hash",
+                new java.util.Date(System.currentTimeMillis() + 1000));
+        Mockito.when(operations.lookup("order", buyer, "/api/v1/orders", "key")).thenReturn(completed);
+        Mockito.when(operations.create("order", buyer, "/api/v1/orders", "key", "hash", 24)).thenReturn(next);
+        Assertions.assertSame(next, new TradeIdempotencyStore(operations).begin("order", buyer, "/api/v1/orders", "key", "hash", 24));
+        Mockito.verify(operations).delete(completed.getId());
+    }
+
+    @Test
     public void beginsNewRecordThroughTransactionalOperationBean() {
         TradeIdempotencyRecordTransactions operations = Mockito.mock(TradeIdempotencyRecordTransactions.class);
         IdempotencyRecord created = new IdempotencyRecord("order", 1L, "BUYER", "/api/v1/orders", "key", "hash", new java.util.Date(System.currentTimeMillis() + 1000));

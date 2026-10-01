@@ -25,7 +25,35 @@ const tokenTheme = computed(() => {
 
   return {
     algorithm,
-    token: tokens,
+    token: {
+      ...tokens,
+      fontFamily:
+        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
+      borderRadius: 8,
+      borderRadiusLG: 12,
+      borderRadiusSM: 6,
+      wireframe: false,
+    },
+    components: {
+      Button: {
+        borderRadius: 6,
+        controlHeight: 34,
+      },
+      Card: {
+        borderRadiusLG: 12,
+      },
+      Input: {
+        borderRadius: 6,
+        controlHeight: 36,
+      },
+      Modal: {
+        borderRadiusLG: 14,
+      },
+      Select: {
+        borderRadius: 6,
+        controlHeight: 36,
+      },
+    },
   };
 });
 </script>
@@ -37,3 +65,28 @@ const tokenTheme = computed(() => {
     </App>
   </ConfigProvider>
 </template>
+
+<style>
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.35);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+</style>

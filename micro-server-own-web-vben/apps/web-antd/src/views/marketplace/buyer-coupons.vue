@@ -1,10 +1,12 @@
 <script lang="ts" setup>
+import type { BuyerCoupon } from '#/api/marketplace';
+
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Alert, Button, Card, Form, InputNumber, Space, Table, Tag } from 'ant-design-vue';
+
+import { Alert, Button, Form, InputNumber, Space, Table, Tag } from 'ant-design-vue';
 
 import { buyerApi } from '#/api/marketplace';
-import type { BuyerCoupon } from '#/api/marketplace';
 
 const coupons = ref<BuyerCoupon[]>([]);
 const route = useRoute();
@@ -18,7 +20,7 @@ const checkoutReturn = computed(() => {
 const listLoading = ref(false);
 const claimLoading = ref(false);
 const listError = ref('');
-const feedback = ref<{ text: string; type: 'error' | 'success' } | null>(null);
+const feedback = ref<null | { text: string; type: 'error' | 'success' }>(null);
 const form = reactive({ merchantTemplateId: undefined as number | undefined });
 const claimAttempt = computed(() => ({
   key: crypto.randomUUID(),
@@ -87,31 +89,50 @@ onMounted(loadCoupons);
 </script>
 
 <template>
-  <main class="page">
-    <Card :bordered="false">
-      <Tag color="cyan">买家中心</Tag>
-      <h1>我的优惠券</h1>
-      <p>已领取优惠券可在结算时选择；最终使用条件由服务端试算确认。</p>
-      <Button v-if="checkoutReturn" class="return-action" @click="router.push(checkoutReturn)">返回结算</Button>
-    </Card>
-    <Alert
-      message="当前尚无公开的可领券活动列表"
-      description="如已从商家或运营方获得有效模板 ID，可在下方领取对应店铺券。"
-      show-icon
-      type="info"
-    />
-    <Card :bordered="false" title="领取商家券">
-      <Form :model="form" layout="vertical" @finish="claim">
+  <main class="market-page">
+    <header class="market-head">
+      <div>
+        <span class="market-overline">BUYER · 优惠券</span>
+        <h1 class="market-heading">我的优惠券</h1>
+        <p class="market-subtitle">已领取优惠券可在结算时选择；最终使用条件由服务端试算确认。</p>
+      </div>
+      <Space>
+        <Button v-if="checkoutReturn" type="primary" @click="router.push(checkoutReturn)">
+          返回结算
+        </Button>
+        <Button :loading="listLoading" @click="loadCoupons">刷新券包</Button>
+      </Space>
+    </header>
+
+    <section class="market-panel" aria-labelledby="claim-title">
+      <h2 id="claim-title" class="market-panel-title">领取商家券</h2>
+      <Alert
+        class="notice"
+        description="如已从商家或运营方获得有效模板 ID，可在下方领取对应店铺券。"
+        message="当前尚无公开的可领券活动列表"
+        show-icon
+        type="info"
+      />
+      <Form :model="form" class="claim-form" layout="inline" @finish="claim">
         <Form.Item label="商家券模板 ID" required>
-          <InputNumber v-model:value="form.merchantTemplateId" :min="1" :precision="0" class="template-id" />
+          <InputNumber
+            v-model:value="form.merchantTemplateId"
+            :min="1"
+            :precision="0"
+            placeholder="请输入有效模板 ID"
+            class="template-input"
+          />
         </Form.Item>
-        <Alert v-if="feedback" :message="feedback.text" :type="feedback.type" class="feedback" show-icon />
-        <Button :loading="claimLoading" html-type="submit" type="primary">领取优惠券</Button>
+        <Form.Item>
+          <Button :loading="claimLoading" html-type="submit" type="primary">领取优惠券</Button>
+        </Form.Item>
       </Form>
-    </Card>
-    <Card :bordered="false" title="我的券包">
-      <Alert v-if="listError" :message="listError" class="feedback" show-icon type="error" />
-      <Space class="refresh"><Button :loading="listLoading" @click="loadCoupons">刷新券包</Button></Space>
+      <Alert v-if="feedback" :message="feedback.text" :type="feedback.type" class="notice" show-icon />
+    </section>
+
+    <section class="market-panel" aria-labelledby="coupons-title">
+      <h2 id="coupons-title" class="market-panel-title">我的券包</h2>
+      <Alert v-if="listError" :message="listError" class="notice" show-icon type="error" />
       <Table
         :columns="columns"
         :data-source="coupons"
@@ -121,24 +142,40 @@ onMounted(loadCoupons);
         row-key="couponNo"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'type'">{{ record.couponType === 'MALL' ? '平台券' : '店铺券' }}</template>
-          <template v-else-if="column.key === 'expiry'">{{ formatExpiry(record.expiresAt) }}</template>
+          <template v-if="column.key === 'type'">
+            {{ record.couponType === 'MALL' ? '平台券' : '店铺券' }}
+          </template>
+          <template v-else-if="column.key === 'expiry'">
+            {{ formatExpiry(record.expiresAt) }}
+          </template>
           <Tag v-else-if="column.key === 'status'" :color="record.status === 'AVAILABLE' ? 'green' : 'default'">
             {{ statusNames[record.status as BuyerCoupon['status']] || record.status }}
           </Tag>
         </template>
       </Table>
-    </Card>
+    </section>
   </main>
 </template>
 
+<style src="./marketplace-page.css"></style>
 <style scoped>
-.page { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 24px; }
-h1 { font-size: 24px; margin: 10px 0 6px; }
-p { color: #64748b; margin: 0; }
-.template-id { width: 100%; }
-.feedback { margin-bottom: 16px; }
-.refresh { margin-bottom: 12px; }
-.return-action { margin-top: 16px; }
-@media (max-width: 640px) { .page { padding: 16px; } }
+.notice {
+  margin-bottom: 16px;
+}
+
+.template-input {
+  width: 240px;
+}
+
+@media (max-width: 640px) {
+  .claim-form :deep(.ant-form-item) {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 12px;
+  }
+
+  .template-input {
+    width: 100%;
+  }
+}
 </style>

@@ -5,9 +5,7 @@ import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
-import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
 import { useWatermark } from '@vben/hooks';
-import { BookOpenText, CircleHelp, SvgGithubIcon } from '@vben/icons';
 import {
   BasicLayout,
   LockScreen,
@@ -16,64 +14,15 @@ import {
 } from '@vben/layouts';
 import { preferences, usePreferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
-import { openWindow } from '@vben/utils';
 
-import { $t } from '#/locales';
+import { Modal } from 'ant-design-vue';
+
 import { useAuthStore } from '#/store';
+import AboutView from '#/views/_core/about/index.vue';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
-const notifications = ref<NotificationItem[]>([
-  {
-    id: 1,
-    avatar: 'https://avatar.vercel.sh/vercel.svg?text=VB',
-    date: '3小时前',
-    isRead: true,
-    message: '描述信息描述信息描述信息',
-    title: '收到了 14 份新周报',
-  },
-  {
-    id: 2,
-    avatar: 'https://avatar.vercel.sh/1',
-    date: '刚刚',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '朱偏右 回复了你',
-  },
-  {
-    id: 3,
-    avatar: 'https://avatar.vercel.sh/1',
-    date: '2024-01-01',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '曲丽丽 评论了你',
-  },
-  {
-    id: 4,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '代办提醒',
-  },
-  {
-    id: 5,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '跳转Workspace示例',
-    link: '/workspace',
-  },
-  {
-    id: 6,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '跳转外部链接示例',
-    link: 'https://doc.vben.pro',
-  },
-]);
+const notifications = ref<NotificationItem[]>([]);
+const aboutModalOpen = ref(false);
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -81,44 +30,68 @@ const authStore = useAuthStore();
 const accessStore = useAccessStore();
 const { destroyWatermark, updateWatermark } = useWatermark();
 const { isDark } = usePreferences();
+
 const showDot = computed(() =>
   notifications.value.some((item) => !item.isRead),
 );
 
+const userDisplayName = computed(() => {
+  return (
+    userStore.userInfo?.realName ||
+    userStore.userInfo?.username ||
+    '商城运营用户'
+  );
+});
+
+const userRoleDesc = computed(() => {
+  return (
+    userStore.userInfo?.desc ||
+    (userStore.userInfo?.username
+      ? `用户ID: ${userStore.userInfo.username}`
+      : '')
+  );
+});
+
+const userRoleTag = computed(() => {
+  const role = userStore.userInfo?.roles?.[0];
+  if (role === 'BUYER') return '买家端';
+  if (role === 'MERCHANT') return '商家端';
+  if (role === 'SYSTEM') return '系统治理';
+  return role || '';
+});
+
 const menus = computed(() => [
   {
     handler: () => {
-      router.push({ name: 'Profile' });
+      const homePath =
+        userStore.userInfo?.homePath ||
+        preferences.app.defaultHomePath ||
+        '/buyer/workspace';
+      router.push(homePath);
     },
-    icon: 'lucide:user',
-    text: $t('page.auth.profile'),
+    icon: 'lucide:layout-dashboard',
+    text: '工作台首页',
   },
   {
     handler: () => {
-      openWindow(VBEN_DOC_URL, {
-        target: '_blank',
-      });
+      const roles = userStore.userInfo?.roles || [];
+      if (roles.includes('MERCHANT')) {
+        router.push('/merchant/account');
+      } else if (roles.includes('BUYER')) {
+        router.push('/buyer/account');
+      } else {
+        router.push(userStore.userInfo?.homePath || '/buyer/workspace');
+      }
     },
-    icon: BookOpenText,
-    text: $t('ui.widgets.document'),
+    icon: 'lucide:user-round-cog',
+    text: '账号设置',
   },
   {
     handler: () => {
-      openWindow(VBEN_GITHUB_URL, {
-        target: '_blank',
-      });
+      aboutModalOpen.value = true;
     },
-    icon: SvgGithubIcon,
-    text: 'GitHub',
-  },
-  {
-    handler: () => {
-      openWindow(`${VBEN_GITHUB_URL}/issues`, {
-        target: '_blank',
-      });
-    },
-    icon: CircleHelp,
-    text: $t('ui.widgets.qa'),
+    icon: 'lucide:info',
+    text: '关于平台',
   },
 ]);
 
@@ -152,7 +125,6 @@ function handleMakeAll() {
 const viewAll = () => {};
 
 const handleClick = (item: NotificationItem) => {
-  // 如果通知项有链接，点击时跳转
   if (item.link) {
     navigateTo(item.link, item.query, item.state);
   }
@@ -164,10 +136,8 @@ function navigateTo(
   state?: Record<string, any>,
 ) {
   if (link.startsWith('http://') || link.startsWith('https://')) {
-    // 外部链接，在新标签页打开
     window.open(link, '_blank');
   } else {
-    // 内部路由链接，支持 query 参数和 state
     router.push({
       path: link,
       query: query || {},
@@ -178,11 +148,11 @@ function navigateTo(
 
 watch(
   () => ({
-    enable: preferences.app.watermark,
     content: preferences.app.watermarkContent,
+    enable: preferences.app.watermark,
     isDark: isDark.value,
   }),
-  async ({ enable, content, isDark: isDarkValue }) => {
+  async ({ content, enable, isDark: isDarkValue }) => {
     if (enable) {
       const watermarkColor = isDarkValue
         ? 'rgba(255, 255, 255, 0.12)'
@@ -204,7 +174,7 @@ watch(
         },
         content:
           content ||
-          `${userStore.userInfo?.username} - ${userStore.userInfo?.realName}`,
+          `${userStore.userInfo?.username || ''} - ${userStore.userInfo?.realName || ''}`,
       });
     } else {
       destroyWatermark();
@@ -219,17 +189,17 @@ watch(
 <template>
   <BasicLayout
     :avatar
-    :text="userStore.userInfo?.realName"
+    :text="userDisplayName"
     @clear-preferences-and-logout="handleLogout"
     @logout="handleLogout"
   >
     <template #user-dropdown>
       <UserDropdown
         :avatar
+        :description="userRoleDesc"
         :menus
-        :text="userStore.userInfo?.realName"
-        description="ann.vben@gmail.com"
-        tag-text="Pro"
+        :tag-text="userRoleTag"
+        :text="userDisplayName"
         @clear-preferences-and-logout="handleLogout"
         @logout="handleLogout"
       />
@@ -239,10 +209,10 @@ watch(
         :dot="showDot"
         :notifications="notifications"
         @clear="handleNoticeClear"
-        @read="(item) => item.id && markRead(item.id)"
-        @remove="(item) => item.id && remove(item.id)"
         @make-all="handleMakeAll"
         @on-click="handleClick"
+        @read="(item) => item.id && markRead(item.id)"
+        @remove="(item) => item.id && remove(item.id)"
         @view-all="viewAll"
       />
     </template>
@@ -253,6 +223,16 @@ watch(
       >
         <LoginForm />
       </AuthenticationLoginExpiredModal>
+
+      <Modal
+        v-model:open="aboutModalOpen"
+        :footer="null"
+        :width="760"
+        centered
+        destroy-on-close
+      >
+        <AboutView />
+      </Modal>
     </template>
     <template #lock-screen>
       <LockScreen :avatar @to-login="handleLogout" />

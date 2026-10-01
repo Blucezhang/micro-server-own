@@ -19,7 +19,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EntityScan(basePackages = {"com.own.user.party.dao.domain", "com.own.user.party.address.domain", "com.own.user.party.auth.domain", "com.own.face.trade.idempotency"})
 @ComponentScan(basePackages = {"com.own.user.party","com.own.face"})
 @EnableFeignClients
-@EnableNeo4jRepositories(basePackages = {"com.own.user.party.dao"})
+@EnableNeo4jRepositories(basePackages = {"com.own.user.party.dao"}, transactionManagerRef = "neo4jTransactionManager")
 @EnableJpaRepositories(basePackages = {"com.own.user.party.address.repository", "com.own.user.party.auth.repository", "com.own.face.trade.idempotency"})
 @EnableScheduling
 public class UserAndPartyApplication {

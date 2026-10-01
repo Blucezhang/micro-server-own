@@ -2,12 +2,14 @@
 import type { BuyerFavorite, ProductReview, ProductReviewPage } from '#/api/marketplace';
 
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-import { Alert, Button, Card, Drawer, Form, Input, Rate, Select, Space, Table, Tag } from 'ant-design-vue';
+import { Alert, Button, Drawer, Form, Input, Rate, Select, Space, Table } from 'ant-design-vue';
 
 import { buyerApi, cartApi, catalogApi } from '#/api/marketplace';
 
 type Product = { id: number; name: string; originalPrice: string; promotionPrice?: string; partyId: number; content?: string; specification?: string };
+const router = useRouter();
 const loading = ref(false);
 const detailLoading = ref(false);
 const actionLoading = ref(false);
@@ -118,13 +120,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="page">
-    <Card :bordered="false">
-      <Tag color="cyan">买家中心</Tag>
-      <h1>商品浏览</h1>
-      <p>查看商品、收藏与评价；实际价格和可售状态以服务端结算为准。</p>
-    </Card>
-    <Card :bordered="false">
+  <main class="market-page">
+    <header class="market-head">
+      <div><span class="market-overline">BUYER · 商品</span><h1 class="market-heading">发现好物</h1><p class="market-subtitle">浏览商品、查看评价并加入收藏；价格与可售状态以结算时为准。</p></div>
+      <Button @click="router.push('/buyer/favorites')">我的收藏</Button>
+    </header>
+    <section class="market-panel" aria-label="商品浏览">
       <Form :model="filters" class="filters" layout="inline" @finish="search">
         <Form.Item label="关键词"><Input v-model:value="filters.keyword" allow-clear /></Form.Item>
         <Form.Item label="分类">
@@ -135,8 +136,6 @@ onMounted(async () => {
           <Button @click="Object.assign(filters, { categoryId: undefined, keyword: '' }); search()">重置</Button>
         </Space>
       </Form>
-    </Card>
-    <Card :bordered="false">
       <Alert v-if="error" :message="error" show-icon type="error" class="notice" />
       <Alert v-if="feedback" :message="feedback" show-icon type="info" class="notice" />
       <Table :columns="columns" :data-source="rows" :loading="loading" :pagination="{ current: filters.page + 1, pageSize: filters.size, total, showSizeChanger: false }" :scroll="{ x: 680 }" row-key="id" @change="changePage">
@@ -149,51 +148,53 @@ onMounted(async () => {
           </Space>
         </template>
       </Table>
-    </Card>
+    </section>
     <Drawer :open="!!detail" :title="detail?.name || '商品详情'" width="min(600px, 100vw)" @close="detail = undefined">
       <template v-if="detail">
-        <p>价格：¥{{ detail.promotionPrice || detail.originalPrice }} · 商家 ID：{{ detail.partyId }}</p>
-        <p v-if="detail.specification">规格：{{ detail.specification }}</p>
-        <p v-if="detail.content">{{ detail.content }}</p>
+        <div class="product-summary"><span class="market-overline">商品 · #{{ detail.id }}</span><strong>¥{{ detail.promotionPrice || detail.originalPrice }}</strong><p>商家 ID {{ detail.partyId }}<span v-if="detail.specification"> · {{ detail.specification }}</span></p><p v-if="detail.content">{{ detail.content }}</p></div>
         <Space class="detail-actions">
           <Button :disabled="actionLoading" @click="toggleFavorite(detail.id)">{{ favoriteIds.has(detail.id) ? '取消收藏' : '收藏商品' }}</Button>
-          <Button :disabled="actionLoading" @click="add(detail)">加入购物车</Button>
+          <Button type="primary" :disabled="actionLoading" @click="add(detail)">加入购物车</Button>
         </Space>
         <Alert v-if="error" :message="error" show-icon type="error" class="notice" />
         <Alert v-if="feedback" :message="feedback" show-icon type="info" class="notice" />
-        <Card title="商品评价" size="small" class="review-card">
+        <section class="drawer-section" aria-label="商品评价">
+<h2>商品评价</h2>
           <Table :columns="[{ dataIndex: 'rating', key: 'rating', title: '评分' }, { dataIndex: 'content', key: 'content', title: '评价' }, { dataIndex: 'merchantReply', key: 'merchantReply', title: '商家回复' }, { key: 'actions', title: '操作' }]" :data-source="reviews" :loading="detailLoading" :pagination="{ current: reviewPage + 1, pageSize: 10, total: reviewTotal, showSizeChanger: false }" :scroll="{ x: 580 }" row-key="id" @change="changeReviewPage">
             <template #bodyCell="{ column, record }"><Button v-if="column.key === 'actions'" type="link" @click="reportForm.reviewId = record.id; reportForm.reason = ''">举报</Button></template>
           </Table>
-        </Card>
-        <Card v-if="reportForm.reviewId" :title="`举报评价 #${reportForm.reviewId}`" size="small" class="review-card">
+        </section>
+        <section v-if="reportForm.reviewId" class="drawer-section" aria-label="举报评价">
+<h2>举报评价 #{{ reportForm.reviewId }}</h2>
           <Form :model="reportForm" layout="vertical" @finish="reportReview">
             <Form.Item label="举报原因" name="reason" :rules="[{ required: true, message: '请填写举报原因' }]"><Input.TextArea v-model:value="reportForm.reason" :maxlength="200" :rows="2" show-count /></Form.Item>
             <Space><Button html-type="submit" :loading="actionLoading" type="primary">提交举报</Button><Button :disabled="actionLoading" @click="reportForm.reviewId = undefined">取消</Button></Space>
           </Form>
-        </Card>
-        <Card title="发表评价" size="small" class="review-card">
-          <p>仅已签收该商品且尚未评价的买家可提交，资格由服务端校验。</p>
+        </section>
+        <section class="drawer-section" aria-label="发表评价">
+<h2>发表评价</h2><p class="market-note">仅已签收且尚未评价的买家可提交，资格由服务端校验。</p>
           <Form :model="reviewForm" layout="vertical" @finish="createReview">
             <Form.Item label="评分" name="rating" :rules="[{ required: true, type: 'number', min: 1, max: 5 }]"><Rate v-model:value="reviewForm.rating" /></Form.Item>
             <Form.Item label="评价内容" name="content"><Input.TextArea v-model:value="reviewForm.content" :maxlength="500" :rows="3" show-count /></Form.Item>
             <Button :loading="actionLoading" html-type="submit" type="primary">提交评价</Button>
           </Form>
-        </Card>
+        </section>
       </template>
     </Drawer>
   </main>
 </template>
 
+<style src="./marketplace-page.css"></style>
 <style scoped>
-.page { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; padding: 24px; }
-.page > :deep(.ant-card) { min-width: 0; }
-h1 { font-size: 24px; margin: 10px 0 6px; }
-p { color: #64748b; margin: 0 0 12px; }
 .category-select { width: 160px; }
-.notice, .detail-actions, .review-card { margin-top: 16px; }
+.filters { margin-bottom: 18px; }
+.notice, .detail-actions { margin: 14px 0; }
+.product-summary { display: grid; gap: 7px; }
+.product-summary strong { font-size: 28px; font-weight: 650; letter-spacing: -.04em; }
+.product-summary p { margin: 0; color: var(--market-muted); font-size: 12px; line-height: 1.6; }
+.drawer-section { min-width: 0; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--market-line); }
+.drawer-section h2 { margin: 0 0 14px; font-size: 15px; font-weight: 620; }
 @media (max-width: 640px) {
-  .page { padding: 16px; }
   .filters :deep(.ant-form-item), .filter-actions { width: 100%; margin-right: 0; margin-bottom: 12px; }
   .filters :deep(.ant-form-item-control), .filters :deep(.ant-form-item-control-input), .filters :deep(.ant-form-item-control-input-content), .filters :deep(.ant-input), .category-select { width: 100%; }
 }

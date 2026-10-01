@@ -15,8 +15,30 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.springframework.transaction.annotation.Transactional;
 
 public class RoleFunctionGrantServiceTest {
+    @Test
+    void validatesTheWholeBatchBeforeWritingAnyGrant() {
+        RoleDao roles = mock(RoleDao.class); FunDao functions = mock(FunDao.class);
+        when(roles.findById(7L)).thenReturn(Optional.of(new Role()));
+        when(functions.findById(3L)).thenReturn(Optional.of(new Fun()));
+        assertThrows(TradeException.class,
+                () -> new RoleFunctionGrantService(roles, functions).grant(7L, Arrays.asList(3L, 9L)));
+        verify(roles, never()).createRelationShipRoleAndFun(anyLong(), anyLong());
+    }
+
+    @Test
+    void grantsUseAnExplicitGraphTransaction() throws Exception {
+        Transactional transaction = RoleFunctionGrantService.class.getMethod("grant", Long.class, List.class)
+                .getAnnotation(Transactional.class);
+        org.junit.jupiter.api.Assertions.assertNotNull(transaction);
+        assertEquals("neo4jTransactionManager", transaction.transactionManager());
+    }
+
     @Test
     public void grantsDistinctExistingFunctionsOnlyOnce() {
         RoleDao roles = mock(RoleDao.class); FunDao functions = mock(FunDao.class);

@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router';
 
 const Workspace = () => import('#/views/marketplace/workspace.vue');
+const AccountProfile = () => import('#/views/marketplace/account-profile.vue');
 const BuyerCart = () => import('#/views/marketplace/buyer-cart.vue');
 const BuyerAddresses = () => import('#/views/marketplace/buyer-addresses.vue');
 const BuyerAfterSales = () => import('#/views/marketplace/buyer-after-sales.vue');
@@ -10,10 +11,14 @@ const BuyerOrders = () => import('#/views/marketplace/buyer-orders.vue');
 const BuyerCatalog = () => import('#/views/marketplace/buyer-catalog.vue');
 const BuyerFavorites = () => import('#/views/marketplace/buyer-favorites.vue');
 const MerchantConsole = () => import('#/views/marketplace/merchant-console.vue');
+const MerchantCoupons = () => import('#/views/marketplace/merchant-coupons.vue');
+const MerchantFreight = () => import('#/views/marketplace/merchant-freight.vue');
+const MerchantSettlement = () => import('#/views/marketplace/merchant-settlement.vue');
 const MerchantFulfillment = () => import('#/views/marketplace/merchant-fulfillment.vue');
 const MerchantInventory = () => import('#/views/marketplace/merchant-inventory.vue');
 const MerchantPriceAudits = () => import('#/views/marketplace/merchant-price-audits.vue');
 const MerchantReviews = () => import('#/views/marketplace/merchant-reviews.vue');
+const MerchantAfterSales = () => import('#/views/marketplace/merchant-after-sales.vue');
 const SystemAdministration = () => import('#/views/marketplace/system-administration.vue');
 const SystemReviews = () => import('#/views/marketplace/system-reviews.vue');
 
@@ -26,6 +31,7 @@ const buyerChildren: RouteRecordRaw[] = [
   { component: BuyerOrders, name: 'BuyerOrders', path: 'orders', meta: { icon: 'lucide:receipt-text', title: '订单中心' } },
   { component: BuyerAfterSales, name: 'BuyerAfterSales', path: 'after-sales', meta: { icon: 'lucide:rotate-ccw', title: '售后服务' } },
   { component: BuyerAddresses, name: 'BuyerAddresses', path: 'addresses', meta: { icon: 'lucide:map-pin', title: '收货地址' } },
+  { component: AccountProfile, name: 'BuyerAccount', path: 'account', meta: { icon: 'lucide:user-round-cog', title: '账号设置' } },
   { component: BuyerCheckout, name: 'BuyerCheckout', path: 'checkout', meta: { hideInMenu: true, title: '确认结算' } },
 ];
 
@@ -36,9 +42,11 @@ const merchantChildren: RouteRecordRaw[] = [
   { component: MerchantReviews, name: 'MerchantReviews', path: 'reviews', meta: { icon: 'lucide:messages-square', title: '商品评价' } },
   { component: MerchantInventory, name: 'MerchantInventory', path: 'inventory', meta: { icon: 'lucide:boxes', title: '库存管理' } },
   { component: MerchantFulfillment, name: 'MerchantOrders', path: 'orders', meta: { icon: 'lucide:truck', title: '履约工作台' } },
-  { component: MerchantConsole, name: 'MerchantCoupons', path: 'coupons', meta: { icon: 'lucide:ticket-percent', title: '营销优惠' } },
-  { component: MerchantConsole, name: 'MerchantFreight', path: 'freight', meta: { icon: 'lucide:package-open', title: '运费规则' } },
-  { component: MerchantConsole, name: 'MerchantSettlement', path: 'settlement', meta: { icon: 'lucide:wallet-cards', title: '结算中心' } },
+  { component: MerchantAfterSales, name: 'MerchantAfterSales', path: 'after-sales', meta: { icon: 'lucide:rotate-ccw', title: '售后处理' } },
+  { component: MerchantCoupons, name: 'MerchantCoupons', path: 'coupons', meta: { icon: 'lucide:ticket-percent', title: '营销优惠' } },
+  { component: MerchantFreight, name: 'MerchantFreight', path: 'freight', meta: { icon: 'lucide:package-open', title: '运费规则' } },
+  { component: MerchantSettlement, name: 'MerchantSettlement', path: 'settlement', meta: { icon: 'lucide:wallet-cards', title: '结算中心' } },
+  { component: AccountProfile, name: 'MerchantAccount', path: 'account', meta: { icon: 'lucide:user-round-cog', title: '账号设置' } },
 ];
 
 const systemChildren: RouteRecordRaw[] = [

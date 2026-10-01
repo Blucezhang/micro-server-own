@@ -19,7 +19,8 @@ public class TradeIdempotencyStore {
     public IdempotencyRecord begin(String serviceName, TradeActor actor, String path, String key,
                                    String hash, int retentionHours) {
         IdempotencyRecord existing = operations.lookup(serviceName, actor, path, key);
-        if (existing != null && existing.getExpiresAt().before(new Date())) {
+        // An uncertain write is not safe to replay merely because its retention time elapsed.
+        if (existing != null && "COMPLETED".equals(existing.getStatus()) && existing.getExpiresAt().before(new Date())) {
             operations.delete(existing.getId()); existing = null;
         }
         if (existing != null) return existingFor(existing, hash);

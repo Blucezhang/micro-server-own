@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { Button, Card, InputNumber, Popconfirm, Table, Tag } from 'ant-design-vue';
+import { Button, InputNumber, Popconfirm, Table } from 'ant-design-vue';
 
 import { cartApi } from '#/api/marketplace';
 
@@ -63,18 +63,17 @@ onMounted(load);
 </script>
 
 <template>
-  <main class="cart-page">
-    <Card :bordered="false">
-      <div class="heading">
-        <div>
-          <Tag color="cyan">买家中心</Tag>
-          <h1>购物车</h1>
-          <p>商品按商家归集；金额与可售状态以结算试算为准。</p>
-        </div>
-        <Button @click="load">刷新</Button>
+  <main class="market-page">
+    <header class="market-head">
+      <div>
+        <span class="market-overline">BUYER · CART</span>
+        <h1 class="market-heading">购物车</h1>
+        <p class="market-subtitle">商品按商家归集；金额与可售状态以结算服务试算结果为准。</p>
       </div>
-    </Card>
-    <Card :bordered="false">
+      <Button :loading="loading" @click="load">刷新</Button>
+    </header>
+    <section class="market-panel" aria-labelledby="cart-list-title">
+      <h2 id="cart-list-title" class="market-panel-title">待结算商品</h2>
       <Table
         :columns="columns"
         :data-source="rows"
@@ -93,20 +92,18 @@ onMounted(load);
           </template>
         </template>
       </Table>
-    </Card>
-    <Card :bordered="false" class="settlement">
-      <span>已选 {{ selectedKeys.length }} 件商品</span>
+    </section>
+    <section class="market-panel settlement" aria-label="结算汇总">
+      <span class="market-note">已选 {{ selectedKeys.length }} 件商品</span>
       <strong>¥{{ total.toFixed(2) }}</strong>
       <Button :disabled="!selectedKeys.length" type="primary" @click="checkout">去结算</Button>
-    </Card>
+    </section>
   </main>
 </template>
 
+<style src="./marketplace-page.css"></style>
 <style scoped>
-.cart-page { display: grid; gap: 16px; padding: 24px; }
-.heading, .settlement { align-items: center; display: flex; justify-content: space-between; gap: 16px; }
-h1 { font-size: 24px; font-weight: 700; margin: 10px 0 6px; }
-p { color: #64748b; margin: 0; }
-.settlement strong { color: #0f766e; font-size: 24px; margin-left: auto; }
-@media (max-width: 640px) { .cart-page { padding: 16px; } .heading { align-items: stretch; flex-direction: column; } }
+.settlement { align-items: center; display: flex; gap: 16px; justify-content: flex-end; }
+.settlement strong { font-size: 26px; letter-spacing: -.04em; margin-right: 8px; }
+@media (max-width: 640px) { .settlement { align-items: flex-start; flex-direction: column; } }
 </style>

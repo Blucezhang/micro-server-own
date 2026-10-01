@@ -41,6 +41,48 @@ export interface ProductReviewPage {
   total: number;
 }
 
+export interface AccountProfile {
+  loginUserId: number;
+  loginName: string;
+  partyId: null | number;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export interface AccountSession {
+  id: number;
+  actorType: 'BUYER' | 'MERCHANT';
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface AfterSale {
+  afterSaleNo: string;
+  orderNo: string;
+  subOrderNo: string;
+  type: 'EXCHANGE' | 'REFUND_ONLY' | 'RETURN_AND_REFUND';
+  status: 'APPLYING' | 'APPROVED' | 'CLOSED' | 'EXCHANGE_PENDING_SHIPMENT' | 'EXCHANGE_SHIPPED' | 'EXCHANGED' | 'RECEIVED' | 'REFUND_PENDING' | 'REFUNDED' | 'REJECTED' | 'RETURNING';
+  requestedAmount: number | string;
+  reason: string;
+  returnCompany: null | string;
+  returnTrackingNo: null | string;
+  merchantRemark: null | string;
+}
+
+export interface MarketplacePage<T> {
+  items: T[];
+  page: number;
+  size: number;
+  total: number;
+}
+
+export interface LogisticsTrace {
+  traceStatus: string;
+  detail: string;
+  createdAt: string;
+}
+
 export const marketplaceAuthApi = {
   authorization: () =>
     marketplaceRequest<Authorization>({
@@ -63,6 +105,15 @@ export const marketplaceAuthApi = {
       method: 'POST',
       url: '/user/login/logout',
     }),
+};
+
+export const accountApi = {
+  profile: () => marketplaceRequest<AccountProfile>({ method: 'GET', url: '/user/api/v1/account/profile' }),
+  updateProfile: (data: { email: string; name: string; phone: string }, requestKey: string) =>
+    marketplaceRequest<AccountProfile>({ data, headers: { 'Idempotency-Key': requestKey }, method: 'PUT', url: '/user/api/v1/account/profile' }),
+  sessions: () => marketplaceRequest<AccountSession[]>({ method: 'GET', url: '/user/login/sessions' }),
+  revokeSession: (id: number, requestKey: string) => marketplaceRequest({ headers: { 'Idempotency-Key': requestKey }, method: 'DELETE', url: `/user/login/sessions/${id}` }),
+  revokeAllSessions: (requestKey: string) => marketplaceRequest({ headers: { 'Idempotency-Key': requestKey }, method: 'DELETE', url: '/user/api/v1/account/sessions' }),
 };
 
 export const catalogApi = {
@@ -94,10 +145,12 @@ export const buyerApi = {
     }),
   quote: (data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: '/order/api/v1/checkouts/quote' }),
   createOrder: (data: Record<string, unknown>, requestKey: string) => marketplaceRequest({ data, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: '/order/api/v1/orders' }),
-  afterSales: (params: Record<string, unknown>) => marketplaceRequest({ method: 'GET', params, url: '/order/api/v1/after-sales/page' }),
-  createAfterSale: (data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: '/order/api/v1/after-sales' }),
-  closeAfterSale: (no: string) => marketplaceRequest({ method: 'POST', url: `/order/api/v1/after-sales/${no}/close` }),
-  returnShipment: (no: string, data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: `/order/api/v1/after-sales/${no}/return-shipment` }),
+  afterSales: (params: Record<string, unknown>) => marketplaceRequest<MarketplacePage<AfterSale>>({ method: 'GET', params, url: '/order/api/v1/after-sales/page' }),
+  afterSaleDetail: (no: string) => marketplaceRequest({ method: 'GET', url: `/order/api/v1/after-sales/${encodeURIComponent(no)}` }),
+  createAfterSale: (data: Record<string, unknown>, requestKey: string) => marketplaceRequest<AfterSale>({ data, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: '/order/api/v1/after-sales' }),
+  closeAfterSale: (no: string, requestKey: string) => marketplaceRequest<AfterSale>({ headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/order/api/v1/after-sales/${encodeURIComponent(no)}/close` }),
+  receiveExchange: (no: string, requestKey: string) => marketplaceRequest<AfterSale>({ headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/order/api/v1/after-sales/${encodeURIComponent(no)}/exchange-receive` }),
+  returnShipment: (no: string, data: { logisticsCompany: string; trackingNo: string }, requestKey: string) => marketplaceRequest<AfterSale>({ data, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/order/api/v1/after-sales/${encodeURIComponent(no)}/return-shipment` }),
   addresses: () =>
     marketplaceRequest({ method: 'GET', url: '/user/api/v1/addresses' }),
   defaultAddress: (id: number) =>
@@ -117,9 +170,9 @@ export const buyerApi = {
       url: '/order/api/v1/orders/page',
     }),
   orderDetail: (no: string) => marketplaceRequest({ method: 'GET', url: `/order/api/v1/orders/${no}/detail` }),
-  cancelOrder: (no: string) => marketplaceRequest({ method: 'POST', url: `/order/api/v1/orders/${no}/cancel` }),
-  receiveSubOrder: (no: string) => marketplaceRequest({ method: 'POST', url: `/order/api/v1/sub-orders/${no}/receive` }),
-  logisticsTraces: (no: string) => marketplaceRequest({ method: 'GET', url: `/order/api/v1/sub-orders/${no}/logistics-traces` }),
+  cancelOrder: (no: string, requestKey: string) => marketplaceRequest({ headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/order/api/v1/orders/${encodeURIComponent(no)}/cancel` }),
+  receiveSubOrder: (no: string, requestKey: string) => marketplaceRequest({ headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/order/api/v1/sub-orders/${encodeURIComponent(no)}/receive` }),
+  logisticsTraces: (no: string) => marketplaceRequest<LogisticsTrace[]>({ method: 'GET', url: `/order/api/v1/sub-orders/${encodeURIComponent(no)}/logistics-traces` }),
 };
 
 export const cartApi = {
@@ -130,11 +183,16 @@ export const cartApi = {
 };
 
 export const paymentApi = {
-  create: (data: { channel: string; orderNo: string }) => marketplaceRequest({ data, method: 'POST', url: '/settlement/api/v1/payments' }),
+  create: (data: { channel: string; orderNo: string }, requestKey: string) => marketplaceRequest({ data, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: '/settlement/api/v1/payments' }),
   detail: (no: string) => marketplaceRequest({ method: 'GET', url: `/settlement/api/v1/payments/${no}` }),
 };
 
 export const merchantApi = {
+  afterSales: (params: Record<string, unknown>) => marketplaceRequest<MarketplacePage<AfterSale>>({ method: 'GET', params, url: '/order/api/v1/after-sales/merchant/page' }),
+  afterSaleDetail: (no: string) => marketplaceRequest({ method: 'GET', url: `/order/api/v1/after-sales/${encodeURIComponent(no)}` }),
+  auditAfterSale: (no: string, data: { approved: boolean; remark: string }, requestKey: string) => marketplaceRequest<AfterSale>({ data, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/order/api/v1/after-sales/${encodeURIComponent(no)}/audit` }),
+  receiveReturn: (no: string, requestKey: string) => marketplaceRequest<AfterSale>({ headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/order/api/v1/after-sales/${encodeURIComponent(no)}/receive-return` }),
+  shipExchange: (no: string, data: { logisticsCompany: string; trackingNo: string }, requestKey: string) => marketplaceRequest<AfterSale>({ data, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/order/api/v1/after-sales/${encodeURIComponent(no)}/exchange-shipment` }),
   replyReview: (reviewId: number, content: string, requestKey: string) => marketplaceRequest<ProductReview>({ data: { content }, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: `/product/api/v1/merchant/reviews/${reviewId}/reply` }),
   saveProduct: (data: Record<string, unknown>, id: number | undefined, requestKey: string) => marketplaceRequest({ data, headers: { 'Idempotency-Key': requestKey }, method: id ? 'PUT' : 'POST', url: id ? `/product/api/v1/merchant/products/${id}` : '/product/api/v1/merchant/products' }),
   changeProductStatus: (id: number, value: 'AVAILABLE' | 'OFF_SHELF') => marketplaceRequest({ method: 'POST', params: { value }, url: `/product/api/v1/merchant/products/${id}/sale-status` }),

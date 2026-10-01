@@ -18,6 +18,8 @@
 
 已通过的本地测试：`own-user-party`、`own-product`、`own-promotion` 及其公共模块依赖链。它们证明源代码、DAO 注解和 Mock 契约可构建、可执行，但不证明目标 Neo4j 中的实际图数据已完成迁移。
 
+用户服务使用显式双事务管理器：`transactionManager`（默认/Primary）管理 MySQL/JPA，`neo4jTransactionManager` 管理图谱 DAO。批量角色功能授权先校验全部 ID，再在同一 Neo4j 事务中写入；任一图谱写入失败应整体回滚。此事务不包含 MySQL 幂等响应记录，不构成跨数据库原子提交。
+
 ## 真实数据迁移顺序
 
 1. 在隔离环境导出 Neo4j 3.5 数据并恢复到目标 Neo4j；记录节点、关系、标签和关键属性计数。
