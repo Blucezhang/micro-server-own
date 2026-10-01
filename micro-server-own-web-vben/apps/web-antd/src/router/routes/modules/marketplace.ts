@@ -5,6 +5,7 @@ const BuyerCart = () => import('#/views/marketplace/buyer-cart.vue');
 const BuyerAddresses = () => import('#/views/marketplace/buyer-addresses.vue');
 const BuyerAfterSales = () => import('#/views/marketplace/buyer-after-sales.vue');
 const BuyerCheckout = () => import('#/views/marketplace/buyer-checkout.vue');
+const BuyerCoupons = () => import('#/views/marketplace/buyer-coupons.vue');
 const BuyerOrders = () => import('#/views/marketplace/buyer-orders.vue');
 const BuyerCatalog = () => import('#/views/marketplace/buyer-catalog.vue');
 const MerchantConsole = () => import('#/views/marketplace/merchant-console.vue');
@@ -18,6 +19,7 @@ const buyerChildren: RouteRecordRaw[] = [
   { component: Workspace, name: 'BuyerWorkspace', path: 'workspace', meta: { affixTab: true, icon: 'lucide:layout-dashboard', title: '买家工作台' } },
   { component: BuyerCatalog, name: 'BuyerCatalog', path: 'catalog', meta: { icon: 'lucide:store', title: '商品浏览' } },
   { component: BuyerCart, name: 'BuyerCart', path: 'cart', meta: { icon: 'lucide:shopping-cart', title: '购物车' } },
+  { component: BuyerCoupons, name: 'BuyerCoupons', path: 'coupons', meta: { icon: 'lucide:ticket-percent', title: '我的优惠券' } },
   { component: BuyerOrders, name: 'BuyerOrders', path: 'orders', meta: { icon: 'lucide:receipt-text', title: '订单中心' } },
   { component: BuyerAfterSales, name: 'BuyerAfterSales', path: 'after-sales', meta: { icon: 'lucide:rotate-ccw', title: '售后服务' } },
   { component: BuyerAddresses, name: 'BuyerAddresses', path: 'addresses', meta: { icon: 'lucide:map-pin', title: '收货地址' } },

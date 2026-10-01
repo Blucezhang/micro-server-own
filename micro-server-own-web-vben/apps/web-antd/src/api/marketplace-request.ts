@@ -17,9 +17,24 @@ export interface TokenPair {
 }
 
 const sessionKey = 'micro-market-vben-session';
-let tokenPair: null | TokenPair = JSON.parse(
-  sessionStorage.getItem(sessionKey) || 'null',
-);
+function restoreSession(): null | TokenPair {
+  try {
+    const raw = sessionStorage.getItem(sessionKey);
+    if (!raw) return null;
+    const value: unknown = JSON.parse(raw);
+    if (value && typeof value === 'object' &&
+      typeof (value as TokenPair).accessToken === 'string' &&
+      typeof (value as TokenPair).refreshToken === 'string' &&
+      (value as TokenPair).accessToken && (value as TokenPair).refreshToken) {
+      return value as TokenPair;
+    }
+  } catch {
+    // An invalid or unavailable session store must not prevent the login page from loading.
+  }
+  try { sessionStorage.removeItem(sessionKey); } catch { /* Storage may be unavailable. */ }
+  return null;
+}
+let tokenPair: null | TokenPair = restoreSession();
 let refreshRequest: null | Promise<TokenPair> = null;
 
 export const marketplaceSession = {

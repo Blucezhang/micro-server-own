@@ -1,4 +1,4 @@
-# micro-server-own
+# micro-server-own · 微服务商城
 
 [![Java](https://img.shields.io/badge/Java-17-437291?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.0-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -9,11 +9,22 @@
 [![GitHub forks](https://img.shields.io/github/forks/Blucezhang/micro-server-own?style=flat-square&logo=github)](https://github.com/Blucezhang/micro-server-own/network/members)
 [![License](https://img.shields.io/badge/License-Apache--2.0-D22128?style=flat-square)](LICENSE)
 
-简体中文 · [English](README_EN.md)
+**简体中文** · [English](README_EN.md)
 
 > 一个面向学习、演示与演进实践的多商家商城微服务项目。项目以 Java 17、Spring Cloud Alibaba、Nacos 和 Vben Admin 5 为当前基线，覆盖从账户、商品与营销，到库存、订单、支付、售后和商家结算的核心交易链路。
 
 ![micro-server-own 项目预览](.github/social-preview.png)
+
+## 从这里开始
+
+| 你想了解 | 直接前往 |
+| --- | --- |
+| 项目能做什么、还缺什么 | [功能交付状态](#功能交付状态) · [近期优化顺序](#近期优化顺序) |
+| 服务如何协作 | [架构概览](#架构概览) · [服务地图](#服务地图) |
+| 如何本地运行与验收 | [快速开始](#快速开始) · [验证边界](#验证边界) · [常见问题](#常见问题) |
+| 如何参与 | [贡献指南](CONTRIBUTING.md) · [文档索引](#文档) |
+
+> **交付说明：** 这是可运行、可持续完善的工程实践项目，不是已通过真实支付、物流和生产环境验收的商城成品。下方“已实现”只描述代码能力；真实依赖与渠道验证另行列明。
 
 ## 项目定位
 
@@ -36,10 +47,33 @@
 ## 核心能力
 
 - **多角色门户**：买家、商家、系统管理员基于 `ROLE_BUYER`、`ROLE_MERCHANT`、`ROLE_SYSTEM` 隔离路由与工作台。
-- **完整交易主链路**：地址簿、购物车、价格校验、按商家拆单、运费、库存预占、支付确认、发货、签收、售后和结算。
+- **核心交易主链路**：地址簿、购物车、价格校验、按商家拆单、运费、库存预占、模拟支付确认、发货、签收、售后和模拟结算；真实依赖验收尚未完成。
 - **商品与营销运营**：商品发布/编辑、上下架、收藏、评价举报、价格审计、平台券、店铺券、领券、占券和核销。
 - **交易可靠性**：写请求使用 `Idempotency-Key`；库存、优惠券、支付与退款在本地边界内处理幂等、确认、释放与回补。
 - **可验收前端**：内置 Vben 5 商城控制台，开发模式提供纯浏览器内的三类角色 UI 演示入口，不依赖真实账户或后端写入。
+
+## 功能交付状态
+
+“代码已实现”不等于真实数据库或渠道验收通过；下表分别说明后端与当前商城前端，不把上游 Vben 示例页面视为已接入业务。
+
+| 领域 | 后端能力 | 当前商城前端 / 缺口 |
+| --- | --- | --- |
+| 购物与交易 | 商品、购物车、地址、试算、拆单、库存/券预占、订单与售后状态机 | 已有浏览、地址、购物车、结算、订单和售后页面；真实交易回归待验收 |
+| 商品运营 | 商品创建/编辑、上下架、价格审计 | 已有页面；编辑取消/保存后重置，相同内容失败重试复用幂等键，长表格容器内滚动 |
+| 优惠券 | 商家模板、买家领取/持有、试算、预占和核销 | 商家模板、买家券包、凭已知模板 ID 领店铺券与结算单券试算/下单已接入；公开可领券列表尚无后端接口 |
+| 收藏与评价 | 收藏、评价、商家回复、举报及治理接口 | 已有系统评价治理页；买家收藏/评价与商家回复入口仍待接入 |
+| 账号与权限 | 登录、刷新、资料/会话、角色和功能授权 | 已有角色门户与受控授权；资料/会话业务页、账号/角色搜索、当前权限展示与撤权流程尚未完整交付 |
+| 发货与资金 | 发货、人工物流、模拟支付/退款、应收和提现申请 | 已有发货与结算页；真实物流、付款渠道和财务对账未接入 |
+| 运维可靠性 | Saga、Outbox、Inbox 基础设施、幂等记录 | 尚缺不确定幂等结果的对账恢复入口、业务消息消费者闭环和完整运维控制台 |
+
+## 近期优化顺序
+
+1. 对账恢复：业务结果未确认的 `PROCESSING` 幂等记录不因过期而自动重放；先核对业务记录，再人工决定恢复方式。目前没有通用恢复入口，禁止直接删记录“解除阻塞”。
+2. 隔离环境联调：验证 MySQL/Neo4j 双事务管理器、批量授权回滚，以及订单、库存、券、退款的完整路径。
+3. 补齐前端闭环：可领券活动列表、买家收藏/评价、资料与会话；系统账号/角色列表与撤权；保留服务端 RBAC，不用 UI 隐藏替代授权。
+4. 生产接入：真实支付/提现、物流、消息消费、监控和恢复演练，需要渠道与业务政策。
+
+本轮前端检查、修复和验证边界见 [前端检查记录](docs/frontend/frontend-review-2026-09-30.md)；完整业务演进见 [商城能力路线图](docs/product/mall-capability-roadmap.md)。
 
 ## 架构概览
 
@@ -135,18 +169,18 @@ flowchart LR
 
 | 门户 | 页面范围 |
 | --- | --- |
-| 买家 | 商品浏览、购物车、地址簿、结算、订单/支付、售后 |
+| 买家 | 商品浏览、购物车、地址簿、券包与凭 ID 领券、结算选券、订单/支付、售后 |
 | 商家 | 商品发布/编辑、价格审计、库存、履约发货、优惠券、运费、结算提现 |
 | 系统 | 账号/商家角色授权、角色功能授权、评价举报治理 |
 
-开发模式下，登录页的“买家演示 / 商家演示 / 系统演示”只在浏览器中创建临时身份，方便 UI 验收；不会调用网关或写入真实业务数据，生产构建中不显示这些入口。
+开发模式下，登录页的“买家演示 / 商家演示 / 系统演示”只在浏览器中创建临时身份，方便 UI 验收；演示登录本身不会调用网关或写入真实业务数据。进入业务页后仍需后端接口或隔离模拟 API，生产构建中不显示这些入口。
 
 ## 分支说明
 
 | 分支 | 用途 |
 | --- | --- |
-| `master` | 当前维护主线：Java 17、Spring Boot 4、Spring Cloud Alibaba 与 Nacos 配置基线。 |
-| `jdk17` | 与 `master` 同步的 Java 17 升级分支，便于独立验证和回溯。 |
+| `master` | 远程默认分支；以仓库当前提交和 CI 结果为准。 |
+| `jdk17` | 本轮前端开发与验证所在分支；不预设它与 `master` 始终同步。 |
 
 ## 快速开始
 
@@ -156,6 +190,7 @@ flowchart LR
 - Docker Compose v2（运行整套环境时需要）
 - 可访问的 MySQL、Neo4j、Nacos 实例，或使用 Compose 编排
 - Node.js 22.18+ 或 24.12+（运行 Vben 前端时需要）
+- pnpm 11.16.0（下方命令通过 `npx` 固定版本；不要用旧 pnpm 或 npm 重写工作区锁文件）
 
 ### 2. 构建后端
 
@@ -202,7 +237,7 @@ Neo4j 图数据升级请遵循 [Neo4j 数据访问现代化运行手册](docs/ar
 单服务启动示例：
 
 ```bash
-JAVA_HOME=<jdk17> ./mvnw -pl own-order -am spring-boot:run
+java -jar own-order/target/own-order-1.0-ALPHA.jar
 ```
 
 网关入口默认为 `http://localhost:9632`，负责 `/user/**`、`/product/**`、`/sale/**`、`/inventory/**`、`/order/**`、`/settlement/**` 的路由。
@@ -212,15 +247,16 @@ JAVA_HOME=<jdk17> ./mvnw -pl own-order -am spring-boot:run
 Vite 默认将 `/api` 代理到网关 `http://localhost:9632`：
 
 ```bash
-cd micro-server-own-web-vben/apps/web-antd
-npm run dev
+cd micro-server-own-web-vben
+npx -y pnpm@11.16.0 install --frozen-lockfile
+npx -y pnpm@11.16.0 --filter @vben/web-antd run dev --host 127.0.0.1
 ```
 
-访问 `http://127.0.0.1:5176/auth/login`。前端静态质量检查：
+默认访问 `http://127.0.0.1:5176/auth/login`，实际端口以启动输出为准。UI 演示入口无需账号密码，但业务数据仍需本地网关或隔离模拟 API。以下检查在前端工作区根目录运行；新终端先执行 `cd micro-server-own-web-vben`：
 
 ```bash
-cd micro-server-own-web-vben
 npx -y pnpm@11.16.0 --filter @vben/web-antd run typecheck
+npx -y pnpm@11.16.0 exec vitest run apps/web-antd/src/api/marketplace-*.test.ts
 npx -y pnpm@11.16.0 --filter @vben/web-antd run build
 ```
 
@@ -230,7 +266,7 @@ npx -y pnpm@11.16.0 --filter @vben/web-antd run build
 
 | 能力 | 当前状态 | 说明 |
 | --- | --- | --- |
-| 本地事务与幂等 | 已实现 | 写请求使用 `Idempotency-Key`；库存、券、支付和退款有本地幂等保护。 |
+| 本地事务与幂等 | 已实现，有限边界 | 相同内容同键重放响应，不同内容同键返回 409。已完成记录按保留期过期；不确定的 PROCESSING 记录不会因过期被自动删除。跨库不保证 exactly-once。 |
 | 库存/优惠券补偿 | 已实现于同步链路 | 下单、取消、超时、支付、退款和售后具备预占、确认、释放或回补逻辑。 |
 | Outbox | 已实现 | 订单状态与事件同事务写入 `ord_event`；失败按退避重试。 |
 | RocketMQ 发布 | 已实现，默认关闭 | `TRADE_OUTBOX_ROCKETMQ_ENABLED=true` 时向 `trade.order.events` 发布订单事件。 |
@@ -272,6 +308,18 @@ Maven 测试用于验证代码、单元契约和构建。Nacos、RocketMQ、MySQ
 
 > `.github/workflows/main.yml` 已使用 JDK 17 验证 Maven 构建；远程工作流结果仍应作为合并与发布的验收依据。README 不展示可能误导的静态 CI 结论。
 
+## 常见问题
+
+| 现象 | 检查方式 |
+| --- | --- |
+| 只想看 UI，不知道账号密码 | 使用开发登录页的三个演示入口；演示不能证明真实后端业务成功 |
+| “服务暂时不可用”或 `/api` 返回 502/503 | 检查网关 9632、Nacos 注册及目标服务日志；先区分代理失败、下游不可用与业务错误，不反复提交写请求 |
+| 安装报锁文件不一致或 pnpm 版本错误 | 使用 pnpm 11.16.0 和 `--frozen-lockfile`；核对 Node 版本，不删除锁文件来绕过 CI |
+| 写请求返回 409 / still processing | 保留原幂等键、关联 ID 和响应；核查业务结果，不换键或删除记录强行重放 |
+| Mockito / Byte Buddy 无法自附加 | 可用本机实际的 `byte-buddy-agent` jar 配置 `-DargLine=-javaagent:<absolute-path>`；这不是业务服务启动参数 |
+
+前端已移除继承模板的第三方统计脚本，并允许浏览器缩放；如需统计，须由项目维护者另行配置并明确告知用户。
+
 ## 文档
 
 - [贡献指南](CONTRIBUTING.md)
@@ -283,9 +331,12 @@ Maven 测试用于验证代码、单元契约和构建。Nacos、RocketMQ、MySQ
 - [Neo4j 数据访问现代化运行手册](docs/architecture/neo4j-modernization-runbook.md)
 - [Nacos 配置交付](deploy/nacos/README.md)
 - [商城能力路线图](docs/product/mall-capability-roadmap.md)
+- [前端检查记录与剩余功能](docs/frontend/frontend-review-2026-09-30.md)
 - [前端项目交接说明](docs/frontend/frontend-project-brief.md)
 - [生产部署与渠道接入计划](docs/production-deployment-plan.md)
 
 ## 许可证
 
 本项目采用 [Apache License 2.0](LICENSE)。使用、修改和再分发时，请遵守该许可证的条款，并保留适用的版权、专利、商标和归属声明。
+
+内置 Vben 及其他第三方代码保留各自许可证与归属（Vben 前端为 MIT）；仓库根许可证不替代第三方许可证。

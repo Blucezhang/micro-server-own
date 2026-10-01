@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { Button, Card, DatePicker, Form, Input, InputNumber, Space, Table, Tag } from 'ant-design-vue';
+import { Alert, Button, Card, DatePicker, Form, Input, InputNumber, Space, Table, Tag } from 'ant-design-vue';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { merchantApi } from '#/api/marketplace';
@@ -17,7 +17,16 @@ const pageSize = 20;
 const balance = ref<Record<string, any>>();
 const editingId = ref<number>();
 const couponEditingId = ref<number>();
-const form = reactive<Record<string, any>>({ amount: undefined, categoryId: undefined, discountAmount: undefined, fixedAmount: undefined, freeThreshold: undefined, minimumAmount: undefined, name: '', originalPrice: undefined, partyId: undefined, priceChangeReason: '', promotionPrice: undefined, skuCode: '', totalQuantity: undefined });
+const submitError = ref('');
+const emptyForm = () => ({ amount: undefined, categoryId: undefined, discountAmount: undefined, fixedAmount: undefined, freeThreshold: undefined, minimumAmount: undefined, name: '', originalPrice: undefined, partyId: undefined, priceChangeReason: '', promotionPrice: undefined, skuCode: '', totalQuantity: undefined });
+const form = reactive<Record<string, any>>(emptyForm());
+const productAttempt = computed(() => ({ data: { ...form }, key: crypto.randomUUID() }));
+function resetProductForm() {
+  editingId.value = undefined;
+  submitError.value = '';
+  for (const key of Object.keys(form)) delete form[key];
+  Object.assign(form, emptyForm());
+}
 const couponForm = reactive<{ claimEndsAt?: Dayjs; claimStartsAt?: Dayjs; discountAmount?: number; expiresAt?: Dayjs; minimumAmount?: number; name: string; totalQuantity?: number }>({ name: '' });
 function resetCouponForm() {
   couponEditingId.value = undefined;
@@ -63,10 +72,15 @@ async function load() {
   } finally { loading.value = false; }
 }
 async function submit() {
+  if (loading.value) return;
   loading.value = true;
+  submitError.value = '';
   try {
     const name = String(route.name);
-    if (name === 'MerchantProducts') await merchantApi.saveProduct(form, editingId.value);
+    if (name === 'MerchantProducts') {
+      await merchantApi.saveProduct(productAttempt.value.data, editingId.value, productAttempt.value.key);
+      resetProductForm();
+    }
     if (name === 'MerchantCoupons') {
       await merchantApi.saveCoupon({
         claimEndsAt: couponForm.claimEndsAt?.valueOf(),
@@ -82,9 +96,12 @@ async function submit() {
     if (name === 'MerchantFreight') await merchantApi.saveFreight({ fixedAmount: form.fixedAmount, freeThreshold: form.freeThreshold });
     if (name === 'MerchantSettlement') await merchantApi.withdraw(String(form.amount));
     editingId.value = undefined; await load();
+  } catch (error: any) {
+    submitError.value = error?.response?.data?.message || error?.message || '提交结果未确认，请在当前页面重试';
   } finally { loading.value = false; }
 }
 function edit(row: Row) {
+  if (loading.value) return;
   if (route.name === 'MerchantCoupons') {
     if (Number(row.availableQuantity) !== Number(row.totalQuantity)) return;
     couponEditingId.value = Number(row.id);
@@ -100,6 +117,7 @@ function edit(row: Row) {
     return;
   }
   if (route.name !== 'MerchantProducts') return;
+  resetProductForm();
   editingId.value = Number(row.id);
   Object.assign(form, row);
 }
@@ -109,6 +127,7 @@ async function changeProductPage(pagination: { current?: number }) {
   await load();
 }
 async function changeStatus(row: Row) {
+  if (loading.value) return;
   loading.value = true;
   try {
     if (route.name === 'MerchantProducts') await merchantApi.changeProductStatus(Number(row.id), row.saleStatus === 'AVAILABLE' ? 'OFF_SHELF' : 'AVAILABLE');
@@ -117,7 +136,7 @@ async function changeStatus(row: Row) {
   } finally { loading.value = false; }
 }
 onMounted(load);
-watch(() => route.name, () => { editingId.value = undefined; resetCouponForm(); productPage.value = 0; load(); });
+watch(() => route.name, () => { resetProductForm(); resetCouponForm(); productPage.value = 0; load(); });
 </script>
 
 <template>
@@ -125,7 +144,8 @@ watch(() => route.name, () => { editingId.value = undefined; resetCouponForm(); 
     <Card :bordered="false"><Tag color="purple">商家运营</Tag><h1>{{ page.title }}</h1><p>{{ page.description }}</p></Card>
     <Card v-if="balance" :bordered="false" title="可提现余额"><strong class="balance">¥{{ balance.availableAmount ?? '--' }}</strong></Card>
     <Card :bordered="false" :title="couponEditingId && route.name === 'MerchantCoupons' ? '编辑优惠券' : page.action">
-      <Form :model="route.name === 'MerchantCoupons' ? couponForm : form" layout="vertical" @finish="submit">
+      <Form :disabled="loading" :model="route.name === 'MerchantCoupons' ? couponForm : form" layout="vertical" @finish="submit">
+        <Alert v-if="submitError" :message="submitError" show-icon type="error" />
         <template v-if="route.name === 'MerchantProducts'">
           <Form.Item label="商家 ID" required><InputNumber v-model:value="form.partyId" class="full" /></Form.Item><Form.Item label="类目 ID" required><InputNumber v-model:value="form.categoryId" class="full" /></Form.Item><Form.Item label="商品名称" required><Input v-model:value="form.name" /></Form.Item><Form.Item label="SKU 编码" required><Input v-model:value="form.skuCode" /></Form.Item><Form.Item label="原价" required><InputNumber v-model:value="form.originalPrice" class="full" /></Form.Item><Form.Item label="促销价"><InputNumber v-model:value="form.promotionPrice" class="full" /></Form.Item><Form.Item v-if="editingId" label="改价原因"><Input v-model:value="form.priceChangeReason" /></Form.Item>
         </template>
@@ -142,14 +162,14 @@ watch(() => route.name, () => { editingId.value = undefined; resetCouponForm(); 
           <Form.Item label="固定运费" required><InputNumber v-model:value="form.fixedAmount" :min="0" class="full" /></Form.Item><Form.Item label="包邮门槛"><InputNumber v-model:value="form.freeThreshold" :min="0" class="full" /></Form.Item>
         </template>
         <Form.Item v-else label="提现金额" required><InputNumber v-model:value="form.amount" :min="0.01" :precision="2" class="full" /></Form.Item>
-        <Space><Button :loading="loading" html-type="submit" type="primary">{{ editingId && route.name === 'MerchantProducts' || couponEditingId && route.name === 'MerchantCoupons' ? '保存编辑' : page.action }}</Button><Button v-if="editingId && route.name === 'MerchantProducts'" @click="editingId = undefined">取消编辑</Button><Button v-if="couponEditingId && route.name === 'MerchantCoupons'" @click="resetCouponForm">取消编辑</Button><Button @click="load">刷新</Button></Space>
+        <Space><Button :loading="loading" html-type="submit" type="primary">{{ editingId && route.name === 'MerchantProducts' || couponEditingId && route.name === 'MerchantCoupons' ? '保存编辑' : page.action }}</Button><Button v-if="editingId && route.name === 'MerchantProducts'" :disabled="loading" @click="resetProductForm">取消编辑</Button><Button v-if="couponEditingId && route.name === 'MerchantCoupons'" :disabled="loading" @click="resetCouponForm">取消编辑</Button><Button :disabled="loading" @click="load">刷新</Button></Space>
       </Form>
     </Card>
-    <Card v-if="columns.length" :bordered="false" title="当前记录"><Table :columns="columns" :data-source="rows" :loading="loading" :pagination="route.name === 'MerchantProducts' ? { current: productPage + 1, pageSize, total: productTotal, showSizeChanger: false } : route.name === 'MerchantCoupons' ? { pageSize } : false" row-key="id" @change="changeProductPage"><template #bodyCell="{ column, record }"><Space v-if="column.key === 'actions'"><Button v-if="route.name === 'MerchantProducts' || route.name === 'MerchantCoupons' && Number(record.availableQuantity) === Number(record.totalQuantity)" type="link" @click="edit(record)">编辑</Button><Button type="link" @click="changeStatus(record)">{{ route.name === 'MerchantProducts' ? (record.saleStatus === 'AVAILABLE' ? '下架' : '上架') : (record.status === 'ACTIVE' ? '停用' : '启用') }}</Button></Space><span v-else-if="column.key === 'expiresAt'">{{ new Date(record.expiresAt).toLocaleString() }}</span></template></Table></Card>
+    <Card v-if="columns.length" :bordered="false" title="当前记录"><Table :columns="columns" :data-source="rows" :loading="loading" :scroll="{ x: 'max-content' }" :pagination="route.name === 'MerchantProducts' ? { current: productPage + 1, pageSize, total: productTotal, showSizeChanger: false } : route.name === 'MerchantCoupons' ? { pageSize } : false" row-key="id" @change="changeProductPage"><template #bodyCell="{ column, record }"><Space v-if="column.key === 'actions'"><Button v-if="route.name === 'MerchantProducts' || route.name === 'MerchantCoupons' && Number(record.availableQuantity) === Number(record.totalQuantity)" type="link" @click="edit(record)">编辑</Button><Button type="link" @click="changeStatus(record)">{{ route.name === 'MerchantProducts' ? (record.saleStatus === 'AVAILABLE' ? '下架' : '上架') : (record.status === 'ACTIVE' ? '停用' : '启用') }}</Button></Space><span v-else-if="column.key === 'expiresAt'">{{ new Date(record.expiresAt).toLocaleString() }}</span></template></Table></Card>
   </main>
 </template>
 
 <style scoped>
-.console-page { display: grid; gap: 16px; padding: 24px; } h1 { font-size: 24px; margin: 10px 0 6px; } p { color: #64748b; margin: 0; }.full { width: 100%; }.balance { color: #0f766e; font-size: 30px; }
+.console-page { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 16px; padding: 24px; } h1 { font-size: 24px; margin: 10px 0 6px; } p { color: #64748b; margin: 0; }.full { width: 100%; }.balance { color: #0f766e; font-size: 30px; }
 @media (max-width: 640px) { .console-page { padding: 16px; } }
 </style>

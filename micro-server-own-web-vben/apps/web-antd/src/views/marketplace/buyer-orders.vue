@@ -8,7 +8,7 @@ const rows = ref<Record<string, any>[]>([]);
 const detail = ref<{ subOrders: { status: string; subOrderNo: string }[] }>();
 const payment = ref<Record<string, any>>();
 const selectedOrderNo = ref('');
-const paymentNo = ref('');
+const paymentQuery = reactive({ paymentNo: '' });
 const payForm = reactive({ channel: 'MOCK', orderNo: '' });
 const page = ref(0);
 const total = ref(0);
@@ -20,8 +20,8 @@ async function onPageChange(pagination: { current?: number }) { page.value = (pa
 async function openDetail(no: string) { loading.value = true; try { selectedOrderNo.value = no; detail.value = await buyerApi.orderDetail(no) as { subOrders: { status: string; subOrderNo: string }[] }; payForm.orderNo = no; } finally { loading.value = false; } }
 async function cancel(no: string) { loading.value = true; try { await buyerApi.cancelOrder(no); await load(); } finally { loading.value = false; } }
 async function receive(subOrderNo: string) { loading.value = true; try { await buyerApi.receiveSubOrder(subOrderNo); await openDetail(selectedOrderNo.value); await load(); } finally { loading.value = false; } }
-async function createPayment() { loading.value = true; try { payment.value = await paymentApi.create(payForm) as Record<string, any>; paymentNo.value = String(payment.value.paymentNo || ''); } finally { loading.value = false; } }
-async function queryPayment() { if (!paymentNo.value) return; loading.value = true; try { payment.value = await paymentApi.detail(paymentNo.value) as Record<string, any>; } finally { loading.value = false; } }
+async function createPayment() { loading.value = true; try { payment.value = await paymentApi.create(payForm) as Record<string, any>; paymentQuery.paymentNo = String(payment.value.paymentNo || ''); } finally { loading.value = false; } }
+async function queryPayment() { if (!paymentQuery.paymentNo) return; loading.value = true; try { payment.value = await paymentApi.detail(paymentQuery.paymentNo) as Record<string, any>; } finally { loading.value = false; } }
 onMounted(load);
 </script>
 <template>
@@ -34,8 +34,8 @@ onMounted(load);
     </Card>
     <Card v-if="detail" :bordered="false" title="订单详情">
       <Descriptions :column="1" bordered><Descriptions.Item label="订单号">{{ selectedOrderNo }}</Descriptions.Item><Descriptions.Item label="详情"><pre>{{ JSON.stringify(detail, null, 2) }}</pre></Descriptions.Item></Descriptions>
-      <Form layout="inline" class="actions" @finish="createPayment"><Form.Item label="支付渠道"><Select v-model:value="payForm.channel" :options="[{label:'模拟支付',value:'MOCK'}]" style="width:120px" /></Form.Item><Button html-type="submit" type="primary">创建支付单</Button></Form>
-      <Form layout="inline" class="actions" @finish="queryPayment"><Form.Item label="支付单号"><Input v-model:value="paymentNo" /></Form.Item><Button html-type="submit">查询支付结果</Button></Form><pre v-if="payment">{{ JSON.stringify(payment, null, 2) }}</pre>
+      <Form :model="payForm" layout="inline" class="actions" @finish="createPayment"><Form.Item label="支付渠道"><Select v-model:value="payForm.channel" :options="[{label:'模拟支付',value:'MOCK'}]" style="width:120px" /></Form.Item><Button html-type="submit" type="primary">创建支付单</Button></Form>
+      <Form :model="paymentQuery" layout="inline" class="actions" @finish="queryPayment"><Form.Item label="支付单号"><Input v-model:value="paymentQuery.paymentNo" /></Form.Item><Button html-type="submit">查询支付结果</Button></Form><pre v-if="payment">{{ JSON.stringify(payment, null, 2) }}</pre>
     </Card>
     <Card v-if="detail" :bordered="false" title="签收子订单">
       <Table :columns="subOrderColumns" :data-source="detail.subOrders" :pagination="false" row-key="subOrderNo">

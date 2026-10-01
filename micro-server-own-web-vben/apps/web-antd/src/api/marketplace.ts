@@ -8,6 +8,16 @@ export interface Authorization {
   userId: number;
 }
 
+export interface BuyerCoupon {
+  couponNo: string;
+  couponType: 'MALL' | 'STORE';
+  discountAmount: number | string;
+  expiresAt: number | string;
+  merchantId: null | number;
+  minimumAmount: number | string;
+  status: 'AVAILABLE' | 'EXPIRED' | 'RESERVED' | 'USED';
+}
+
 export const marketplaceAuthApi = {
   authorization: () =>
     marketplaceRequest<Authorization>({
@@ -44,6 +54,14 @@ export const catalogApi = {
 };
 
 export const buyerApi = {
+  coupons: () => marketplaceRequest<BuyerCoupon[]>({ method: 'GET', url: '/sale/api/v1/coupons/me' }),
+  claimMerchantCoupon: (merchantTemplateId: number, requestKey: string) =>
+    marketplaceRequest<BuyerCoupon>({
+      data: { couponType: 'STORE', merchantTemplateId },
+      headers: { 'Idempotency-Key': requestKey },
+      method: 'POST',
+      url: '/sale/api/v1/coupons/claim',
+    }),
   quote: (data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: '/order/api/v1/checkouts/quote' }),
   createOrder: (data: Record<string, unknown>, requestKey: string) => marketplaceRequest({ data, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: '/order/api/v1/orders' }),
   afterSales: (params: Record<string, unknown>) => marketplaceRequest({ method: 'GET', params, url: '/order/api/v1/after-sales/page' }),
@@ -87,7 +105,7 @@ export const paymentApi = {
 };
 
 export const merchantApi = {
-  saveProduct: (data: Record<string, unknown>, id?: number) => marketplaceRequest({ data, method: id ? 'PUT' : 'POST', url: id ? `/product/api/v1/merchant/products/${id}` : '/product/api/v1/merchant/products' }),
+  saveProduct: (data: Record<string, unknown>, id: number | undefined, requestKey: string) => marketplaceRequest({ data, headers: { 'Idempotency-Key': requestKey }, method: id ? 'PUT' : 'POST', url: id ? `/product/api/v1/merchant/products/${id}` : '/product/api/v1/merchant/products' }),
   changeProductStatus: (id: number, value: 'AVAILABLE' | 'OFF_SHELF') => marketplaceRequest({ method: 'POST', params: { value }, url: `/product/api/v1/merchant/products/${id}/sale-status` }),
   priceAudits: (id: number, page = 0) => marketplaceRequest({ method: 'GET', params: { page, size: 20 }, url: `/product/api/v1/merchant/products/${id}/price-audits` }),
   ship: (no: string, data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: `/order/api/v1/sub-orders/${no}/ship` }),

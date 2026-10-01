@@ -1,4 +1,4 @@
-# micro-server-own
+# micro-server-own · Microservices Marketplace
 
 [![Java](https://img.shields.io/badge/Java-17-437291?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.0-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -9,11 +9,22 @@
 [![GitHub forks](https://img.shields.io/github/forks/Blucezhang/micro-server-own?style=flat-square&logo=github)](https://github.com/Blucezhang/micro-server-own/network/members)
 [![License](https://img.shields.io/badge/License-Apache--2.0-D22128?style=flat-square)](LICENSE)
 
-[简体中文](README.md) · English
+[简体中文](README.md) · **English**
 
 > A multi-merchant marketplace microservices project for learning, demonstration, and incremental engineering practice. Its current baseline is Java 17, Spring Cloud Alibaba, Nacos, and Vben Admin 5, covering accounts, catalog, promotions, inventory, orders, payments, after-sales, and merchant settlement.
 
 ![micro-server-own project preview](.github/social-preview.png)
+
+## Start here
+
+| What you need | Go to |
+| --- | --- |
+| Capabilities and gaps | [Feature delivery status](#feature-delivery-status) · [Near-term priorities](#near-term-priorities) |
+| Service relationships | [Architecture](#architecture) · [Service map](#service-map) |
+| Local setup and checks | [Quick start](#quick-start) · [Verification boundaries](#verification-boundaries) · [Troubleshooting](#troubleshooting) |
+| Participation | [Contribution guide](CONTRIBUTING.md) · [Documentation](#documentation) |
+
+> **Delivery note:** This is a runnable, evolving engineering project—not a marketplace accepted against real payment, logistics, or production environments. “Implemented” below refers to code capability; external integration evidence is stated separately.
 
 ## Project scope
 
@@ -36,10 +47,33 @@ Local transactions, idempotency, Outbox, Inbox, and Saga compensation define the
 ## Capabilities
 
 - **Role-specific portals** for buyers, merchants, and system administrators through `ROLE_BUYER`, `ROLE_MERCHANT`, and `ROLE_SYSTEM`.
-- **Marketplace transaction flow** covering addresses, cart, price checks, merchant-level order splitting, shipping, stock reservation, payment confirmation, fulfillment, receipt, after-sales, and settlement.
+- **Core marketplace flow** covering addresses, cart, price checks, merchant-level splitting, freight, stock reservation, simulated payment confirmation, fulfillment, receipt, after-sales, and simulated settlement. Real-dependency acceptance remains pending.
 - **Catalog and promotion operations** including product publishing/editing, shelf status, favorites, review reports, price audit, platform/store coupons, claiming, reservation, and redemption.
 - **Transaction safeguards** using `Idempotency-Key`, with local handling for inventory, coupons, payments, and refunds.
 - **UI review mode**: the Vben 5 console includes browser-only role demos in development mode, so a UI review does not require a live account or backend writes.
+
+## Feature delivery status
+
+Implemented code is not proof of acceptance against real databases or providers. This table separates backend capabilities from the current marketplace UI; upstream Vben sample pages are not treated as integrated business features.
+
+| Area | Backend capabilities | Marketplace UI / remaining gap |
+| --- | --- | --- |
+| Shopping and orders | Catalog, cart, addresses, quotation, splitting, stock/coupon reservations, order/after-sales state machines | Catalog, address, cart, checkout, order and after-sales pages exist; real transaction regression remains pending |
+| Catalog operations | Product creation/editing, shelf status, price audit | Pages exist; cancel/success reset the form, unchanged failed commands reuse their key, wide tables scroll within their container |
+| Coupons | Merchant templates, buyer claiming/ownership, quote, reservation and redemption | Merchant templates, buyer wallet, claim by known template ID, and single-coupon checkout quotation/order are connected; no backend API lists publicly claimable offers yet |
+| Favorites and reviews | Favorites, reviews, merchant replies, reporting and moderation APIs | System moderation page exists; buyer favorites/reviews and merchant replies still need UI integration |
+| Accounts and access | Login, refresh, profile/sessions, role/function grants | Role portals and controlled grants exist; integrated profile/session pages, account/role search, current grants and revocation are incomplete |
+| Fulfillment and money | Shipment, manual logistics, simulated payments/refunds, receivables and withdrawal requests | Shipment and settlement pages exist; real logistics, payout providers and financial reconciliation are not integrated |
+| Reliability and operations | Saga, Outbox, Inbox infrastructure, idempotency records | Missing uncertain-result reconciliation/recovery, complete domain message consumers and an operational console |
+
+## Near-term priorities
+
+1. Reconciliation: uncertain `PROCESSING` attempts must not be replayed merely because their retention time elapsed. Check business records before deciding how to recover. There is no generic recovery UI; deleting records to "unblock" writes is unsafe.
+2. Isolated integration: verify MySQL/Neo4j transaction-manager selection, atomic batch grants, and order/stock/coupon/refund flows.
+3. Complete frontend journeys: claimable-offer listings, buyer favorites/reviews, profile/sessions, and system account/role lists and revocation. UI visibility never replaces backend RBAC.
+4. Production integrations: real payments/payouts, logistics, message consumption, monitoring and recovery exercises require providers and business policies.
+
+See the [frontend review record](docs/frontend/frontend-review-2026-09-30.md) for this round's fixes and verification boundaries, and the [capability roadmap](docs/product/mall-capability-roadmap.md) for broader scope.
 
 ## Architecture
 
@@ -135,18 +169,18 @@ The Vue application lives in [`micro-server-own-web-vben`](micro-server-own-web-
 
 | Portal | Main pages |
 | --- | --- |
-| Buyer | Catalog, cart, addresses, checkout, orders/payments, after-sales |
+| Buyer | Catalog, cart, addresses, wallet/claim by ID, coupon selection at checkout, orders/payments, after-sales |
 | Merchant | Product publishing/editing, price audit, inventory, shipment, coupons, freight, settlement/withdrawal |
 | System | Account and merchant-role assignment, role permissions, review/report governance |
 
-The development login page exposes Buyer, Merchant, and System demos. They create a temporary browser-only identity for UI review, do not call the gateway or write business data, and are excluded from production builds.
+The development login page exposes Buyer, Merchant, and System demos. Demo login itself creates a temporary browser-only identity without calling Gateway or writing business data. Business pages still require backend APIs or isolated mocks. These demo entries are excluded from production builds.
 
 ## Branches
 
 | Branch | Purpose |
 | --- | --- |
-| `master` | Maintained mainline: Java 17, Spring Boot 4, Spring Cloud Alibaba, and Nacos baseline. |
-| `jdk17` | Java 17 upgrade branch kept in sync with `master` for isolated verification and historical tracing. |
+| `master` | Remote default branch; use its current commits and CI results as the source of truth. |
+| `jdk17` | Branch used for this frontend development and verification; it is not assumed to remain in sync with `master`. |
 
 ## Quick start
 
@@ -156,6 +190,7 @@ The development login page exposes Buyer, Merchant, and System demos. They creat
 - Docker Compose v2 for the full stack
 - Reachable MySQL, Neo4j, and Nacos instances, or the Compose stack
 - Node.js 22.18+ or 24.12+ for the Vben frontend
+- pnpm 11.16.0 (pinned through `npx` below; do not rewrite the workspace lockfile with an older pnpm or npm)
 
 ### Build the backend
 
@@ -202,7 +237,7 @@ After importing Nacos configuration, start services in this order:
 For example:
 
 ```bash
-JAVA_HOME=<jdk17> ./mvnw -pl own-order -am spring-boot:run
+java -jar own-order/target/own-order-1.0-ALPHA.jar
 ```
 
 The gateway is available at `http://localhost:9632` and routes `/user/**`, `/product/**`, `/sale/**`, `/inventory/**`, `/order/**`, and `/settlement/**`.
@@ -212,15 +247,16 @@ The gateway is available at `http://localhost:9632` and routes `/user/**`, `/pro
 Vite proxies `/api` to the gateway at `http://localhost:9632` by default:
 
 ```bash
-cd micro-server-own-web-vben/apps/web-antd
-npm run dev
+cd micro-server-own-web-vben
+npx -y pnpm@11.16.0 install --frozen-lockfile
+npx -y pnpm@11.16.0 --filter @vben/web-antd run dev --host 127.0.0.1
 ```
 
-Open `http://127.0.0.1:5176/auth/login`. Run frontend static checks with:
+Open `http://127.0.0.1:5176/auth/login` by default; use the port printed by Vite. UI demo login requires no credentials, but business data still needs a local Gateway or isolated API mocks. Run these checks from the frontend workspace root; in a new shell, first run `cd micro-server-own-web-vben`:
 
 ```bash
-cd micro-server-own-web-vben
 npx -y pnpm@11.16.0 --filter @vben/web-antd run typecheck
+npx -y pnpm@11.16.0 exec vitest run apps/web-antd/src/api/marketplace-*.test.ts
 npx -y pnpm@11.16.0 --filter @vben/web-antd run build
 ```
 
@@ -228,7 +264,7 @@ npx -y pnpm@11.16.0 --filter @vben/web-antd run build
 
 | Capability | Status | Notes |
 | --- | --- | --- |
-| Local transactions and idempotency | Implemented | Write requests use `Idempotency-Key`; inventory, coupons, payments, and refunds have local idempotency protection. |
+| Local transactions and idempotency | Implemented with boundaries | Same-key/same-content requests replay responses; changed content returns 409. Completed records expire after retention; uncertain PROCESSING records are not automatically deleted on expiry. No cross-database exactly-once guarantee. |
 | Inventory/coupon compensation | Implemented in synchronous flows | Order, cancellation, timeout, payment, refund, and after-sales flows reserve, confirm, release, or replenish resources. |
 | Outbox | Implemented | Order states/events are stored in `ord_event` in the local transaction and retried with backoff. |
 | RocketMQ publishing | Implemented, disabled by default | Set `TRADE_OUTBOX_ROCKETMQ_ENABLED=true` to publish to `trade.order.events`. |
@@ -254,13 +290,33 @@ npx -y pnpm@11.16.0 --filter @vben/web-antd run build
 
 See [`.env.example`](.env.example) for the full template. Provide secrets only through environment variables, a secret manager, or a controlled deployment system; never commit them.
 
-## Deployment and verification
+## Deployment notes
 
-`docker-compose.yml` uses Nacos 3.1.1 and Java 17 application images; the legacy Eureka Server and Config Server were removed. Production deployments should use managed MySQL, Neo4j, and Nacos; perform migration and recovery exercises; inject secrets securely; start domain services before Gateway; and expose Gateway only.
+`docker-compose.yml` uses Nacos 3.1.1 and Java 17 application images; the legacy Eureka Server and Config Server were removed. For production deployment:
+
+1. Use controlled MySQL, Neo4j, and Nacos instances and exercise backup restoration.
+2. Apply forward MySQL migrations, then verify a restored Neo4j copy before switching service configuration.
+3. Import Nacos configuration into the target namespace/group and inject database, JWT, internal-token, and payment secrets securely.
+4. Start domain services before Gateway, verify Nacos registrations, and expose Gateway only.
+5. After release, check login, ordering, stock, payment callbacks, refunds, Outbox backlog, and recovery procedures.
+
+## Verification boundaries
 
 Maven tests verify source code, unit contracts, and the build. Nacos, RocketMQ, MySQL, Neo4j, payment channels, logistics, message delivery, and container orchestration still need integration acceptance in the target environment. See the [framework upgrade and business migration plan](docs/architecture/framework-upgrade-plan.md) for current progress and open verification items.
 
 > `.github/workflows/main.yml` now uses JDK 17 for Maven verification. The remote workflow result remains the acceptance evidence for merging and releasing, so the README does not make a static CI claim.
+
+## Troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| UI review without credentials | Use the development login demos; a demo does not prove backend business success |
+| Service unavailable or `/api` returns 502/503 | Check Gateway on 9632, Nacos registrations and target service logs; distinguish proxy/downstream failures from business errors before retrying writes |
+| Lockfile mismatch or unsupported pnpm | Use pnpm 11.16.0 with `--frozen-lockfile`, check Node, and do not delete the lockfile to bypass CI |
+| Write returns 409 / still processing | Retain the original key, correlation ID and response; reconcile business state instead of changing the key or deleting its record |
+| Mockito / Byte Buddy cannot self-attach | Pass the actual local agent jar as `-DargLine=-javaagent:<absolute-path>` for tests, not for service startup |
+
+The frontend no longer includes the inherited template's third-party analytics script and permits browser zoom. Any future analytics integration must be configured by maintainers with appropriate user disclosure.
 
 ## Documentation
 
@@ -273,9 +329,12 @@ Maven tests verify source code, unit contracts, and the build. Nacos, RocketMQ, 
 - [Neo4j data-access modernization runbook](docs/architecture/neo4j-modernization-runbook.md)
 - [Nacos configuration delivery](deploy/nacos/README.md)
 - [Marketplace capability roadmap](docs/product/mall-capability-roadmap.md)
+- [Frontend review and remaining capabilities](docs/frontend/frontend-review-2026-09-30.md)
 - [Frontend project handoff](docs/frontend/frontend-project-brief.md)
 - [Production deployment and payment-channel plan](docs/production-deployment-plan.md)
 
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE). When using, modifying, or redistributing the project, comply with its terms and retain applicable copyright, patent, trademark, and attribution notices.
+
+Bundled Vben and other third-party code retain their own licenses and attribution (the Vben frontend is MIT). The root license does not replace third-party licenses.
