@@ -173,6 +173,24 @@ flowchart LR
 | 商家 | 商品发布/编辑、评价回复、价格审计、库存、履约发货、优惠券、运费、结算提现 |
 | 系统 | 账号/商家角色授权、角色功能授权、评价举报治理 |
 
+### 页面展示
+
+以下截图来自本地 Vben 前端，以浏览器内的虚构商品、订单、物流、举报和结算数据生成；不连接真实业务 API，也没有提交任何写操作。页面覆盖三个门户及常用交易、运营和治理场景。
+
+| 买家工作台 | 买家商品目录 |
+| --- | --- |
+| <img src="docs/frontend/screenshots/buyer-workspace.png" width="100%" alt="买家工作台与常用任务入口" /> | <img src="docs/frontend/screenshots/buyer-catalog.png" width="100%" alt="展示商品、分类、价格和收藏状态的买家商品目录" /> |
+
+| 买家订单详情与物流轨迹 | 商家商品管理 |
+| --- | --- |
+| <img src="docs/frontend/screenshots/buyer-order-detail.png" width="100%" alt="展示订单、商品明细、配送信息和物流轨迹的订单详情" /> | <img src="docs/frontend/screenshots/merchant-products.png" width="100%" alt="预填商品信息并展示商品列表的商家商品管理页面" /> |
+
+| 商家结算提现 | 系统评价举报治理 |
+| --- | --- |
+| <img src="docs/frontend/screenshots/merchant-settlement.png" width="100%" alt="展示可提现余额与预填提现金额的商家结算页面" /> | <img src="docs/frontend/screenshots/system-moderation.png" width="100%" alt="展示待处理举报和预填处置表单的系统治理页面" /> |
+
+截图数据仅用于展示界面布局和交互入口，不代表实际商品、订单、物流状态、审核结论或账户余额。页面功能与后端联调边界见上方“功能交付状态”。
+
 开发模式下，登录页的“买家演示 / 商家演示 / 系统演示”只在浏览器中创建临时身份，方便 UI 验收；演示登录本身不会调用网关或写入真实业务数据。进入业务页后仍需后端接口或隔离模拟 API，生产构建中不显示这些入口。
 
 ## 分支说明

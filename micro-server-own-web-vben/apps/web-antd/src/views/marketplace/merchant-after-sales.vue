@@ -127,7 +127,6 @@ onMounted(load);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .list-head { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
 .status-filter { width: 190px; }

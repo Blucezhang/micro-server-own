@@ -1,0 +1,270 @@
+/**
+ * Global Mall Operator UI Framework Styles
+ * Unified typography hierarchy, density, responsive layouts,
+ * tables, drawers, modals, and accessibility states.
+ * Form control height and font size are driven by app.vue tokenTheme.
+ */
+
+:root {
+  --mall-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --mall-radius-base: 6px;
+  --mall-radius-lg: 10px;
+  --mall-radius-xl: 12px;
+}
+
+/* ==========================================================================
+   Typography & Base Reset
+   ========================================================================== */
+
+body {
+  font-family: var(--mall-font-sans);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}
+
+/* Focus visibility for keyboard navigation */
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Operational Page Framework (.market-*)
+   ========================================================================== */
+
+.market-page {
+  --market-line: hsl(var(--border));
+  --market-text: hsl(var(--foreground));
+  --market-muted: hsl(var(--muted-foreground));
+  --market-surface: hsl(var(--card));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: clamp(14px, 1.8vw, 24px);
+  color: var(--market-text);
+}
+
+.market-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 2px 0 16px;
+  border-bottom: 1px solid var(--market-line);
+}
+
+.market-overline {
+  display: inline-block;
+  color: var(--market-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.market-heading {
+  margin: 4px 0 4px;
+  color: var(--market-text);
+  font-size: clamp(18px, 1.8vw, 22px);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.market-subtitle {
+  max-width: 720px;
+  margin: 0;
+  color: var(--market-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.market-panel {
+  min-width: 0;
+  padding: clamp(14px, 1.5vw, 20px);
+  border: 1px solid var(--market-line);
+  border-radius: var(--mall-radius-xl);
+  background: var(--market-surface);
+  box-sizing: border-box;
+}
+
+.market-panel-title {
+  margin: 0 0 14px;
+  color: var(--market-text);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.market-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Two-column operational grid with balanced column ratios and medium screen stacking */
+.market-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(0, 1.35fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.market-grid > * {
+  min-width: 0;
+}
+
+.market-note {
+  color: var(--market-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* Form items spacing */
+.ant-form-item {
+  margin-bottom: 16px;
+}
+
+.ant-form-item-label > label {
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+/* Tables within panels */
+.ant-table-wrapper {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ant-table {
+  font-size: 13px;
+}
+
+.ant-table-thead > tr > th {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: hsl(var(--muted) / 0.4) !important;
+}
+
+.ant-table-tbody > tr > td {
+  padding: 10px 12px !important;
+}
+
+/* Table action buttons safety */
+.ant-table-tbody .ant-btn-link {
+  padding: 0 4px;
+  height: auto;
+  font-size: 13px;
+}
+
+/* Modals and Drawers */
+.ant-modal-content,
+.ant-drawer-content {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+}
+
+.ant-modal-content {
+  border-radius: var(--mall-radius-xl) !important;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.ant-modal-header,
+.ant-drawer-header {
+  background: transparent !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  padding: 14px 20px !important;
+}
+
+.ant-modal-title,
+.ant-drawer-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.ant-modal-body,
+.ant-drawer-body {
+  padding: 18px 20px !important;
+}
+
+/* Drawer & Modal Mobile Width Safeguards */
+.ant-drawer-content-wrapper {
+  max-width: 100vw !important;
+}
+
+.ant-modal {
+  max-width: calc(100vw - 32px);
+}
+
+@media (max-width: 480px) {
+  .ant-modal {
+    margin: 16px auto;
+  }
+}
+
+/* Alert notifications */
+.ant-alert {
+  border-radius: var(--mall-radius-base);
+  font-size: 13px;
+}
+
+/* Empty states */
+.ant-empty {
+  padding: 24px 0;
+}
+
+.ant-empty-description {
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+}
+
+/* Descriptions */
+.ant-descriptions-bordered .ant-descriptions-item-label {
+  background: hsl(var(--muted) / 0.35) !important;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.ant-descriptions-bordered .ant-descriptions-item-content {
+  font-size: 13px;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+
+@media (max-width: 1080px) {
+  .market-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .market-page {
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .market-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .market-head .ant-space {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}

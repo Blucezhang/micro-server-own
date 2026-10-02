@@ -106,7 +106,6 @@ async function submit() {
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .grant-form { max-width: 560px; }
 .full { width: 100%; }

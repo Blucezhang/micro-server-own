@@ -1,7 +1,7 @@
-import { initPreferences } from '@vben/preferences';
+import { initPreferences, updatePreferences } from '@vben/preferences';
 import { unmountGlobalLoading } from '@vben/utils';
 
-import { overridesPreferences, preferencesExtension } from './preferences';
+import { mallLayoutPreferences, overridesPreferences, preferencesExtension } from './preferences';
 
 /**
  * 应用初始化完成之后再进行页面加载渲染
@@ -19,6 +19,13 @@ async function initApplication() {
     namespace,
     overrides: overridesPreferences,
   });
+
+  // Upgrade cached presentation settings once without resetting sessions, theme or sidebar collapse.
+  const layoutVersionKey = `${namespace}-mall-layout-version`;
+  if (localStorage.getItem(layoutVersionKey) !== '2026-10-02') {
+    updatePreferences(mallLayoutPreferences);
+    localStorage.setItem(layoutVersionKey, '2026-10-02');
+  }
 
   // 启动应用并挂载
   // vue应用主要逻辑及视图

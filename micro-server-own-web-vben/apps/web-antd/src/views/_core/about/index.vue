@@ -102,12 +102,12 @@ const architectureSpecs = [
 }
 
 .about-heading {
-  margin: 6px 0 6px;
+  margin: 4px 0 4px;
   color: var(--about-text);
-  font-size: clamp(22px, 2.2vw, 28px);
+  font-size: clamp(18px, 1.8vw, 22px);
   font-weight: 650;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
 }
 
 .about-subtitle {
@@ -115,19 +115,19 @@ const architectureSpecs = [
   margin: 0;
   color: var(--about-muted);
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.55;
 }
 
 .about-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
   align-items: start;
 }
 
 .about-panel {
   min-width: 0;
-  padding: clamp(16px, 1.8vw, 22px);
+  padding: clamp(14px, 1.5vw, 20px);
   border: 1px solid var(--about-line);
   border-radius: 12px;
   background: var(--about-surface);

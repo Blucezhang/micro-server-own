@@ -184,7 +184,6 @@ onMounted(async () => {
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .category-select { width: 160px; }
 .filters { margin-bottom: 18px; }

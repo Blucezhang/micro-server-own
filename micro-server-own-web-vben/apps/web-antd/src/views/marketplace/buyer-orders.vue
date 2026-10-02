@@ -140,7 +140,6 @@ onMounted(load);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .notice { margin-bottom: 16px; }
 .detail-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }

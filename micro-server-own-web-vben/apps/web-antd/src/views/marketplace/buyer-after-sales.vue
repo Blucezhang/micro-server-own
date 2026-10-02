@@ -110,7 +110,6 @@ onMounted(load);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .full { width: 100%; }
 .notice { margin-bottom: 16px; }

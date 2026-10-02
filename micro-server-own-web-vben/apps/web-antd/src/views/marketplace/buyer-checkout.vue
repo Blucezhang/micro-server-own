@@ -102,46 +102,48 @@ onMounted(() => { void load(); void loadCoupons(); });
       </div>
     </header>
     <Spin :spinning="loading || quoteLoading">
-      <section class="market-panel" aria-labelledby="checkout-address-title">
-        <h2 id="checkout-address-title" class="market-panel-title">收货地址</h2>
-        <Radio.Group v-model:value="addressId" :disabled="loading || quoteLoading" class="addresses">
-          <Radio v-for="address in addresses" :key="address.id" :value="address.id">
-            {{ address.recipientName }} · {{ address.mobile }} · {{ address.province }}{{ address.city }}{{ address.district }}{{ address.detail }}
-          </Radio>
-        </Radio.Group>
-        <Empty v-if="!addresses.length" description="暂无收货地址，请先新增地址" />
-        <Button class="address-action" @click="router.push({ path: '/buyer/addresses', query: { redirect: route.fullPath } })">{{ addresses.length ? '管理收货地址' : '新增收货地址' }}</Button>
-      </section>
-      <section class="market-panel" aria-labelledby="checkout-coupon-title">
-        <h2 id="checkout-coupon-title" class="market-panel-title">选择优惠券</h2>
-        <Alert v-if="couponError" :message="couponError" show-icon type="warning" />
-        <Radio.Group v-model:value="couponNo" :disabled="loading || quoteLoading" class="addresses">
-          <Radio value="">不使用优惠券</Radio>
-          <Radio v-for="coupon in availableCoupons" :key="coupon.couponNo" :value="coupon.couponNo">
-            {{ coupon.couponType === 'MALL' ? '平台券' : '店铺券' }} · 减 {{ coupon.discountAmount }} ·
-            满 {{ coupon.minimumAmount }} 可用 · {{ coupon.couponNo }}
-          </Radio>
-        </Radio.Group>
-        <Button class="address-action" @click="router.push({ path: '/buyer/coupons', query: { redirect: route.fullPath } })">
-          查看券包或领券
-        </Button>
-      </section>
-      <section class="market-panel" aria-labelledby="checkout-quote-title">
-        <h2 id="checkout-quote-title" class="market-panel-title">结算试算</h2>
-        <Alert v-if="quoteError" :message="quoteError" show-icon type="error" />
-        <Descriptions v-if="quoteItems.length" :column="1" :items="quoteItems" class="quote" bordered size="small" />
-        <p v-else-if="!quoteError" class="market-note">请选择购物车商品和收货地址后重新进入结算。</p>
-      </section>
-      <section class="market-panel">
-        <Alert v-if="submitError" :message="submitError" description="可在当前页面重试；相同结算内容会复用幂等键。" show-icon type="error" />
-        <Space class="checkout-actions"><Button @click="router.back()">返回购物车</Button><Button :disabled="!addressId || !itemIds.length || !quote || quoteLoading" :loading="loading" type="primary" @click="submit">提交订单</Button></Space>
-      </section>
+      <div class="checkout-panels">
+        <section class="market-panel" aria-labelledby="checkout-address-title">
+          <h2 id="checkout-address-title" class="market-panel-title">收货地址</h2>
+          <Radio.Group v-model:value="addressId" :disabled="loading || quoteLoading" class="addresses">
+            <Radio v-for="address in addresses" :key="address.id" :value="address.id">
+              {{ address.recipientName }} · {{ address.mobile }} · {{ address.province }}{{ address.city }}{{ address.district }}{{ address.detail }}
+            </Radio>
+          </Radio.Group>
+          <Empty v-if="!addresses.length" description="暂无收货地址，请先新增地址" />
+          <Button class="address-action" @click="router.push({ path: '/buyer/addresses', query: { redirect: route.fullPath } })">{{ addresses.length ? '管理收货地址' : '新增收货地址' }}</Button>
+        </section>
+        <section class="market-panel" aria-labelledby="checkout-coupon-title">
+          <h2 id="checkout-coupon-title" class="market-panel-title">选择优惠券</h2>
+          <Alert v-if="couponError" :message="couponError" show-icon type="warning" />
+          <Radio.Group v-model:value="couponNo" :disabled="loading || quoteLoading" class="addresses">
+            <Radio value="">不使用优惠券</Radio>
+            <Radio v-for="coupon in availableCoupons" :key="coupon.couponNo" :value="coupon.couponNo">
+              {{ coupon.couponType === 'MALL' ? '平台券' : '店铺券' }} · 减 {{ coupon.discountAmount }} ·
+              满 {{ coupon.minimumAmount }} 可用 · {{ coupon.couponNo }}
+            </Radio>
+          </Radio.Group>
+          <Button class="address-action" @click="router.push({ path: '/buyer/coupons', query: { redirect: route.fullPath } })">
+            查看券包或领券
+          </Button>
+        </section>
+        <section class="market-panel" aria-labelledby="checkout-quote-title">
+          <h2 id="checkout-quote-title" class="market-panel-title">结算试算</h2>
+          <Alert v-if="quoteError" :message="quoteError" show-icon type="error" />
+          <Descriptions v-if="quoteItems.length" :column="1" :items="quoteItems" class="quote" bordered size="small" />
+          <p v-else-if="!quoteError" class="market-note">请选择购物车商品和收货地址后重新进入结算。</p>
+        </section>
+        <section class="market-panel">
+          <Alert v-if="submitError" :message="submitError" description="可在当前页面重试；相同结算内容会复用幂等键。" show-icon type="error" />
+          <Space class="checkout-actions"><Button @click="router.back()">返回购物车</Button><Button :disabled="!addressId || !itemIds.length || !quote || quoteLoading" :loading="loading" type="primary" @click="submit">提交订单</Button></Space>
+        </section>
+      </div>
     </Spin>
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
+.checkout-panels { display: grid; gap: 16px; }
 .addresses { display: grid; gap: 14px; }
 .quote { margin-top: 16px; overflow-wrap: anywhere; }
 .address-action { margin-top: 16px; }

@@ -181,7 +181,6 @@ onMounted(load);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .form-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .full { width: 100%; }

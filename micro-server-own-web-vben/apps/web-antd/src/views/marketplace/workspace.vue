@@ -70,7 +70,6 @@ const content = computed(() => {
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .action-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px 24px; }
 .action { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 84px; padding: 14px 0; border: 0; border-bottom: 1px solid var(--market-line); background: transparent; color: var(--market-text); cursor: pointer; text-align: left; }

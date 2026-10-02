@@ -4,6 +4,8 @@ import {
   definePreferencesExtension,
 } from '@vben/preferences';
 
+import logo from '#/assets/logo.svg';
+
 interface WebAntdPreferencesExtension {
   defaultTableSize: number;
   enableFormFullscreen: boolean;
@@ -11,13 +13,38 @@ interface WebAntdPreferencesExtension {
   tenantMode: 'multi' | 'single';
 }
 
-/**
- * @description 项目配置文件
- * 只需要覆盖项目中的一部分配置，不需要的配置不用覆盖，会自动使用默认配置
- * !!! 更改配置后请清空缓存，否则可能不生效
- */
+export const mallLayoutPreferences = defineOverridesPreferences({
+  header: {
+    height: 56,
+  },
+  logo: {
+    enable: true,
+    showText: true,
+    source: logo,
+    sourceDark: logo,
+  },
+  sidebar: {
+    width: 208,
+  },
+  tabbar: {
+    height: 36,
+    styleType: 'card',
+  },
+  widget: {
+    fullscreen: true,
+    globalSearch: true,
+    languageToggle: false,
+    lockScreen: true,
+    notification: false,
+    refresh: true,
+    sidebarToggle: true,
+    themeToggle: true,
+    timezone: false,
+  },
+});
+
 export const overridesPreferences = defineOverridesPreferences({
-  // overrides
+  ...mallLayoutPreferences,
   app: {
     authPageLayout: 'panel-right',
     contentCompact: 'wide',
@@ -37,12 +64,14 @@ export const overridesPreferences = defineOverridesPreferences({
     settingShow: false,
   },
   theme: {
+    builtinType: 'default',
+    colorPrimary: 'hsl(212 100% 45%)',
     fontSize: 14,
+    mode: 'light',
     radius: '0.5',
-  },
-  widget: {
-    languageToggle: false,
-    timezone: false,
+    semiDarkHeader: false,
+    semiDarkSidebar: false,
+    semiDarkSidebarSub: false,
   },
 });
 

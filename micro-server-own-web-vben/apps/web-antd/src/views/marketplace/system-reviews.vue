@@ -97,7 +97,6 @@ onMounted(load);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .resolve-form { max-width: 560px; }
 .full { width: 100%; }

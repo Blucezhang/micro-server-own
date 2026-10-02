@@ -84,7 +84,6 @@ onMounted(load);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .balance { display: block; margin: 8px 0 12px; font-size: 32px; letter-spacing: -.04em; }
 .full { width: 100%; }

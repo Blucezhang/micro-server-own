@@ -157,7 +157,6 @@ onMounted(loadCoupons);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .notice {
   margin-bottom: 16px;

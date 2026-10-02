@@ -80,6 +80,7 @@ onMounted(load);
         :loading="loading"
         :pagination="false"
         :row-selection="{ selectedRowKeys: selectedKeys, onChange: (keys) => { selectedKeys = keys.map(Number) } }"
+        :scroll="{ x: 640 }"
         row-key="id"
       >
         <template #bodyCell="{ column, record }">
@@ -101,7 +102,6 @@ onMounted(load);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .settlement { align-items: center; display: flex; gap: 16px; justify-content: flex-end; }
 .settlement strong { font-size: 26px; letter-spacing: -.04em; margin-right: 8px; }

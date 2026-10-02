@@ -112,7 +112,6 @@ onMounted(() => { void loadProfile(); void loadSessions(); });
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .identity { display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 6px 12px; margin-bottom: 22px; padding: 14px 16px; border: 1px solid var(--market-line); border-radius: 10px; font-size: 12px; }
 .identity span { color: var(--market-muted); }

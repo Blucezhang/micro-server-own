@@ -89,7 +89,7 @@ onMounted(load);
       </div>
       <p v-else class="empty">暂无收货地址，请先新增地址。</p>
     </section>
-    <Drawer :open="drawerOpen" :title="editingId ? '编辑地址' : '新增地址'" width="480" @close="drawerOpen = false">
+    <Drawer :open="drawerOpen" :title="editingId ? '编辑地址' : '新增地址'" width="min(480px, 100vw)" @close="drawerOpen = false">
       <Form :model="form" layout="vertical" @finish="save">
         <Form.Item label="收货人" name="recipientName" :rules="[{ required: true, message: '请填写收货人' }]"><Input v-model:value="form.recipientName" /></Form.Item>
         <Form.Item label="手机号" name="mobile" :rules="[{ required: true, message: '请填写手机号' }]"><Input v-model:value="form.mobile" /></Form.Item>
@@ -104,7 +104,6 @@ onMounted(load);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .address-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 .address-card { border: 1px solid var(--market-line); border-radius: 12px; padding: 18px; }

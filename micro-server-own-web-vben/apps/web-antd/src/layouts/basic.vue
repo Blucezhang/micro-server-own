@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { NotificationItem } from '@vben/layouts';
-
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -9,7 +7,6 @@ import { useWatermark } from '@vben/hooks';
 import {
   BasicLayout,
   LockScreen,
-  Notification,
   UserDropdown,
 } from '@vben/layouts';
 import { preferences, usePreferences } from '@vben/preferences';
@@ -17,11 +14,11 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 
 import { Modal } from 'ant-design-vue';
 
+import logo from '#/assets/logo.svg';
 import { useAuthStore } from '#/store';
 import AboutView from '#/views/_core/about/index.vue';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
-const notifications = ref<NotificationItem[]>([]);
 const aboutModalOpen = ref(false);
 
 const router = useRouter();
@@ -30,10 +27,6 @@ const authStore = useAuthStore();
 const accessStore = useAccessStore();
 const { destroyWatermark, updateWatermark } = useWatermark();
 const { isDark } = usePreferences();
-
-const showDot = computed(() =>
-  notifications.value.some((item) => !item.isRead),
-);
 
 const userDisplayName = computed(() => {
   return (
@@ -60,40 +53,50 @@ const userRoleTag = computed(() => {
   return role || '';
 });
 
-const menus = computed(() => [
-  {
-    handler: () => {
-      const homePath =
-        userStore.userInfo?.homePath ||
-        preferences.app.defaultHomePath ||
-        '/buyer/workspace';
-      router.push(homePath);
+const menus = computed(() => {
+  const list = [
+    {
+      handler: () => {
+        const homePath =
+          userStore.userInfo?.homePath ||
+          preferences.app.defaultHomePath ||
+          '/buyer/workspace';
+        router.push(homePath);
+      },
+      icon: 'lucide:layout-dashboard',
+      text: '工作台首页',
     },
-    icon: 'lucide:layout-dashboard',
-    text: '工作台首页',
-  },
-  {
-    handler: () => {
-      const roles = userStore.userInfo?.roles || [];
-      if (roles.includes('MERCHANT')) {
+  ];
+
+  const roles = userStore.userInfo?.roles || [];
+  if (roles.includes('MERCHANT')) {
+    list.push({
+      handler: () => {
         router.push('/merchant/account');
-      } else if (roles.includes('BUYER')) {
+      },
+      icon: 'lucide:user-round-cog',
+      text: '账号设置',
+    });
+  } else if (roles.includes('BUYER')) {
+    list.push({
+      handler: () => {
         router.push('/buyer/account');
-      } else {
-        router.push(userStore.userInfo?.homePath || '/buyer/workspace');
-      }
-    },
-    icon: 'lucide:user-round-cog',
-    text: '账号设置',
-  },
-  {
+      },
+      icon: 'lucide:user-round-cog',
+      text: '账号设置',
+    });
+  }
+
+  list.push({
     handler: () => {
       aboutModalOpen.value = true;
     },
     icon: 'lucide:info',
     text: '关于平台',
-  },
-]);
+  });
+
+  return list;
+});
 
 const avatar = computed(() => {
   return userStore.userInfo?.avatar ?? preferences.app.defaultAvatar;
@@ -101,49 +104,6 @@ const avatar = computed(() => {
 
 async function handleLogout() {
   await authStore.logout(false);
-}
-
-function handleNoticeClear() {
-  notifications.value = [];
-}
-
-function markRead(id: number | string) {
-  const item = notifications.value.find((item) => item.id === id);
-  if (item) {
-    item.isRead = true;
-  }
-}
-
-function remove(id: number | string) {
-  notifications.value = notifications.value.filter((item) => item.id !== id);
-}
-
-function handleMakeAll() {
-  notifications.value.forEach((item) => (item.isRead = true));
-}
-
-const viewAll = () => {};
-
-const handleClick = (item: NotificationItem) => {
-  if (item.link) {
-    navigateTo(item.link, item.query, item.state);
-  }
-};
-
-function navigateTo(
-  link: string,
-  query?: Record<string, any>,
-  state?: Record<string, any>,
-) {
-  if (link.startsWith('http://') || link.startsWith('https://')) {
-    window.open(link, '_blank');
-  } else {
-    router.push({
-      path: link,
-      query: query || {},
-      state,
-    });
-  }
 }
 
 watch(
@@ -189,6 +149,8 @@ watch(
 <template>
   <BasicLayout
     :avatar
+    :logo-src="logo"
+    :logo-src-dark="logo"
     :text="userDisplayName"
     @clear-preferences-and-logout="handleLogout"
     @logout="handleLogout"
@@ -202,18 +164,6 @@ watch(
         :text="userDisplayName"
         @clear-preferences-and-logout="handleLogout"
         @logout="handleLogout"
-      />
-    </template>
-    <template #notification>
-      <Notification
-        :dot="showDot"
-        :notifications="notifications"
-        @clear="handleNoticeClear"
-        @make-all="handleMakeAll"
-        @on-click="handleClick"
-        @read="(item) => item.id && markRead(item.id)"
-        @remove="(item) => item.id && remove(item.id)"
-        @view-all="viewAll"
       />
     </template>
     <template #extra>

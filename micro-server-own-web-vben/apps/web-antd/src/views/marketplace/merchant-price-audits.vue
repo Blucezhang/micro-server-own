@@ -80,7 +80,6 @@ onMounted(() => {
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .query-form { align-items: flex-end; }
 .notice { margin-bottom: 16px; }

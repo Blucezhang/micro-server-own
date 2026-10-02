@@ -82,7 +82,6 @@ onMounted(load);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .freight-form { max-width: 520px; }
 .full { width: 100%; }

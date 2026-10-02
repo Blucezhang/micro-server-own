@@ -149,7 +149,6 @@ onMounted(loadAlerts);
   </main>
 </template>
 
-<style src="./marketplace-page.css"></style>
 <style scoped>
 .query-form { align-items: flex-end; }
 .stock-result { margin-top: 18px; }
