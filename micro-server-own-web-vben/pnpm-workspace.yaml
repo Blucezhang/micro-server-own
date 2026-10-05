@@ -101,7 +101,7 @@ catalog:
   ant-design-vue: ^4.2.6
   antdv-next: ^1.4.5
   archiver: ^8.0.0
-  axios: ^1.18.1
+  axios: ^1.20.0
   axios-mock-adapter: ^2.1.0
   cac: ^7.0.0
   chalk: ^5.6.2
