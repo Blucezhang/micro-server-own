@@ -24,9 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestHeader;
-import jakarta.servlet.http.HttpServletRequest;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,20 +91,6 @@ public class LoginUserController {
     public Resp logout(@RequestBody RefreshTokenCommand command) {
         if (command == null || command.getRefreshToken() == null || command.getRefreshToken().trim().isEmpty()) throw TradeException.badRequest("refreshToken is required");
         refreshSessions.revoke(command.getRefreshToken()); return new Resp("logged_out");
-    }
-
-    @GetMapping("/sessions")
-    public Resp activeSessions(@RequestHeader("X-User-Id") Long userId, HttpServletRequest request) {
-        loginUserService.requireOwnedByActor(userId, com.own.face.trade.TradeHeaders.actor(request));
-        return new Resp(refreshSessions.listActive(userId));
-    }
-
-    @DeleteMapping("/sessions/{sessionId}")
-    public Resp revokeSession(@RequestHeader("X-User-Id") Long userId, @PathVariable Long sessionId, HttpServletRequest request) {
-        com.own.face.trade.TradeHeaders.idempotencyKey(request);
-        loginUserService.requireOwnedByActor(userId, com.own.face.trade.TradeHeaders.actor(request));
-        refreshSessions.revokeOwnedSession(userId, sessionId);
-        return new Resp("session_revoked");
     }
 
     @Operation(summary = "根据用户Id查询登录用户的Detail")

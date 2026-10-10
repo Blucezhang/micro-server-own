@@ -21,7 +21,7 @@ final class RbacAccessPolicy {
                 (value.startsWith("/user/per/person") && !value.endsWith("/reg"))) {
             return require(principal, ActorType.SYSTEM, "user:manage");
         }
-        if (value.startsWith("/user/login/sessions")) return requireBuyerOrMerchant(principal, "auth:session");
+        if (value.startsWith("/user/api/v1/account/sessions")) return requireBuyerOrMerchant(principal, "auth:session");
         if (value.startsWith("/user/api/v1/system/accounts/")) return require(principal, ActorType.SYSTEM, "user:manage");
         if (value.startsWith("/user/api/v1/system/roles/")) return require(principal, ActorType.SYSTEM, "user:manage");
         if (value.equals("/user/api/v1/account/authorization") && "GET".equals(verb) && principal.getActorType() == ActorType.SYSTEM) {

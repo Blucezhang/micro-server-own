@@ -146,6 +146,10 @@ public class RbacAccessPolicyTest {
         assertTrue(policy.decide(path, "GET", principal(ActorType.BUYER, "ROLE_BUYER")).isAllowed());
         assertTrue(policy.decide(path, "PUT", principal(ActorType.MERCHANT, "ROLE_MERCHANT")).isAllowed());
         assertFalse(policy.decide(path, "PUT", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
+        String sessions = "/user/api/v1/account/sessions";
+        assertTrue(policy.decide(sessions, "GET", principal(ActorType.BUYER, "ROLE_BUYER")).isAllowed());
+        assertTrue(policy.decide(sessions + "/9", "DELETE", principal(ActorType.MERCHANT, "ROLE_MERCHANT")).isAllowed());
+        assertFalse(policy.decide(sessions, "GET", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
         assertTrue(policy.decide("/user/api/v1/account/sessions", "DELETE", principal(ActorType.BUYER, "ROLE_BUYER")).isAllowed());
     }
 

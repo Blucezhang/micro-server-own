@@ -96,7 +96,30 @@ public class SettlementServicePaymentTransitionTest {
         Payment result = service.processMockCallback(PaymentChannel.MOCK_ALIPAY, callback);
 
         Assertions.assertEquals(PaymentStatus.SUCCEEDED, result.getStatus());
+        Payment replay = service.processMockCallback(PaymentChannel.MOCK_ALIPAY, callback);
+        Assertions.assertEquals(PaymentStatus.SUCCEEDED, replay.getStatus());
         Mockito.verify(orders).paymentSucceeded("ORD-1");
+    }
+
+    @Test
+    public void mockChannelCallbackRejectsWrongAmountWithoutChangingPayment() {
+        Payment payment = new Payment("PAY-1", "ORD-1", 1L, new java.math.BigDecimal("12.50"), "key-1");
+        PaymentRepository payments = Mockito.mock(PaymentRepository.class);
+        OrderClient orders = Mockito.mock(OrderClient.class);
+        Mockito.when(payments.findByPaymentNoForUpdate("PAY-1")).thenReturn(payment);
+        SettlementService service = new SettlementService(payments, orders, Mockito.mock(RefundRepository.class),
+                Mockito.mock(AfterSaleRefundRepository.class));
+        MockPaymentCallbackCommand callback = new MockPaymentCallbackCommand();
+        callback.setPaymentNo("PAY-1"); callback.setProviderPaymentNo(payment.getProviderPaymentNo());
+        callback.setAmount(new java.math.BigDecimal("12.49")); callback.setResult("SUCCESS");
+
+        com.own.face.trade.TradeException error = Assertions.assertThrows(com.own.face.trade.TradeException.class,
+                () -> service.processMockCallback(PaymentChannel.MOCK_WECHAT, callback));
+
+        Assertions.assertEquals(409, error.getStatus());
+        Assertions.assertEquals(PaymentStatus.CREATED, payment.getStatus());
+        Mockito.verify(orders, Mockito.never()).paymentSucceeded(Mockito.anyString());
+        Mockito.verify(payments, Mockito.never()).save(Mockito.any(Payment.class));
     }
 
     @Test

@@ -8,6 +8,8 @@ import com.own.user.party.auth.service.RefreshSessionService;
 import com.own.user.party.service.LoginUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,6 +21,13 @@ public class AccountSessionController {
     private final LoginUserService users;
     public AccountSessionController(RefreshSessionService sessions, LoginUserService users) { this.sessions = sessions; this.users = users; }
 
+    @GetMapping
+    public Resp list(HttpServletRequest request) {
+        Long userId = userId(request);
+        users.requireOwnedByActor(userId, TradeHeaders.actor(request));
+        return new Resp(sessions.listActive(userId));
+    }
+
     @DeleteMapping
     public Resp revokeAll(HttpServletRequest request) {
         TradeHeaders.idempotencyKey(request);
@@ -27,6 +36,15 @@ public class AccountSessionController {
         users.requireOwnedByActor(userId, actor);
         sessions.revokeAllForUser(userId);
         return new Resp("all_sessions_revoked");
+    }
+
+    @DeleteMapping("/{sessionId}")
+    public Resp revokeOne(@PathVariable Long sessionId, HttpServletRequest request) {
+        TradeHeaders.idempotencyKey(request);
+        Long userId = userId(request);
+        users.requireOwnedByActor(userId, TradeHeaders.actor(request));
+        sessions.revokeOwnedSession(userId, sessionId);
+        return new Resp("session_revoked");
     }
 
     private Long userId(HttpServletRequest request) {

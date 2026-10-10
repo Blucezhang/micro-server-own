@@ -29,7 +29,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 
 public class LoginUserControllerTest {
 
@@ -100,24 +99,6 @@ public class LoginUserControllerTest {
 
         verify(loginAttempts).requireAllowed("alice");
         verify(loginAttempts).succeeded("alice");
-    }
-
-    @Test
-    public void existingSessionEndpointAlsoChecksJwtActorOwnership() {
-        controller.activeSessions(7L, request("BUYER", "70"));
-        verify(loginUserService).requireOwnedByActor(org.mockito.ArgumentMatchers.eq(7L), org.mockito.ArgumentMatchers.any(com.own.face.trade.TradeActor.class));
-        verify(refreshSessions).listActive(7L);
-    }
-
-    @Test
-    public void existingSessionEndpointRejectsMismatchedJwtActor() {
-        doThrow(TradeException.forbidden("authenticated actor does not own this account"))
-                .when(loginUserService).requireOwnedByActor(org.mockito.ArgumentMatchers.eq(7L), org.mockito.ArgumentMatchers.any(com.own.face.trade.TradeActor.class));
-        try {
-            controller.revokeSession(7L, 9L, request("BUYER", "71"));
-            fail("mismatched actor must be rejected");
-        } catch (TradeException expected) { assertEquals(403, expected.getStatus()); }
-        verify(refreshSessions, never()).revokeOwnedSession(7L, 9L);
     }
 
     @Test
