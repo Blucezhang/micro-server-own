@@ -39,7 +39,7 @@ services:
     environment:
       MODE: standalone
       NACOS_AUTH_ENABLE: ${NACOS_AUTH_ENABLED:-false}
-    ports: ["8848:8848"]
+    ports: ["127.0.0.1:${NACOS_HOST_PORT:-8848}:8848"]
     networks: [backend, frontend]
 
   gateway:
@@ -54,7 +54,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       JWT_PREVIOUS_SECRET: ${JWT_PREVIOUS_SECRET:-}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN in .env}
-    ports: ["9632:9632"]
+    ports: ["127.0.0.1:${GATEWAY_HOST_PORT:-9632}:9632"]
     depends_on: [nacos]
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:9632/actuator/health >/dev/null || exit 1"]

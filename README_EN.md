@@ -62,15 +62,15 @@ Implemented code is not proof of acceptance against real databases or providers.
 | Catalog operations | Product creation/editing, shelf status, price audit | Pages exist; cancel/success reset the form, unchanged failed commands reuse their key, wide tables scroll within their container |
 | Coupons | Merchant templates, buyer claiming/ownership, quote, reservation and redemption | Merchant templates, buyer wallet, claim by known template ID, and single-coupon checkout quotation/order are connected; no backend API lists publicly claimable offers yet |
 | Favorites and reviews | Favorites, reviews, merchant replies, reporting and moderation APIs | Buyer favorites, product reviews/reporting, merchant replies, and system moderation are wired into the UI; real-backend integration remains unverified |
-| Accounts and access | Login, refresh, profile/sessions, role/function grants | Role portals and controlled grants exist; integrated profile/session pages, account/role search, current grants and revocation are incomplete |
-| Fulfillment and money | Shipment, manual logistics, after-sales handling, simulated payments/refunds, receivables and withdrawal requests | Shipment and settlement pages exist; merchant after-sales and buyer logistics-trace screens are missing, while real logistics, payout providers and financial reconciliation are not integrated |
+| Accounts and access | Login, refresh, profile/sessions, role/function grants | Buyer/merchant self-service profile and session pages are wired; system account/role search, current grants and revocation remain incomplete |
+| Fulfillment and money | Shipment, manual logistics, after-sales handling, simulated payments/refunds, receivables and withdrawal requests | Shipment, settlement, and buyer-order logistics-trace pages exist; trace switching races and failed-request retry are handled. Merchant after-sales workbench, real logistics, payout providers, and financial reconciliation remain incomplete |
 | Reliability and operations | Saga, Outbox, Inbox infrastructure, idempotency records | Missing uncertain-result reconciliation/recovery, complete domain message consumers and an operational console |
 
 ## Near-term priorities
 
 1. Reconciliation: uncertain `PROCESSING` attempts must not be replayed merely because their retention time elapsed. Check business records before deciding how to recover. There is no generic recovery UI; deleting records to "unblock" writes is unsafe.
 2. Isolated integration: verify MySQL/Neo4j transaction-manager selection, atomic batch grants, and order/stock/coupon/refund flows.
-3. Complete frontend journeys: claimable-offer listings, buyer logistics traces, merchant after-sales, profile/sessions, and system account/role lists and revocation. UI visibility never replaces backend RBAC.
+3. Complete frontend journeys: claimable-offer listings and the merchant after-sales workbench; add system account/role lists and revocation. Buyer order details already provide logistics traces with retry. UI visibility never replaces backend RBAC.
 4. Production integrations: real payments/payouts, logistics, message consumption, monitoring and recovery exercises require providers and business policies.
 
 See the [frontend review record](docs/frontend/frontend-review-2026-09-30.md) for this round's fixes and verification boundaries, and the [capability roadmap](docs/product/mall-capability-roadmap.md) for broader scope.
@@ -188,6 +188,7 @@ The development login page exposes Buyer, Merchant, and System demos. Demo login
 
 - JDK 17
 - Docker Compose v2 for the full stack
+- Python 3 for isolated local end-to-end acceptance
 - Reachable MySQL, Neo4j, and Nacos instances, or the Compose stack
 - Node.js 22.18+ or 24.12+ for the Vben frontend
 - pnpm 11.16.0 (pinned through `npx` below; do not rewrite the workspace lockfile with an older pnpm or npm)
@@ -260,11 +261,21 @@ npx -y pnpm@11.16.0 exec vitest run apps/web-antd/src/api/marketplace-*.test.ts
 npx -y pnpm@11.16.0 --filter @vben/web-antd run build
 ```
 
+### Run isolated full-stack acceptance
+
+```bash
+python3 scripts/local-acceptance.py
+```
+
+The script builds the backend JARs, starts dependencies and application services in a unique Compose project with dedicated MySQL/Neo4j volumes, imports local Nacos configuration, and runs a synthetic flow covering same-key registration replay/different-payload conflict, role grant, product and stock, merchant coupon template/buyer claim/order reservation/payment consumption, address/cart/quote, Saga checkout, rejection of a wrong-amount payment callback and replay of a successful callback, shipment, return/refund, and access-boundary checks. Under the current policy, after-sale refunds do not automatically restore a consumed coupon. Ports bind to localhost only. It creates temporary random secrets and test data, does not read `.env`, and never connects to an existing database. Containers, network, and named volumes created by this run are removed by default.
+
+The CI workflow is configured to run the same full-stack acceptance in addition to Maven and frontend checks; check the remote workflow run for the result of a specific commit. Use `--keep` to retain the disposable stack and temporary credentials for debugging; clean up with the exact Compose command printed by the script. Use `--skip-build` when the service JARs are already built.
+
 ## Transaction consistency status
 
 | Capability | Status | Notes |
 | --- | --- | --- |
-| Local transactions and idempotency | Implemented with boundaries | Same-key/same-content requests replay responses; changed content returns 409. Completed records expire after retention; uncertain PROCESSING records are not automatically deleted on expiry. No cross-database exactly-once guarantee. |
+| Local transactions and idempotency | Implemented with boundaries | Same-key/same-content requests replay responses; changed content returns 409. Completed records expire after retention; uncertain PROCESSING records are not automatically deleted on expiry. Follow the [read-only triage runbook](docs/architecture/idempotency-reconciliation-runbook-en.md); there is no recovery/unlock API. No cross-database exactly-once guarantee. |
 | Inventory/coupon compensation | Implemented in synchronous flows | Order, cancellation, timeout, payment, refund, and after-sales flows reserve, confirm, release, or replenish resources. |
 | Outbox | Implemented | Order states/events are stored in `ord_event` in the local transaction and retried with backoff. |
 | RocketMQ publishing | Implemented, disabled by default | Set `TRADE_OUTBOX_ROCKETMQ_ENABLED=true` to publish to `trade.order.events`. |
@@ -302,9 +313,9 @@ See [`.env.example`](.env.example) for the full template. Provide secrets only t
 
 ## Verification boundaries
 
-Maven tests verify source code, unit contracts, and the build. Nacos, RocketMQ, MySQL, Neo4j, payment channels, logistics, message delivery, and container orchestration still need integration acceptance in the target environment. See the [framework upgrade and business migration plan](docs/architecture/framework-upgrade-plan.md) for current progress and open verification items.
+Maven tests verify source code, unit contracts, and the build. The new local Compose acceptance exercises MySQL, Neo4j, Nacos, all application services, coupon claim/reservation/consumption, mock payment, return/refund, and role/data isolation. Real WeChat/Alipay, RocketMQ consumers, third-party logistics, production deployment, backup restoration, and alerting still need separate acceptance in their target environments. See the [framework upgrade and business migration plan](docs/architecture/framework-upgrade-plan.md) for current progress and open verification items.
 
-> `.github/workflows/main.yml` now uses JDK 17 for Maven verification. The remote workflow result remains the acceptance evidence for merging and releasing, so the README does not make a static CI claim.
+> `.github/workflows/main.yml` configures JDK 17/Maven verification, frontend typecheck/build, and isolated Compose end-to-end acceptance. The remote workflow result remains the evidence for whether a specific commit passed.
 
 ## Troubleshooting
 
