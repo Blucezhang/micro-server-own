@@ -10,8 +10,9 @@ import {
   useLayoutFooterStyle,
   useLayoutHeaderStyle,
   useLayoutViewportHeight,
+  useSimpleLocale,
 } from '@vben-core/composables';
-import { IconifyIcon } from '@vben-core/icons';
+import { Menu, PanelLeft, X } from '@vben-core/icons';
 import { VbenIconButton } from '@vben-core/shadcn-ui';
 import {
   ELEMENT_ID_LAYOUT_SCROLL,
@@ -68,6 +69,8 @@ const props = withDefaults(defineProps<Props>(), {
   tabbarHeight: 40,
   zIndex: 200,
 });
+
+const { $t } = useSimpleLocale();
 
 const emit = defineEmits<{
   sideMouseLeave: [];
@@ -672,14 +675,22 @@ const layoutStaticHeaderTarget = `#${idLayoutStaticHeader}`;
               <VbenIconButton
                 v-if="showHeaderToggleButton"
                 data-layout-action="toggle-sidebar"
+                :aria-label="$t('toggleSidebarVisibility')"
+                :aria-expanded="!activeSidebarCollapse"
                 class="my-0 mr-1 rounded-md"
                 @click="handleHeaderToggle"
               >
-                <IconifyIcon
-                  v-if="isMobile ? !activeSidebarCollapse : showSidebar"
-                  icon="ep:fold"
+                <Menu
+                  v-if="isMobile && activeSidebarCollapse"
+                  aria-hidden="true"
+                  class="size-4"
                 />
-                <IconifyIcon v-else icon="ep:expand" />
+                <X
+                  v-else-if="isMobile"
+                  aria-hidden="true"
+                  class="size-4"
+                />
+                <PanelLeft v-else aria-hidden="true" class="size-4" />
               </VbenIconButton>
             </template>
             <slot name="header"></slot>

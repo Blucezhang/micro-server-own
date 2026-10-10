@@ -6,10 +6,45 @@
  */
 
 :root {
-  --mall-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  --mall-radius-base: 6px;
-  --mall-radius-lg: 10px;
-  --mall-radius-xl: 12px;
+  --mall-font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --mall-radius-base: 8px;
+  --mall-radius-lg: 12px;
+  --mall-radius-xl: 14px;
+}
+
+:root,
+.light,
+.light[data-theme='custom'],
+.light[data-theme='default'] {
+  --background: 38 28% 98%;
+  --background-deep: 36 24% 96%;
+  --foreground: 222 25% 17%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 25% 17%;
+  --muted: 36 18% 94%;
+  --muted-foreground: 218 10% 44%;
+  --border: 36 12% 88%;
+  --input: 36 12% 85%;
+  --accent: 168 36% 92%;
+  --accent-foreground: 168 68% 22%;
+  --ring: 168 72% 30%;
+}
+
+.dark,
+.dark[data-theme='custom'],
+.dark[data-theme='default'] {
+  --background: 222 47% 11%;
+  --background-deep: 222 47% 8%;
+  --foreground: 210 40% 96%;
+  --card: 222 47% 13%;
+  --card-foreground: 210 40% 96%;
+  --muted: 217 33% 18%;
+  --muted-foreground: 215 20% 65%;
+  --border: 217 33% 22%;
+  --input: 217 33% 22%;
+  --accent: 168 40% 20%;
+  --accent-foreground: 168 72% 75%;
+  --ring: 168 72% 45%;
 }
 
 /* ==========================================================================
@@ -19,7 +54,23 @@
 body {
   font-family: var(--mall-font-sans);
   color: hsl(var(--foreground));
-  background-color: hsl(var(--background));
+  background-color: hsl(var(--background-deep));
+}
+
+#app {
+  min-height: 100dvh;
+}
+
+.bg-background-deep {
+  background-color: hsl(var(--background-deep));
+}
+
+header.bg-header {
+  box-shadow: 0 1px 0 hsl(var(--border) / 0.72);
+}
+
+aside.bg-sidebar {
+  box-shadow: 2px 0 18px rgb(15 23 42 / 0.08);
 }
 
 /* Focus visibility for keyboard navigation */
@@ -39,13 +90,13 @@ body {
   --market-surface: hsl(var(--card));
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: 20px;
   width: 100%;
-  max-width: 1600px;
+  max-width: 1680px;
   margin: 0 auto;
   min-width: 0;
   box-sizing: border-box;
-  padding: clamp(14px, 1.8vw, 24px);
+  padding: clamp(18px, 2vw, 30px);
   color: var(--market-text);
 }
 
@@ -53,51 +104,52 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  padding: 2px 0 16px;
+  gap: 20px;
+  padding: 4px 0 20px;
   border-bottom: 1px solid var(--market-line);
 }
 
 .market-overline {
   display: inline-block;
-  color: var(--market-muted);
+  color: hsl(var(--primary));
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .market-heading {
-  margin: 4px 0 4px;
+  margin: 6px 0 6px;
   color: var(--market-text);
-  font-size: clamp(18px, 1.8vw, 22px);
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 680;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
 }
 
 .market-subtitle {
-  max-width: 720px;
+  max-width: 780px;
   margin: 0;
   color: var(--market-muted);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.65;
 }
 
 .market-panel {
   min-width: 0;
-  padding: clamp(14px, 1.5vw, 20px);
+  padding: clamp(18px, 1.8vw, 24px);
   border: 1px solid var(--market-line);
   border-radius: var(--mall-radius-xl);
   background: var(--market-surface);
+  box-shadow: 0 1px 2px rgb(28 36 48 / 0.035), 0 10px 28px rgb(28 36 48 / 0.025);
   box-sizing: border-box;
 }
 
 .market-panel-title {
-  margin: 0 0 14px;
+  margin: 0 0 16px;
   color: var(--market-text);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 650;
   letter-spacing: -0.01em;
   line-height: 1.35;
 }
@@ -113,7 +165,7 @@ body {
 .market-grid {
   display: grid;
   grid-template-columns: minmax(320px, 1fr) minmax(0, 1.35fr);
-  gap: 16px;
+  gap: 18px;
   align-items: start;
 }
 
@@ -123,8 +175,8 @@ body {
 
 .market-note {
   color: var(--market-muted);
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.65;
 }
 
 /* Form items spacing */
@@ -134,7 +186,7 @@ body {
 
 .ant-form-item-label > label {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: hsl(var(--foreground));
 }
 
@@ -144,19 +196,43 @@ body {
   max-width: 100%;
 }
 
+.market-page .ant-table-wrapper:has(.ant-table-placeholder) .ant-table-thead,
+.ant-drawer-content .ant-table-wrapper:has(.ant-table-placeholder) .ant-table-thead {
+  display: none;
+}
+
+@media (max-width: 680px) {
+  .market-page .ant-table-wrapper:has(.ant-table-tbody > tr.ant-table-row):not(.compact-table)::before,
+  .ant-drawer-content .ant-table-wrapper:has(.ant-table-tbody > tr.ant-table-row):not(.compact-table)::before {
+    display: block;
+    margin-bottom: 8px;
+    color: hsl(var(--muted-foreground));
+    content: '↔ 左右滑动查看更多列';
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: right;
+  }
+}
+
 .ant-table {
-  font-size: 13px;
+  font-size: 13.5px;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .ant-table-thead > tr > th {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  background: hsl(var(--muted) / 0.4) !important;
+  background: hsl(var(--muted) / 0.72) !important;
 }
 
 .ant-table-tbody > tr > td {
-  padding: 10px 12px !important;
+  padding: 12px !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: hsl(var(--accent) / 0.42) !important;
 }
 
 /* Table action buttons safety */
@@ -219,6 +295,27 @@ body {
   font-size: 13px;
 }
 
+.ant-btn {
+  font-weight: 550;
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.ant-btn-primary {
+  box-shadow: 0 2px 5px hsl(var(--primary) / 0.16);
+}
+
+.ant-btn-primary:hover {
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.2);
+}
+
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-input-number,
+.ant-picker {
+  border-radius: var(--mall-radius-base) !important;
+}
+
 /* Empty states */
 .ant-empty {
   padding: 24px 0;
@@ -227,6 +324,40 @@ body {
 .ant-empty-description {
   color: hsl(var(--muted-foreground));
   font-size: 13px;
+}
+
+html.dark .ant-empty-image svg > g > ellipse {
+  fill: hsl(var(--muted-foreground) / 0.22) !important;
+}
+
+html.dark .ant-empty-image svg > g > g > path {
+  stroke: hsl(var(--muted-foreground) / 0.55) !important;
+}
+
+html.dark .ant-empty-image svg > g > g > path:last-child {
+  fill: hsl(var(--muted-foreground) / 0.45) !important;
+}
+
+.market-page .ant-table-placeholder .ant-empty,
+.ant-drawer-content .ant-table-placeholder .ant-empty {
+  margin: 12px 8px;
+  padding: 12px 0;
+}
+
+.market-page .ant-table-placeholder > .ant-table-cell,
+.ant-drawer-content .ant-table-placeholder > .ant-table-cell {
+  padding: 4px 12px !important;
+}
+
+.market-page .ant-table-placeholder .ant-empty-image,
+.ant-drawer-content .ant-table-placeholder .ant-empty-image {
+  height: 56px !important;
+}
+
+.market-page .ant-table-placeholder .ant-empty-image svg,
+.ant-drawer-content .ant-table-placeholder .ant-empty-image svg {
+  width: auto !important;
+  height: 56px !important;
 }
 
 /* Descriptions */
@@ -253,8 +384,8 @@ body {
 
 @media (max-width: 768px) {
   .market-page {
-    gap: 12px;
-    padding: 12px 14px;
+    gap: 16px;
+    padding: 18px 16px;
   }
 
   .market-head {
@@ -266,5 +397,15 @@ body {
   .market-head .ant-space {
     width: 100%;
     flex-wrap: wrap;
+  }
+
+  .market-panel {
+    padding: 18px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  header.bg-header > div > div > a > span {
+    display: none;
   }
 }

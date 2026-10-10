@@ -28,35 +28,35 @@ const tokenTheme = computed(() => {
     token: {
       ...tokens,
       fontFamily:
-        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
-      fontSize: 13,
-      controlHeight: 36,
-      borderRadius: 6,
-      borderRadiusLG: 10,
-      borderRadiusSM: 4,
+        '-apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
+      fontSize: 14,
+      controlHeight: 38,
+      borderRadius: 8,
+      borderRadiusLG: 12,
+      borderRadiusSM: 6,
       wireframe: false,
     },
     components: {
       Button: {
-        controlHeight: 36,
+        controlHeight: 38,
       },
       Card: {
-        borderRadiusLG: 10,
-      },
-      DatePicker: {
-        controlHeight: 36,
-      },
-      Input: {
-        controlHeight: 36,
-      },
-      InputNumber: {
-        controlHeight: 36,
-      },
-      Modal: {
         borderRadiusLG: 12,
       },
+      DatePicker: {
+        controlHeight: 38,
+      },
+      Input: {
+        controlHeight: 38,
+      },
+      InputNumber: {
+        controlHeight: 38,
+      },
+      Modal: {
+        borderRadiusLG: 14,
+      },
       Select: {
-        controlHeight: 36,
+        controlHeight: 38,
       },
     },
   };

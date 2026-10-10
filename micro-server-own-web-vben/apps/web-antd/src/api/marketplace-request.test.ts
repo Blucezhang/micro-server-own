@@ -1,14 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 
-const { interceptors } = vi.hoisted(() => ({ interceptors: [] as ((config: any) => any)[] }));
+const { errorToast, interceptors, responseRejectors } = vi.hoisted(() => ({
+  errorToast: vi.fn(),
+  interceptors: [] as ((config: any) => any)[],
+  responseRejectors: [] as ((error: any) => Promise<unknown>)[],
+}));
 
 vi.mock('@vben/request', () => ({
   RequestClient: class {
     addRequestInterceptor(interceptor: any) { interceptors.push(interceptor.fulfilled); }
-    addResponseInterceptor() {}
+    addResponseInterceptor(interceptor: any) { responseRejectors.push(interceptor.rejected); }
   },
 }));
-vi.mock('ant-design-vue', () => ({ message: { error: vi.fn() } }));
+vi.mock('ant-design-vue', () => ({ message: { error: errorToast } }));
 
 import './marketplace-request';
 
@@ -24,5 +28,28 @@ describe('business request idempotency', () => {
     const key = interceptors[0]!(config).headers['Idempotency-Key'];
     expect(key).toBeTruthy();
     expect(interceptors[0]!(config).headers['Idempotency-Key']).toBe(key);
+  });
+});
+
+describe('request error presentation', () => {
+  it('leaves failed GET feedback to the view without a duplicate toast', async () => {
+    errorToast.mockClear();
+    const error = { config: { method: 'GET', url: '/product/api/v1/products' }, response: { status: 502 } };
+    await expect(responseRejectors[0]!(error)).rejects.toBe(error);
+    expect(errorToast).not.toHaveBeenCalled();
+  });
+
+  it('leaves checkout quote feedback to the view without a duplicate toast', async () => {
+    errorToast.mockClear();
+    const error = { config: { method: 'POST', url: '/order/api/v1/checkouts/quote' }, response: { status: 502 } };
+    await expect(responseRejectors[0]!(error)).rejects.toBe(error);
+    expect(errorToast).not.toHaveBeenCalled();
+  });
+
+  it('keeps the global toast for a failed business write', async () => {
+    errorToast.mockClear();
+    const error = { config: { method: 'POST', url: '/order/api/v1/orders' }, response: { status: 502 } };
+    await expect(responseRejectors[0]!(error)).rejects.toBe(error);
+    expect(errorToast).toHaveBeenCalledWith('服务暂时不可用，请稍后重试');
   });
 });

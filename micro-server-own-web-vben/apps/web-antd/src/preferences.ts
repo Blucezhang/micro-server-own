@@ -14,8 +14,11 @@ interface WebAntdPreferencesExtension {
 }
 
 export const mallLayoutPreferences = defineOverridesPreferences({
+  app: {
+    preferencesButtonPosition: 'header',
+  },
   header: {
-    height: 56,
+    height: 60,
   },
   logo: {
     enable: true,
@@ -24,17 +27,26 @@ export const mallLayoutPreferences = defineOverridesPreferences({
     sourceDark: logo,
   },
   sidebar: {
-    width: 208,
+    width: 224,
   },
   tabbar: {
-    height: 36,
+    height: 40,
+    showMaximize: false,
+    showRefresh: false,
     styleType: 'card',
+  },
+  theme: {
+    semiDarkSidebar: true,
+    semiDarkSidebarSub: true,
   },
   widget: {
     fullscreen: true,
+    fullscreenButtonPosition: 'user-dropdown',
     globalSearch: true,
     languageToggle: false,
     lockScreen: true,
+    lockScreenButtonPosition: 'user-dropdown',
+    logoutButtonPosition: 'user-dropdown',
     notification: false,
     refresh: true,
     sidebarToggle: true,
@@ -52,6 +64,7 @@ export const overridesPreferences = defineOverridesPreferences({
     enableRefreshToken: true,
     locale: 'zh-CN',
     name: import.meta.env.VITE_APP_TITLE || '微服务商城运营台',
+    preferencesButtonPosition: 'header',
   },
   copyright: {
     ...appCopyrightPreferences,
@@ -65,13 +78,13 @@ export const overridesPreferences = defineOverridesPreferences({
   },
   theme: {
     builtinType: 'default',
-    colorPrimary: 'hsl(212 100% 45%)',
+    colorPrimary: 'hsl(168 72% 30%)',
     fontSize: 14,
     mode: 'light',
-    radius: '0.5',
+    radius: '0.625',
     semiDarkHeader: false,
-    semiDarkSidebar: false,
-    semiDarkSidebarSub: false,
+    semiDarkSidebar: true,
+    semiDarkSidebarSub: true,
   },
 });
 

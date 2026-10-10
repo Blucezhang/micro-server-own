@@ -12,6 +12,7 @@ export const messages: Partial<Record<Locale, Record<string, string>>> = {
     reset: 'Reset',
     submit: 'Submit',
     toggleSidebar: 'Toggle sidebar',
+    toggleSidebarVisibility: 'Toggle sidebar visibility',
     confirmTitle: 'Please Confirm',
   },
   'zh-CN': {
@@ -23,6 +24,7 @@ export const messages: Partial<Record<Locale, Record<string, string>>> = {
     reset: '重置',
     submit: '提交',
     toggleSidebar: '切换侧边栏',
+    toggleSidebarVisibility: '切换侧栏显示',
     confirmTitle: '请确认',
   },
 };

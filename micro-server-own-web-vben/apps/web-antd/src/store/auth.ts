@@ -4,13 +4,15 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { LOGIN_PATH } from '@vben/constants';
-import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
+import { resetAllStores, useAccessStore, useTabbarStore, useUserStore } from '@vben/stores';
+import { resetStaticRoutes } from '@vben/utils';
 
 import { message } from 'ant-design-vue';
 import { defineStore } from 'pinia';
 
 import { marketplaceAuthApi } from '#/api/marketplace';
 import { marketplaceSession } from '#/api/marketplace-request';
+import { routes } from '#/router/routes';
 
 const roleHome = {
   BUYER: '/buyer/workspace',
@@ -36,16 +38,28 @@ export const useAuthStore = defineStore('auth', () => {
   const userStore = useUserStore();
   const router = useRouter();
   const loginLoading = ref(false);
+  const actorId = ref<number>();
+
+  function resetNavigationState() {
+    resetStaticRoutes(router, routes);
+    if (router.hasRoute('Root')) router.removeRoute('Root');
+    const root = routes.find((route) => route.name === 'Root');
+    if (root) router.addRoute({ ...root, children: [] });
+    useTabbarStore().$reset();
+  }
 
   async function fetchUserInfo() {
     const demoActor = uiDemoEnabled && /^ui-demo-(buyer|merchant|system)$/.exec(String(accessStore.accessToken || ''))?.[1]?.toUpperCase() as MarketplaceActor | undefined;
     if (demoActor) {
+      actorId.value = undefined;
       const userInfo = demoUserInfo(demoActor);
       accessStore.setAccessCodes([]);
       userStore.setUserInfo(userInfo);
       return userInfo;
     }
+    actorId.value = undefined;
     const authorization = await marketplaceAuthApi.authorization();
+    actorId.value = authorization.actorId;
     const userInfo: UserInfo = {
       avatar: '',
       desc: `${authorization.actorType} 账户`,
@@ -70,6 +84,7 @@ export const useAuthStore = defineStore('auth', () => {
         password: params.password,
       });
       marketplaceSession.set(tokenPair);
+      resetNavigationState();
       accessStore.setAccessToken(tokenPair.accessToken);
       const userInfo = await fetchUserInfo();
       accessStore.setIsAccessChecked(false);
@@ -91,6 +106,8 @@ export const useAuthStore = defineStore('auth', () => {
     loginLoading.value = true;
     try {
       marketplaceSession.clear();
+      actorId.value = undefined;
+      resetNavigationState();
       accessStore.setAccessToken(`ui-demo-${actorType.toLowerCase()}`);
       accessStore.setAccessCodes([]);
       accessStore.setIsAccessChecked(false);
@@ -108,6 +125,7 @@ export const useAuthStore = defineStore('auth', () => {
       await marketplaceAuthApi.logout(refreshToken).catch(() => undefined);
     }
     marketplaceSession.clear();
+    resetNavigationState();
     resetAllStores();
     accessStore.setLoginExpired(false);
     if (redirect) await router.replace(LOGIN_PATH);
@@ -115,7 +133,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   function $reset() {
     loginLoading.value = false;
+    actorId.value = undefined;
   }
 
-  return { $reset, authLogin, enterUiDemo, fetchUserInfo, loginLoading, logout, uiDemoEnabled };
+  return { $reset, actorId, authLogin, enterUiDemo, fetchUserInfo, loginLoading, logout, uiDemoEnabled };
 });

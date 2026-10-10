@@ -20,14 +20,28 @@ export function fixture(path) {
   if (/\/products\/7$/.test(path)) return product;
   if (path.endsWith('/products')) return page([product]);
   if (path.endsWith('/products/7/reviews')) return page();
-  if (path.endsWith('/cart/items')) return [];
+  if (path.endsWith('/cart/items')) return [{ id: 1, merchantId: 8, productName: '轻量户外双肩背包 · 防泼水多隔层旅行款', quantity: 2, unitPrice: '169.00' }];
   if (path.endsWith('/coupons/me')) return [];
-  if (path.endsWith('/merchant/templates')) return [];
+  if (path.endsWith('/merchant/templates')) return [{
+    availableQuantity: 126,
+    template: {
+      id: 128, name: '秋日焕新券', status: 'ACTIVE', minimumAmount: '99.00',
+      discountAmount: '15.00', totalQuantity: 200,
+      claimStartsAt: '2026-10-01T00:00:00+08:00', claimEndsAt: '2026-10-31T23:59:59+08:00',
+      expiresAt: '2026-11-30T23:59:59+08:00',
+    },
+  }];
   if (path.endsWith('/freight-rule')) return { fixedAmount: '8.00', freeThreshold: '199.00' };
   if (path.endsWith('/settlement/balance')) return { availableAmount: '120.00' };
   if (path.endsWith('/low-stock-alerts')) return [];
-  if (path.endsWith('/review-reports')) return page();
-  if (path.endsWith('/checkouts/quote')) return { payableAmount: '169.00', freightAmount: '0.00' };
+  if (path.endsWith('/review-reports')) return page([{ id: 9001, reviewId: 7001, productId: 7, reporterId: 202, reason: '评价包含不实内容，希望平台复核商品描述与交易记录。', status: 'PENDING', reportedAt: '2026-10-09T09:20:00+08:00' }]);
+  if (path.endsWith('/orders/page')) return page([{ orderNo: 'MO-20261009-10086', status: 'FULFILLING', payableAmount: '338.00', createdAt: '2026-10-08T10:30:00+08:00', shippingAddress: '浙江省杭州市西湖区文三路 100 号' }]);
+  if (path.endsWith('/orders/MO-20261009-10086/detail')) return { order: { orderNo: 'MO-20261009-10086', status: 'FULFILLING', payableAmount: '338.00', createdAt: '2026-10-08T10:30:00+08:00', shippingAddress: '浙江省杭州市西湖区文三路 100 号' }, subOrders: [{ subOrderNo: 'SO-20261009-10086-01', status: 'SHIPPED', merchantId: 8, logisticsCompany: '顺丰速运', trackingNo: 'SF1234567890123' }], items: [{ id: 21, subOrderNo: 'SO-20261009-10086-01', productName: '轻量户外双肩背包 · 防泼水多隔层旅行款', quantity: 2, lineTotal: '338.00' }] };
+  if (path.endsWith('/merchant/sub-orders')) return page([{ subOrderNo: 'SO-20261009-10086-01', status: 'TO_SHIP', amount: '338.00', createdAt: '2026-10-08T10:30:00+08:00' }]);
+  if (path.endsWith('/checkouts/quote')) return {
+    totalAmount: '338.00', discountAmount: '0.00', payableAmount: '338.00',
+    merchantTotals: { 8: '338.00' }, merchantDiscounts: { 8: '0.00' }, merchantFreights: { 8: '0.00' },
+  };
   if (/\/page$|\/sub-orders$|\/price-audits$/.test(path)) return page();
   throw new Error(`Missing layout fixture: ${path}`);
 }

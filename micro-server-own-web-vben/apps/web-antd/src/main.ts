@@ -22,9 +22,9 @@ async function initApplication() {
 
   // Upgrade cached presentation settings once without resetting sessions, theme or sidebar collapse.
   const layoutVersionKey = `${namespace}-mall-layout-version`;
-  if (localStorage.getItem(layoutVersionKey) !== '2026-10-02') {
+  if (localStorage.getItem(layoutVersionKey) !== '2026-10-08-ui-v4') {
     updatePreferences(mallLayoutPreferences);
-    localStorage.setItem(layoutVersionKey, '2026-10-02');
+    localStorage.setItem(layoutVersionKey, '2026-10-08-ui-v4');
   }
 
   // 启动应用并挂载

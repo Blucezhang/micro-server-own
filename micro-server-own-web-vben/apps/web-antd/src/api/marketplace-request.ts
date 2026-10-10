@@ -116,7 +116,11 @@ client.addResponseInterceptor({
         location.assign('/auth/login');
       }
     }
-    notifyError(error);
+    // Read views render their own loading/error/empty states; a toast for every
+    // failed parallel read obscures the page and duplicates that feedback.
+    const locallyHandledRead = config?.method?.toLowerCase() === 'get' ||
+      config?.url === '/order/api/v1/checkouts/quote';
+    if (!locallyHandledRead) notifyError(error);
     return Promise.reject(error);
   },
 });

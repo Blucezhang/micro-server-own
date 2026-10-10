@@ -57,6 +57,15 @@ export interface AccountSession {
   expiresAt: string;
 }
 
+export interface CheckoutQuote {
+  discountAmount: number | string;
+  merchantDiscounts: Record<string, number | string>;
+  merchantFreights: Record<string, number | string>;
+  merchantTotals: Record<string, number | string>;
+  payableAmount: number | string;
+  totalAmount: number | string;
+}
+
 export interface AfterSale {
   afterSaleNo: string;
   orderNo: string;
@@ -111,8 +120,8 @@ export const accountApi = {
   profile: () => marketplaceRequest<AccountProfile>({ method: 'GET', url: '/user/api/v1/account/profile' }),
   updateProfile: (data: { email: string; name: string; phone: string }, requestKey: string) =>
     marketplaceRequest<AccountProfile>({ data, headers: { 'Idempotency-Key': requestKey }, method: 'PUT', url: '/user/api/v1/account/profile' }),
-  sessions: () => marketplaceRequest<AccountSession[]>({ method: 'GET', url: '/user/login/sessions' }),
-  revokeSession: (id: number, requestKey: string) => marketplaceRequest({ headers: { 'Idempotency-Key': requestKey }, method: 'DELETE', url: `/user/login/sessions/${id}` }),
+  sessions: () => marketplaceRequest<AccountSession[]>({ method: 'GET', url: '/user/api/v1/account/sessions' }),
+  revokeSession: (id: number, requestKey: string) => marketplaceRequest({ headers: { 'Idempotency-Key': requestKey }, method: 'DELETE', url: `/user/api/v1/account/sessions/${id}` }),
   revokeAllSessions: (requestKey: string) => marketplaceRequest({ headers: { 'Idempotency-Key': requestKey }, method: 'DELETE', url: '/user/api/v1/account/sessions' }),
 };
 
@@ -143,7 +152,7 @@ export const buyerApi = {
       method: 'POST',
       url: '/sale/api/v1/coupons/claim',
     }),
-  quote: (data: Record<string, unknown>) => marketplaceRequest({ data, method: 'POST', url: '/order/api/v1/checkouts/quote' }),
+  quote: (data: Record<string, unknown>) => marketplaceRequest<CheckoutQuote>({ data, method: 'POST', url: '/order/api/v1/checkouts/quote' }),
   createOrder: (data: Record<string, unknown>, requestKey: string) => marketplaceRequest({ data, headers: { 'Idempotency-Key': requestKey }, method: 'POST', url: '/order/api/v1/orders' }),
   afterSales: (params: Record<string, unknown>) => marketplaceRequest<MarketplacePage<AfterSale>>({ method: 'GET', params, url: '/order/api/v1/after-sales/page' }),
   afterSaleDetail: (no: string) => marketplaceRequest({ method: 'GET', url: `/order/api/v1/after-sales/${encodeURIComponent(no)}` }),
