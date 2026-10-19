@@ -118,6 +118,21 @@ aside.bg-sidebar {
   text-transform: uppercase;
 }
 
+.dark .market-page {
+  --market-action-text: 211 90% 72%;
+}
+
+.dark .market-page .ant-btn-link:not(.ant-btn-dangerous),
+.dark .market-page .price-val,
+.dark .market-page .market-overline {
+  color: hsl(var(--market-action-text));
+}
+
+.dark .market-page .ant-btn-background-ghost:not(.ant-btn-dangerous) {
+  color: hsl(var(--market-action-text));
+  border-color: hsl(var(--market-action-text) / 0.7);
+}
+
 .market-heading {
   margin: 6px 0 6px;
   color: var(--market-text);

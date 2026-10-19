@@ -75,7 +75,12 @@ function notifyError(error: any) {
     message.error('无此权限');
     return;
   }
-  message.error(error.response.data?.message || '服务暂时不可用，请稍后重试');
+  const backendMessage = error.response.data?.message;
+  if (typeof backendMessage === 'string' && /^(Service Unavailable|Bad Gateway|Gateway Timeout|Internal Server Error)$/i.test(backendMessage.trim())) {
+    message.error(`服务暂时不可用（${error.response.status}），请稍后重试`);
+    return;
+  }
+  message.error(backendMessage || '服务暂时不可用，请稍后重试');
 }
 
 async function refreshToken() {

@@ -1,15 +1,17 @@
 <script lang="ts" setup>
 import type { ProductReview } from '#/api/marketplace';
 
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
+import { useMediaQuery } from '@vueuse/core';
 import { useRoute, useRouter } from 'vue-router';
 
-import { Alert, Button, Empty, Form, Input, InputNumber, Rate, Space, Table, Tag } from 'ant-design-vue';
+import { Alert, Button, Empty, Form, Input, InputNumber, Pagination, Rate, Space, Table, Tag } from 'ant-design-vue';
 
 import { catalogApi, merchantApi } from '#/api/marketplace';
 
 const route = useRoute();
 const router = useRouter();
+const compactLayout = useMediaQuery('(max-width: 1100px)');
 const productId = ref<number>();
 const currentProductId = ref<number>();
 const rows = ref<ProductReview[]>([]);
@@ -18,6 +20,7 @@ const total = ref(0);
 const pageSize = 10;
 const loading = ref(false);
 const replyLoading = ref(false);
+const replyPanel = ref<HTMLElement>();
 const listError = ref('');
 const queryError = ref('');
 const replyError = ref('');
@@ -46,6 +49,12 @@ function humanizeError(reason: unknown, fallback: string): string {
     }
     if (msg.includes('504') || msg.includes('Gateway Timeout')) {
       return '网关响应超时 (504)，请稍后重试';
+    }
+    if (msg.includes('503')) {
+      return '评价服务暂时不可用 (503)，请稍后重试';
+    }
+    if (/timeout/i.test(msg)) {
+      return '评价请求超时，请稍后重试';
     }
     if (msg.includes('Network Error') || msg.includes('Failed to fetch')) {
       return '网络连接异常，请检查网络后重试';
@@ -105,11 +114,13 @@ async function selectProduct() {
   await load();
 }
 
-function beginReply(review: ProductReview) {
+async function beginReply(review: ProductReview) {
   replyForm.reviewId = review.id;
   replyForm.content = review.merchantReply || '';
   replyError.value = '';
   feedback.value = '';
+  await nextTick();
+  replyPanel.value?.scrollIntoView({ block: 'start' });
 }
 
 async function submitReply() {
@@ -164,16 +175,14 @@ onMounted(() => {
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">MERCHANT · REVIEWS</span>
         <h1 class="market-heading">商品评价管理</h1>
-        <p class="market-subtitle">按商品查看买家公开评价与打分，及时回复售后疑问以维护店铺信誉。</p>
+        <p class="market-subtitle">查看买家评分与反馈，处理尚未回复的评价。</p>
       </div>
     </header>
 
-    <section class="market-panel" aria-labelledby="review-query-title">
+    <section class="market-panel review-query-panel" aria-labelledby="review-query-title">
       <div class="panel-header">
-        <h2 id="review-query-title" class="market-panel-title">选择商品</h2>
-        <p class="panel-subtitle">输入商品 ID 或从商品管理页面跳转查看对应商品的评价与回复记录</p>
+        <h2 id="review-query-title" class="market-panel-title">查询商品</h2>
       </div>
       <Alert v-if="queryError" :message="queryError" class="notice" show-icon type="error" />
       <Form :model="{ productId }" class="query-form" layout="inline" @finish="selectProduct">
@@ -199,7 +208,7 @@ onMounted(() => {
       <div class="panel-header">
         <div class="list-head-info">
           <h2 id="review-list-title" class="market-panel-title">
-            {{ currentProductId ? `商品 #${currentProductId} 的评价列表` : '商品评价列表' }}
+            {{ currentProductId ? `商品 ${currentProductId} · 买家评价` : '买家评价' }}
           </h2>
           <span v-if="currentProductId && hasLoaded && !listError" class="panel-badge">共 {{ total }} 条评价</span>
         </div>
@@ -221,11 +230,11 @@ onMounted(() => {
       </div>
 
       <Table
-        v-else
+        v-else-if="!compactLayout"
         :columns="columns"
         :data-source="rows"
         :loading="loading"
-        :pagination="{ current: page + 1, pageSize, total, showSizeChanger: false, showTotal: (t) => `共 ${t} 条` }"
+        :pagination="total > pageSize ? { current: page + 1, pageSize, total, showSizeChanger: false } : false"
         :scroll="{ x: 860 }"
         row-key="id"
         @change="changePage"
@@ -270,9 +279,41 @@ onMounted(() => {
           </template>
         </template>
       </Table>
+      <div v-else class="review-mobile-list">
+        <div v-if="loading" class="review-mobile-state">正在加载评价...</div>
+        <Empty v-else-if="rows.length === 0" description="暂无该商品的买家评价" />
+        <article v-for="review in loading ? [] : rows" :key="review.id" class="review-mobile-item">
+          <div class="review-mobile-meta">
+            <div class="rating-cell">
+              <Rate :value="review.rating" allow-half disabled class="rating-stars" />
+              <strong class="rating-score">{{ review.rating }} 分</strong>
+            </div>
+            <time class="time-cell">{{ formatDate(review.createdAt) }}</time>
+          </div>
+          <p class="review-content">{{ review.content || '未填写文字评价' }}</p>
+          <div class="review-mobile-reply">
+            <span class="reply-label">{{ review.merchantReply ? '商家已回复' : '尚未回复' }}</span>
+            <p v-if="review.merchantReply" class="reply-text">{{ review.merchantReply }}</p>
+          </div>
+          <div class="review-mobile-actions">
+            <span v-if="review.repliedAt" class="reply-time">回复于 {{ formatDate(review.repliedAt) }}</span>
+            <Button type="link" size="small" @click="beginReply(review)">{{ review.merchantReply ? '修改回复' : '回复' }}</Button>
+          </div>
+        </article>
+        <Pagination
+          v-if="total > pageSize"
+          :current="page + 1"
+          :page-size="pageSize"
+          :total="total"
+          class="review-mobile-pagination"
+          simple
+          size="small"
+          @change="(current: number) => changePage({ current })"
+        />
+      </div>
     </section>
 
-    <section v-if="replyForm.reviewId" class="market-panel reply-panel" aria-labelledby="reply-title">
+    <section v-if="replyForm.reviewId" ref="replyPanel" class="market-panel reply-panel" aria-labelledby="reply-title">
       <div class="panel-header">
         <h2 id="reply-title" class="market-panel-title">回复买家评价 #{{ replyForm.reviewId }}</h2>
         <p class="panel-subtitle">回复将公开展示在商品详情页，请注意用语客观规范</p>
@@ -302,6 +343,22 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.review-query-panel { padding-block: 18px; }
+.review-query-panel .panel-header { margin-bottom: 12px; }
+.review-query-panel .market-panel-title { margin: 0; }
+.review-mobile-list { display: grid; }
+.review-mobile-item { padding: 16px 0; border-top: 1px solid hsl(var(--border)); }
+.review-mobile-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.review-mobile-meta .time-cell { font-size: 12px; }
+.review-mobile-item .review-content { margin: 10px 0; font-size: 13px; }
+.review-mobile-reply { padding: 10px 12px; border-left: 2px solid hsl(var(--border)); background: hsl(var(--muted) / 0.45); }
+.reply-label { color: hsl(var(--muted-foreground)); font-size: 12px; font-weight: 600; }
+.review-mobile-reply .reply-text { margin-top: 4px; }
+.review-mobile-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; min-height: 36px; }
+.review-mobile-actions .reply-time { margin-right: auto; }
+.review-mobile-actions :deep(.ant-btn-link) { padding-inline: 0; }
+.review-mobile-state { padding: 24px 0; text-align: center; color: hsl(var(--muted-foreground)); }
+.review-mobile-pagination { margin: 14px auto 0; }
 .panel-header {
   margin-bottom: 16px;
 }

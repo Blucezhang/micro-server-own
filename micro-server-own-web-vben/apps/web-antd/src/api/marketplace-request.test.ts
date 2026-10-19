@@ -52,4 +52,14 @@ describe('request error presentation', () => {
     await expect(responseRejectors[0]!(error)).rejects.toBe(error);
     expect(errorToast).toHaveBeenCalledWith('服务暂时不可用，请稍后重试');
   });
+
+  it('shows a Chinese service error instead of an upstream English status', async () => {
+    errorToast.mockClear();
+    const error = {
+      config: { method: 'POST', url: '/product/api/v1/merchant/reviews/7011/reply' },
+      response: { data: { message: 'Service Unavailable' }, status: 503 },
+    };
+    await expect(responseRejectors[0]!(error)).rejects.toBe(error);
+    expect(errorToast).toHaveBeenCalledWith('服务暂时不可用（503），请稍后重试');
+  });
 });
