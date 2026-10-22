@@ -1,17 +1,17 @@
 <script lang="ts" setup>
 import type { ProductReview } from '#/api/marketplace';
 
-import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { useMediaQuery } from '@vueuse/core';
 import { useRoute, useRouter } from 'vue-router';
-
 import { Alert, Button, Empty, Form, Input, InputNumber, Pagination, Rate, Space, Table, Tag } from 'ant-design-vue';
 
 import { catalogApi, merchantApi } from '#/api/marketplace';
 
 const route = useRoute();
 const router = useRouter();
-const compactLayout = useMediaQuery('(max-width: 1100px)');
+const isMobile = useMediaQuery('(max-width: 768px)');
+
 const productId = ref<number>();
 const currentProductId = ref<number>();
 const rows = ref<ProductReview[]>([]);
@@ -21,24 +21,30 @@ const pageSize = 10;
 const loading = ref(false);
 const replyLoading = ref(false);
 const replyPanel = ref<HTMLElement>();
+
 const listError = ref('');
 const queryError = ref('');
 const replyError = ref('');
 const feedback = ref('');
 const hasLoaded = ref(false);
-const replyForm = reactive({ content: '', reviewId: undefined as number | undefined });
+
+const replyForm = reactive({
+  content: '',
+  reviewId: undefined as number | undefined,
+});
+
 const replyAttempt = computed(() => ({
   content: replyForm.content.trim(),
-  reviewId: replyForm.reviewId,
   key: crypto.randomUUID(),
+  reviewId: replyForm.reviewId,
 }));
 
 const columns = [
-  { key: 'rating', dataIndex: 'rating', title: '评分', width: 140 },
-  { key: 'content', dataIndex: 'content', title: '评价内容', ellipsis: false },
-  { key: 'merchantReply', dataIndex: 'merchantReply', title: '商家回复', width: 300 },
-  { key: 'createdAt', dataIndex: 'createdAt', title: '评价时间', width: 160 },
-  { key: 'actions', title: '操作', width: 100, align: 'center' as const },
+  { dataIndex: 'rating', key: 'rating', title: '评分', width: 140 },
+  { dataIndex: 'content', key: 'content', title: '评价内容' },
+  { dataIndex: 'merchantReply', key: 'merchantReply', title: '商家回复', width: 320 },
+  { dataIndex: 'createdAt', key: 'createdAt', title: '评价时间', width: 160 },
+  { align: 'center' as const, key: 'actions', title: '操作', width: 100 },
 ];
 
 function humanizeError(reason: unknown, fallback: string): string {
@@ -65,7 +71,7 @@ function humanizeError(reason: unknown, fallback: string): string {
 }
 
 function formatDate(dateStr?: string): string {
-  if (!dateStr) return '-';
+  if (!dateStr) return '—';
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return dateStr;
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -111,7 +117,7 @@ async function selectProduct() {
   replyError.value = '';
   replyForm.reviewId = undefined;
   await router.replace({ query: { productId: String(productId.value) } });
-  await load();
+  await load(0);
 }
 
 async function beginReply(review: ProductReview) {
@@ -120,7 +126,7 @@ async function beginReply(review: ProductReview) {
   replyError.value = '';
   feedback.value = '';
   await nextTick();
-  replyPanel.value?.scrollIntoView({ block: 'start' });
+  replyPanel.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function submitReply() {
@@ -146,8 +152,9 @@ async function submitReply() {
   }
 }
 
-async function changePage(pagination: { current?: number }) {
-  await load((pagination.current || 1) - 1);
+async function changePage(pagination: number | { current?: number }) {
+  const targetPage = typeof pagination === 'number' ? pagination : (pagination.current || 1);
+  await load(targetPage - 1);
 }
 
 watch(
@@ -159,172 +166,179 @@ watch(
     currentProductId.value = parsed;
     hasLoaded.value = false;
     listError.value = '';
-    load();
+    void load(0);
   },
   { immediate: true },
 );
-
-onMounted(() => {
-  if (!currentProductId.value) {
-    feedback.value = '请输入商品 ID 查询评价，或从商品列表快捷跳转。';
-  }
-});
 </script>
 
 <template>
   <main class="market-page">
     <header class="market-head">
-      <div>
-        <h1 class="market-heading">商品评价管理</h1>
-        <p class="market-subtitle">查看买家评分与反馈，处理尚未回复的评价。</p>
+      <div class="market-head-text">
+        <div class="head-title-row">
+          <h1 class="market-heading">商品评价管理</h1>
+          <span v-if="currentProductId && hasLoaded && !listError && total > 0" class="catalog-badge">
+            共 {{ total }} 条评价
+          </span>
+        </div>
+        <p class="market-subtitle">查看买家真实评分与反馈，跟进处理尚未回复的商品评价。</p>
+      </div>
+      <div class="market-head-actions">
+        <Button @click="router.push('/merchant/products')">返回商品管理</Button>
       </div>
     </header>
 
-    <section class="market-panel review-query-panel" aria-labelledby="review-query-title">
-      <div class="panel-header">
-        <h2 id="review-query-title" class="market-panel-title">查询商品</h2>
-      </div>
-      <Alert v-if="queryError" :message="queryError" class="notice" show-icon type="error" />
-      <Form :model="{ productId }" class="query-form" layout="inline" @finish="selectProduct">
-        <Form.Item label="商品 ID">
-          <InputNumber
-            v-model:value="productId"
-            :min="1"
-            :precision="0"
-            placeholder="输入商品 ID，例如：1001"
-            style="width: 220px"
-          />
-        </Form.Item>
-        <Form.Item>
-          <Space>
-            <Button html-type="submit" type="primary">查看评价</Button>
-            <Button @click="router.push('/merchant/products')">前往商品管理</Button>
-          </Space>
-        </Form.Item>
-      </Form>
-    </section>
+    <Alert
+      v-if="feedback"
+      :message="feedback"
+      class="action-alert"
+      show-icon
+      type="success"
+      closable
+      @close="feedback = ''"
+    />
 
-    <section class="market-panel" aria-labelledby="review-list-title">
-      <div class="panel-header">
-        <div class="list-head-info">
-          <h2 id="review-list-title" class="market-panel-title">
-            {{ currentProductId ? `商品 ${currentProductId} · 买家评价` : '买家评价' }}
-          </h2>
-          <span v-if="currentProductId && hasLoaded && !listError" class="panel-badge">共 {{ total }} 条评价</span>
+    <section class="market-panel review-panel" aria-label="商品评价列表">
+      <div class="review-toolbar">
+        <Form :model="{ productId }" class="query-form" layout="inline" @finish="selectProduct">
+          <Form.Item label="商品 ID" class="query-form-item">
+            <InputNumber
+              v-model:value="productId"
+              :min="1"
+              :precision="0"
+              placeholder="输入商品 ID，例如：1001"
+              class="query-input"
+            />
+          </Form.Item>
+          <Form.Item class="query-form-actions">
+            <Space wrap>
+              <Button :loading="loading" html-type="submit" type="primary">查看评价</Button>
+              <Button v-if="currentProductId" :disabled="loading" @click="() => load(page)">刷新</Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </div>
+
+      <Alert v-if="queryError" :message="queryError" class="query-alert" show-icon type="error" closable @close="queryError = ''" />
+
+      <div v-if="listError" class="catalog-error-row" role="alert">
+        <div class="error-main">
+          <span class="error-badge">加载失败</span>
+          <span class="error-detail">{{ listError }}</span>
         </div>
+        <Button :loading="loading" size="small" type="primary" @click="() => load(page)">重新加载</Button>
       </div>
 
-      <Alert v-if="feedback" :message="feedback" class="notice" show-icon type="success" closable @close="feedback = ''" />
-
-      <div v-if="!currentProductId" class="empty-wrap">
-        <Empty description="请先在上方输入商品 ID 并点击「查看评价」" />
-      </div>
-
-      <div v-else-if="listError" class="list-state-error">
-        <Alert :message="listError" type="error" show-icon />
-        <div class="state-actions">
-          <Button size="small" type="primary" ghost :loading="loading" @click="() => load(page)">
-            重试加载
-          </Button>
+      <div v-else-if="!currentProductId" class="query-guide-strip">
+        <div class="guide-content">
+          <span class="guide-dot" aria-hidden="true" />
+          <span class="guide-text">请输入商品 ID 并点击「查看评价」检索买家反馈与回复。</span>
         </div>
+        <Button size="small" type="link" class="guide-link" @click="router.push('/merchant/products')">
+          前往商品管理选择商品
+        </Button>
       </div>
 
-      <Table
-        v-else-if="!compactLayout"
-        :columns="columns"
-        :data-source="rows"
-        :loading="loading"
-        :pagination="total > pageSize ? { current: page + 1, pageSize, total, showSizeChanger: false } : false"
-        :scroll="{ x: 860 }"
-        row-key="id"
-        @change="changePage"
-      >
-        <template #emptyText>
-          <Empty description="暂无该商品的买家评价" />
-        </template>
+      <template v-else>
+        <div v-if="!isMobile" class="table-container">
+          <Table
+            :columns="columns"
+            :data-source="rows"
+            :loading="loading"
+            :pagination="total > pageSize ? { current: page + 1, pageSize, total, showSizeChanger: false } : false"
+            row-key="id"
+            @change="changePage"
+          >
+            <template #emptyText>
+              <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无该商品的买家评价" />
+            </template>
 
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'rating'">
-            <div class="rating-cell">
-              <Rate :value="record.rating" allow-half disabled class="rating-stars" />
-              <span class="rating-score">{{ record.rating }}分</span>
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'rating'">
+                <div class="rating-cell">
+                  <Rate :value="record.rating" allow-half disabled class="rating-stars" />
+                  <span class="rating-score">{{ record.rating }} 分</span>
+                </div>
+              </template>
+
+              <template v-else-if="column.key === 'content'">
+                <div class="review-content">
+                  {{ record.content || '未填写文字评价' }}
+                </div>
+              </template>
+
+              <template v-else-if="column.key === 'merchantReply'">
+                <div v-if="record.merchantReply" class="reply-card">
+                  <div class="reply-tag-wrap">
+                    <Tag color="cyan">商家回复</Tag>
+                    <span v-if="record.repliedAt" class="reply-time">{{ formatDate(record.repliedAt) }}</span>
+                  </div>
+                  <p class="reply-text">{{ record.merchantReply }}</p>
+                </div>
+                <span v-else class="text-placeholder">未回复</span>
+              </template>
+
+              <template v-else-if="column.key === 'createdAt'">
+                <span class="time-cell">{{ formatDate(record.createdAt) }}</span>
+              </template>
+
+              <template v-else-if="column.key === 'actions'">
+                <Button type="link" size="small" @click="beginReply(record as unknown as ProductReview)">
+                  {{ record.merchantReply ? '修改回复' : '回复' }}
+                </Button>
+              </template>
+            </template>
+          </Table>
+        </div>
+
+        <div v-else class="mobile-card-list">
+          <div v-if="loading" class="mobile-loading-tip">正在载入评价数据...</div>
+          <div v-else-if="rows.length === 0" class="mobile-empty">
+            <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无该商品的买家评价" />
+          </div>
+          <article v-for="item in (loading ? [] : rows)" :key="item.id" class="mobile-card">
+            <div class="mobile-card-top">
+              <div class="rating-cell">
+                <Rate :value="item.rating" allow-half disabled class="rating-stars" />
+                <span class="rating-score">{{ item.rating }} 分</span>
+              </div>
+              <time class="time-cell">{{ formatDate(item.createdAt) }}</time>
             </div>
-          </template>
-
-          <template v-else-if="column.key === 'content'">
-            <div class="review-content">
-              {{ record.content || '未填写文字评价' }}
-            </div>
-          </template>
-
-          <template v-else-if="column.key === 'merchantReply'">
-            <div v-if="record.merchantReply" class="reply-card">
+            <p class="review-content">{{ item.content || '未填写文字评价' }}</p>
+            <div v-if="item.merchantReply" class="reply-card">
               <div class="reply-tag-wrap">
                 <Tag color="cyan">商家回复</Tag>
-                <span v-if="record.repliedAt" class="reply-time">{{ formatDate(record.repliedAt) }}</span>
+                <span v-if="item.repliedAt" class="reply-time">{{ formatDate(item.repliedAt) }}</span>
               </div>
-              <p class="reply-text">{{ record.merchantReply }}</p>
+              <p class="reply-text">{{ item.merchantReply }}</p>
             </div>
-            <span v-else class="text-placeholder">未回复</span>
-          </template>
-
-          <template v-else-if="column.key === 'createdAt'">
-            <span class="time-cell">{{ formatDate(record.createdAt) }}</span>
-          </template>
-
-          <template v-else-if="column.key === 'actions'">
-            <Button type="link" size="small" @click="beginReply(record as unknown as ProductReview)">
-              {{ record.merchantReply ? '修改回复' : '回复' }}
-            </Button>
-          </template>
-        </template>
-      </Table>
-      <div v-else class="review-mobile-list">
-        <div v-if="loading" class="review-mobile-state">正在加载评价...</div>
-        <Empty v-else-if="rows.length === 0" description="暂无该商品的买家评价" />
-        <article v-for="review in loading ? [] : rows" :key="review.id" class="review-mobile-item">
-          <div class="review-mobile-meta">
-            <div class="rating-cell">
-              <Rate :value="review.rating" allow-half disabled class="rating-stars" />
-              <strong class="rating-score">{{ review.rating }} 分</strong>
+            <div class="mobile-card-actions">
+              <span v-if="!item.merchantReply" class="text-placeholder">尚未回复</span>
+              <span v-else class="reply-time">已回复</span>
+              <Button type="link" size="small" @click="beginReply(item)">
+                {{ item.merchantReply ? '修改回复' : '回复' }}
+              </Button>
             </div>
-            <time class="time-cell">{{ formatDate(review.createdAt) }}</time>
+          </article>
+          <div v-if="total > pageSize" class="mobile-pagination-wrap">
+            <Pagination :current="page + 1" :page-size="pageSize" :total="total" size="small" simple @change="changePage" />
           </div>
-          <p class="review-content">{{ review.content || '未填写文字评价' }}</p>
-          <div class="review-mobile-reply">
-            <span class="reply-label">{{ review.merchantReply ? '商家已回复' : '尚未回复' }}</span>
-            <p v-if="review.merchantReply" class="reply-text">{{ review.merchantReply }}</p>
-          </div>
-          <div class="review-mobile-actions">
-            <span v-if="review.repliedAt" class="reply-time">回复于 {{ formatDate(review.repliedAt) }}</span>
-            <Button type="link" size="small" @click="beginReply(review)">{{ review.merchantReply ? '修改回复' : '回复' }}</Button>
-          </div>
-        </article>
-        <Pagination
-          v-if="total > pageSize"
-          :current="page + 1"
-          :page-size="pageSize"
-          :total="total"
-          class="review-mobile-pagination"
-          simple
-          size="small"
-          @change="(current: number) => changePage({ current })"
-        />
-      </div>
+        </div>
+      </template>
     </section>
 
-    <section v-if="replyForm.reviewId" ref="replyPanel" class="market-panel reply-panel" aria-labelledby="reply-title">
-      <div class="panel-header">
-        <h2 id="reply-title" class="market-panel-title">回复买家评价 #{{ replyForm.reviewId }}</h2>
-        <p class="panel-subtitle">回复将公开展示在商品详情页，请注意用语客观规范</p>
+    <!-- 回复抽屉/卡片 -->
+    <section v-if="replyForm.reviewId" ref="replyPanel" class="reply-panel" aria-label="回复买家评价">
+      <div class="reply-panel-header">
+        <h2 class="reply-panel-title">回复买家评价 #{{ replyForm.reviewId }}</h2>
+        <p class="reply-panel-subtitle">回复将公开展示在商品详情页，请注意用语客观规范（1–500字）。</p>
       </div>
-      <Alert v-if="replyError" :message="replyError" class="notice" show-icon type="error" />
+
+      <Alert v-if="replyError" :message="replyError" class="action-alert" show-icon type="error" closable @close="replyError = ''" />
+
       <Form :model="replyForm" layout="vertical" @finish="submitReply">
-        <Form.Item
-          label="回复内容"
-          name="content"
-          :rules="[{ required: true, message: '请填写回复内容（1–500字）' }]"
-        >
+        <Form.Item label="回复内容" name="content" :rules="[{ required: true, message: '请填写回复内容（1–500字）' }]">
           <Input.TextArea
             v-model:value="replyForm.content"
             :maxlength="500"
@@ -333,7 +347,7 @@ onMounted(() => {
             show-count
           />
         </Form.Item>
-        <Space>
+        <Space wrap>
           <Button :loading="replyLoading" html-type="submit" type="primary">保存并发布回复</Button>
           <Button :disabled="replyLoading" @click="replyForm.reviewId = undefined">取消</Button>
         </Space>
@@ -342,156 +356,4 @@ onMounted(() => {
   </main>
 </template>
 
-<style scoped>
-.review-query-panel { padding-block: 18px; }
-.review-query-panel .panel-header { margin-bottom: 12px; }
-.review-query-panel .market-panel-title { margin: 0; }
-.review-mobile-list { display: grid; }
-.review-mobile-item { padding: 16px 0; border-top: 1px solid hsl(var(--border)); }
-.review-mobile-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-.review-mobile-meta .time-cell { font-size: 12px; }
-.review-mobile-item .review-content { margin: 10px 0; font-size: 13px; }
-.review-mobile-reply { padding: 10px 12px; border-left: 2px solid hsl(var(--border)); background: hsl(var(--muted) / 0.45); }
-.reply-label { color: hsl(var(--muted-foreground)); font-size: 12px; font-weight: 600; }
-.review-mobile-reply .reply-text { margin-top: 4px; }
-.review-mobile-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; min-height: 36px; }
-.review-mobile-actions .reply-time { margin-right: auto; }
-.review-mobile-actions :deep(.ant-btn-link) { padding-inline: 0; }
-.review-mobile-state { padding: 24px 0; text-align: center; color: hsl(var(--muted-foreground)); }
-.review-mobile-pagination { margin: 14px auto 0; }
-.panel-header {
-  margin-bottom: 16px;
-}
-
-.panel-subtitle {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: var(--market-muted, #64748b);
-}
-
-.list-head-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.panel-badge {
-  font-size: 12px;
-  color: var(--market-muted, #64748b);
-  background: var(--market-surface, #f1f5f9);
-  padding: 2px 8px;
-  border-radius: 12px;
-}
-
-.query-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.notice {
-  margin-bottom: 16px;
-}
-
-.empty-wrap {
-  padding: 24px 0;
-}
-
-.list-state-error {
-  padding: 4px 0 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.state-actions {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.rating-cell {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.rating-stars {
-  font-size: 13px;
-  line-height: 1;
-}
-
-.rating-score {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--market-text);
-}
-
-.review-content {
-  color: var(--market-text);
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.reply-card {
-  background: var(--market-surface);
-  border: 1px solid var(--market-line);
-  border-radius: 6px;
-  padding: 8px 12px;
-}
-
-.reply-tag-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-
-.reply-time {
-  font-size: 11px;
-  color: var(--market-muted);
-}
-
-.reply-text {
-  margin: 0;
-  font-size: 13px;
-  color: var(--market-text);
-  line-height: 1.4;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.text-placeholder {
-  color: var(--market-muted);
-  font-size: 13px;
-}
-
-.time-cell {
-  font-size: 13px;
-  color: var(--market-muted);
-  white-space: nowrap;
-}
-
-.reply-panel {
-  margin-top: 16px;
-  max-width: 680px;
-}
-
-@media (max-width: 640px) {
-  .query-form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .query-form :deep(.ant-form-item) {
-    margin-inline-end: 0;
-    width: 100%;
-  }
-
-  .query-form :deep(.ant-input-number) {
-    width: 100% !important;
-  }
-}
-</style>
+<style scoped src="./merchant-reviews.css"></style>

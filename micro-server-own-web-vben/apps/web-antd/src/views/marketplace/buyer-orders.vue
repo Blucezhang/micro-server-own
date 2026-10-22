@@ -17,38 +17,18 @@ type OrderDetail = { order: Order; subOrders: SubOrder[]; items: OrderItem[] };
 type Payment = { paymentNo: string; status: string; amount?: number | string };
 
 const ORDER_STATUS_MAP: Record<string, string> = {
-  PROCESSING: '处理中',
-  PENDING_PAYMENT: '待支付',
-  PAID: '已支付',
-  FULFILLING: '履约中',
-  COMPLETED: '已完成',
-  CANCELED: '已取消',
-  REFUNDING: '退款中',
-  REFUNDED: '已退款',
-  SAGA_FAILED: '处理异常',
+  PROCESSING: '处理中', PENDING_PAYMENT: '待支付', PAID: '已支付', FULFILLING: '履约中',
+  COMPLETED: '已完成', CANCELED: '已取消', REFUNDING: '退款中', REFUNDED: '已退款', SAGA_FAILED: '处理异常',
 };
-
 const SUB_ORDER_STATUS_MAP: Record<string, string> = {
-  PROCESSING: '处理中',
-  PENDING_PAYMENT: '待支付',
-  TO_SHIP: '待发货',
-  SHIPPED: '已发货',
-  RECEIVED: '已签收',
-  CANCELED: '已取消',
-  REFUNDED: '已退款',
+  PROCESSING: '处理中', PENDING_PAYMENT: '待支付', TO_SHIP: '待发货', SHIPPED: '已发货',
+  RECEIVED: '已签收', CANCELED: '已取消', REFUNDED: '已退款',
 };
-
 const PAYMENT_STATUS_MAP: Record<string, string> = {
-  CREATED: '已创建',
-  SUCCEEDED: '支付成功',
-  FAILED: '支付失败',
-  REFUNDED: '已退款',
+  CREATED: '已创建', SUCCEEDED: '支付成功', FAILED: '支付失败', REFUNDED: '已退款',
 };
-
 const TRACE_STATUS_MAP: Record<string, string> = {
-  SHIPPED: '已发货',
-  AUTO_RECEIVED: '自动签收',
-  SHIPMENT_CORRECTED: '发货更正',
+  SHIPPED: '已发货', AUTO_RECEIVED: '自动签收', SHIPMENT_CORRECTED: '发货更正',
 };
 
 function formatOrderStatus(status?: string): string {
@@ -156,8 +136,14 @@ function formatError(reason: unknown, fallback: string): string {
   return fallback;
 }
 
-function formatDate(value: string) { const date = new Date(value); return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('zh-CN'); }
-function canAfterSale(subOrderNo: string) { return detail.value?.subOrders.some((sub) => sub.subOrderNo === subOrderNo && ['RECEIVED', 'SHIPPED'].includes(sub.status)); }
+function formatDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('zh-CN');
+}
+
+function canAfterSale(subOrderNo: string) {
+  return detail.value?.subOrders.some((sub) => sub.subOrderNo === subOrderNo && ['RECEIVED', 'SHIPPED'].includes(sub.status));
+}
 
 async function load() {
   loading.value = true;
@@ -223,10 +209,13 @@ async function cancel(no: string) {
   if (actionLoading.value) return;
   const id = `cancel:${no}`;
   const key = actionKeys.get(id) || crypto.randomUUID();
-  actionKeys.set(id, key); actionLoading.value = true; actionError.value = '';
+  actionKeys.set(id, key);
+  actionLoading.value = true;
+  actionError.value = '';
   try {
     const order = await buyerApi.cancelOrder(no, key) as Order;
-    actionKeys.delete(id); rows.value = rows.value.map((row) => row.orderNo === no ? order : row);
+    actionKeys.delete(id);
+    rows.value = rows.value.map((row) => row.orderNo === no ? order : row);
     if (detail.value?.order.orderNo === no) detail.value.order = order;
     feedback.value = '订单已取消';
   } catch (reason) {
@@ -240,7 +229,9 @@ async function receive(no: string) {
   if (actionLoading.value) return;
   const id = `receive:${no}`;
   const key = actionKeys.get(id) || crypto.randomUUID();
-  actionKeys.set(id, key); actionLoading.value = true; actionError.value = '';
+  actionKeys.set(id, key);
+  actionLoading.value = true;
+  actionError.value = '';
   try {
     const subOrder = await buyerApi.receiveSubOrder(no, key) as SubOrder;
     actionKeys.delete(id);
@@ -283,7 +274,8 @@ async function retryTraces() {
 async function createPayment() {
   if (actionLoading.value) return;
   const attempt = paymentAttempt.value;
-  actionLoading.value = true; actionError.value = '';
+  actionLoading.value = true;
+  actionError.value = '';
   const currentRequestId = ++paymentRequestId;
   try {
     const result = await paymentApi.create(attempt.data, attempt.key) as Payment;
@@ -301,7 +293,8 @@ async function createPayment() {
 
 async function queryPayment() {
   if (!paymentQuery.paymentNo.trim()) return;
-  actionLoading.value = true; actionError.value = '';
+  actionLoading.value = true;
+  actionError.value = '';
   const currentRequestId = ++paymentRequestId;
   try {
     const result = await paymentApi.detail(paymentQuery.paymentNo.trim()) as Payment;
@@ -315,7 +308,11 @@ async function queryPayment() {
   }
 }
 
-async function changePage(pagination: { current?: number }) { page.value = (pagination.current || 1) - 1; await load(); }
+async function changePage(pagination: { current?: number }) {
+  page.value = (pagination.current || 1) - 1;
+  await load();
+}
+
 onMounted(load);
 </script>
 
@@ -323,30 +320,29 @@ onMounted(load);
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">BUYER · 订单</span>
         <h1 class="market-heading">订单与物流</h1>
         <p class="market-subtitle">查看订单进度、物流轨迹与签收状态。支付功能目前只接入模拟支付单。</p>
       </div>
       <Button :loading="loading" @click="load">刷新订单</Button>
     </header>
+
     <section class="market-panel" aria-labelledby="orders-title">
       <div class="orders-head">
         <h2 id="orders-title" class="market-panel-title">我的订单</h2>
-        <span v-if="loading">加载中...</span>
-        <span v-else-if="ordersError" class="orders-status-error">加载失败</span>
-        <span v-else>{{ total }} 笔订单</span>
+        <span v-if="loading" class="orders-count">加载中...</span>
+        <span v-else-if="!ordersError" class="orders-count">共 {{ total }} 笔订单</span>
       </div>
-      <Alert v-if="detailError" :message="detailError" type="error" show-icon class="notice" />
-      <Alert v-if="actionError" :message="actionError" type="error" show-icon class="notice" />
-      <Alert v-if="feedback" :message="feedback" type="success" show-icon class="notice" />
-      <div v-if="ordersError" class="orders-error-state">
-        <Alert
-          :message="ordersError"
-          description="订单数据未能成功加载，请点击顶部的“刷新订单”按钮重试。"
-          show-icon
-          type="error"
-        />
-      </div>
+
+      <Alert v-if="detailError" :message="detailError" type="error" show-icon class="orders-notice" />
+      <Alert v-if="actionError" :message="actionError" type="error" show-icon class="orders-notice" />
+      <Alert v-if="feedback" :message="feedback" type="success" show-icon class="orders-notice" />
+
+      <Alert v-if="ordersError" :message="ordersError" type="error" show-icon class="orders-alert">
+        <template #action>
+          <Button size="small" danger ghost :loading="loading" @click="load">重试</Button>
+        </template>
+      </Alert>
+
       <Table
         v-else
         :class="{ 'compact-table': phoneLayout }"
@@ -378,6 +374,7 @@ onMounted(load);
         </template>
       </Table>
     </section>
+
     <template v-if="detail">
       <section class="market-panel" aria-labelledby="order-detail">
         <div class="detail-head">
@@ -390,9 +387,17 @@ onMounted(load);
           <Descriptions.Item v-if="detail.order.shippingAddress" label="收货地址">{{ detail.order.shippingAddress }}</Descriptions.Item>
         </Descriptions>
       </section>
+
       <section class="market-panel" aria-labelledby="sub-orders">
         <h2 id="sub-orders" class="market-panel-title">配送与签收</h2>
-        <Table :class="{ 'compact-table': phoneLayout }" :columns="responsiveSubOrderColumns" :data-source="detail.subOrders || []" :pagination="false" :scroll="phoneLayout ? undefined : { x: 760 }" row-key="subOrderNo">
+        <Table
+          :class="{ 'compact-table': phoneLayout }"
+          :columns="responsiveSubOrderColumns"
+          :data-source="detail.subOrders || []"
+          :pagination="false"
+          :scroll="phoneLayout ? undefined : { x: 760 }"
+          row-key="subOrderNo"
+        >
           <template #bodyCell="{ column, record }">
             <div v-if="column.key === 'subOrderNo'" class="mobile-order-cell">
               <span>{{ record.subOrderNo }}</span>
@@ -408,30 +413,39 @@ onMounted(load);
             </Space>
           </template>
         </Table>
+
         <div v-if="traceSubOrderNo" class="trace-panel">
-          <h3>{{ traceSubOrderNo }} · 物流轨迹</h3>
+          <h3 class="trace-title">{{ traceSubOrderNo }} · 物流轨迹</h3>
           <div v-if="traceLoading" class="trace-loading">
             <Spin />
             <span class="trace-loading-text">物流轨迹加载中...</span>
           </div>
           <Alert v-else-if="traceError" :message="traceError" type="error" show-icon class="trace-alert">
             <template #action>
-              <Button size="small" danger :loading="traceLoading" @click="retryTraces">重试</Button>
+              <Button size="small" danger ghost :loading="traceLoading" @click="retryTraces">重试</Button>
             </template>
           </Alert>
           <Empty v-else-if="!traces.length" description="暂无物流轨迹" />
           <ol v-else class="trace-list">
-            <li v-for="(trace, index) in traces" :key="`${trace.createdAt}-${index}`">
+            <li v-for="(trace, index) in traces" :key="`${trace.createdAt}-${index}`" class="trace-item">
               <span class="trace-time">{{ formatDate(trace.createdAt) }}</span>
-              <strong>{{ formatTraceStatus(trace.traceStatus) }}</strong>
-              <span>{{ trace.detail }}</span>
+              <strong class="trace-tag">{{ formatTraceStatus(trace.traceStatus) }}</strong>
+              <span class="trace-detail">{{ trace.detail }}</span>
             </li>
           </ol>
         </div>
       </section>
+
       <section class="market-panel" aria-labelledby="order-items">
         <h2 id="order-items" class="market-panel-title">商品明细</h2>
-        <Table :class="{ 'compact-table': phoneLayout }" :columns="responsiveItemColumns" :data-source="detail.items || []" :pagination="false" :scroll="phoneLayout ? undefined : { x: 620 }" row-key="id">
+        <Table
+          :class="{ 'compact-table': phoneLayout }"
+          :columns="responsiveItemColumns"
+          :data-source="detail.items || []"
+          :pagination="false"
+          :scroll="phoneLayout ? undefined : { x: 620 }"
+          row-key="id"
+        >
           <template #bodyCell="{ column, record }">
             <div v-if="column.key === 'productName'" class="mobile-order-cell">
               <span>{{ record.productName }}</span>
@@ -442,6 +456,7 @@ onMounted(load);
           </template>
         </Table>
       </section>
+
       <section class="market-panel" aria-labelledby="payment-title">
         <h2 id="payment-title" class="market-panel-title">支付单</h2>
         <p class="market-note">仅创建和查询模拟支付单，不在买家端提供模拟成功按钮。</p>
@@ -465,28 +480,4 @@ onMounted(load);
   </main>
 </template>
 
-<style scoped>
-.notice { margin-bottom: 16px; }
-.market-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.market-head > div { min-width: 0; flex: 1 1 auto; }
-.market-head .ant-btn { flex-shrink: 0; }
-.orders-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
-.orders-head .market-panel-title { margin: 0; }
-.orders-count { color: var(--market-muted); font-size: 12px; }
-.orders-status-error { color: #cf1322; font-size: 12px; font-weight: 500; }
-.orders-error-state { margin: 16px 0; }
-.detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.detail-head .market-panel-title { margin: 0; word-break: break-all; }
-.payment-form { margin-top: 14px; }
-.trace-panel { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--market-line); }
-.trace-panel h3 { margin: 0 0 12px; font-size: 14px; font-weight: 620; word-break: break-all; }
-.trace-loading { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 24px 0; color: var(--market-muted); font-size: 13px; }
-.trace-loading-text { color: var(--market-muted); font-size: 13px; }
-.trace-alert { margin-bottom: 12px; }
-.trace-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
-.trace-list li { display: grid; grid-template-columns: 160px 110px minmax(0, 1fr); gap: 10px; color: var(--market-muted); font-size: 12px; }
-.trace-list strong { color: var(--market-text); font-weight: 600; }
-@media (min-width: 681px) { .mobile-order-meta { display: none; } }
-@media (max-width: 680px) { .mobile-order-cell { display: grid; gap: 4px; min-width: 0; } .mobile-order-meta { color: var(--market-muted); font-size: 12px; white-space: normal; } }
-@media (max-width: 760px) { .trace-list li { grid-template-columns: 1fr; gap: 2px; } }
-</style>
+<style scoped src="./buyer-orders.css"></style>

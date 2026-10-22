@@ -21,11 +21,24 @@ const pageSize = 20;
 const error = ref('');
 const listError = ref('');
 const feedback = ref('');
-const activeTab = ref<'detail' | 'create'>('create');
+const activeTab = ref<'detail' | 'create'>('detail');
 const form = reactive({ orderItemId: undefined as number | undefined, quantity: 1, reason: '', subOrderNo: '', type: 'REFUND_ONLY' as AfterSale['type'] });
 const shipment = reactive({ logisticsCompany: '', trackingNo: '' });
-const createAttempt = computed(() => ({ data: { reason: form.reason.trim(), subOrderNo: form.subOrderNo.trim(), type: form.type, items: [{ orderItemId: form.orderItemId, quantity: form.quantity }] }, key: crypto.randomUUID() }));
-const shipmentAttempt = computed(() => ({ no: selected.value?.afterSale.afterSaleNo, logisticsCompany: shipment.logisticsCompany.trim(), trackingNo: shipment.trackingNo.trim(), key: crypto.randomUUID() }));
+const createAttempt = computed(() => ({
+  data: {
+    reason: form.reason.trim(),
+    subOrderNo: form.subOrderNo.trim(),
+    type: form.type,
+    items: [{ orderItemId: form.orderItemId, quantity: form.quantity }],
+  },
+  key: crypto.randomUUID(),
+}));
+const shipmentAttempt = computed(() => ({
+  no: selected.value?.afterSale.afterSaleNo,
+  logisticsCompany: shipment.logisticsCompany.trim(),
+  trackingNo: shipment.trackingNo.trim(),
+  key: crypto.randomUUID(),
+}));
 const actionKeys = new Map<string, string>();
 const columns = [
   { dataIndex: 'afterSaleNo', key: 'afterSaleNo', title: '售后单号', width: 170 },
@@ -48,74 +61,163 @@ function statusColor(status: string): string {
   }
 }
 
-function errorText(reason: unknown, fallback: string) {
-  if (!(reason instanceof Error)) return fallback;
-  const status = reason.message.match(/(?:status code|HTTP)\s*:?[ ]*(5\d{2})/i)?.[1];
-  return status ? `服务暂时不可用（HTTP ${status}），请稍后重试` : reason.message;
+function isRawError(msg: string): boolean {
+  if (!msg) return true;
+  if (/^request failed with status code/i.test(msg)) return true;
+  if (/network\s*error/i.test(msg)) return true;
+  if (/timeout of \d+ms exceeded/i.test(msg)) return true;
+  if (/axioserror/i.test(msg)) return true;
+  if (/^(bad gateway|gateway timeout|internal server error|service unavailable)$/i.test(msg)) return true;
+  if (/^(econnrefused|etimedout|enotfound|err_)/i.test(msg)) return true;
+  return false;
 }
+
+function cleanFallback(fallback: string): string {
+  return fallback.replace(/，?请(稍后)?重试$/, '');
+}
+
+function formatError(reason: unknown, fallback: string): string {
+  if (!reason) return fallback;
+  const err = reason as any;
+  const data = err?.response?.data;
+  const serverMsg = typeof data === 'string' ? '' : (data?.message || data?.msg || data?.error);
+  if (typeof serverMsg === 'string' && serverMsg.trim() && !isRawError(serverMsg.trim())) {
+    return serverMsg.trim();
+  }
+  const status = err?.response?.status;
+  const rawMsg = String(err?.message || (reason instanceof Error ? reason.message : '')).trim();
+  const base = cleanFallback(fallback);
+  if (status === 502 || status === 504 || /status code 50[24]/i.test(rawMsg)) {
+    return `${base}，网关响应超时或异常，请稍后重试`;
+  }
+  if ((typeof status === 'number' && status >= 500) || /status code 5\d\d/i.test(rawMsg)) {
+    return `${base}，服务暂时不可用，请稍后重试`;
+  }
+  if (status === 404 || /status code 404/i.test(rawMsg)) {
+    return `${base}，请求的资源不存在`;
+  }
+  if (status === 403 || /status code 403/i.test(rawMsg)) {
+    return `${base}，暂无操作权限`;
+  }
+  if (status === 401 || /status code 401/i.test(rawMsg)) {
+    return '登录状态已失效，请重新登录';
+  }
+  if (/network\s*error/i.test(rawMsg)) {
+    return `${base}，网络连接异常，请检查网络后重试`;
+  }
+  if (/timeout/i.test(rawMsg)) {
+    return `${base}，请求超时，请稍后重试`;
+  }
+  if (rawMsg && !isRawError(rawMsg)) {
+    return rawMsg;
+  }
+  return fallback;
+}
+
 function applyResult(sale: AfterSale) {
   if (selected.value) selected.value.afterSale = sale;
   rows.value = rows.value.map((item) => item.afterSaleNo === sale.afterSaleNo ? sale : item);
 }
+
 async function load() {
-  loading.value = true; listError.value = '';
+  loading.value = true;
+  listError.value = '';
   try {
     const result = await buyerApi.afterSales({ page: page.value, size: pageSize });
-    rows.value = result.items || []; total.value = Number(result.total || 0);
-  } catch (reason) { listError.value = errorText(reason, '售后列表加载失败'); }
-  finally { loading.value = false; }
+    rows.value = result.items || [];
+    total.value = Number(result.total || 0);
+  } catch (reason) {
+    listError.value = formatError(reason, '售后列表加载失败');
+  } finally {
+    loading.value = false;
+  }
 }
+
 async function openDetail(no: string) {
-  error.value = ''; feedback.value = '';
+  error.value = '';
+  feedback.value = '';
   activeTab.value = 'detail';
-  try { selected.value = await buyerApi.afterSaleDetail(no) as Detail; }
-  catch (reason) { error.value = errorText(reason, '售后详情加载失败'); }
+  try {
+    selected.value = await buyerApi.afterSaleDetail(no) as Detail;
+  } catch (reason) {
+    error.value = formatError(reason, '售后详情加载失败');
+  }
 }
+
 async function submit() {
   if (actionLoading.value) return;
   const attempt = createAttempt.value;
   if (!attempt.data.subOrderNo || !Number.isSafeInteger(form.orderItemId) || !form.orderItemId || form.orderItemId <= 0 || !Number.isSafeInteger(form.quantity) || form.quantity < 1 || !attempt.data.reason) {
-    error.value = '请填写子订单号、有效明细 ID、数量和申请原因'; return;
+    error.value = '请填写子订单号、有效明细 ID、数量和申请原因';
+    return;
   }
-  actionLoading.value = true; error.value = ''; feedback.value = '';
+  actionLoading.value = true;
+  error.value = '';
+  feedback.value = '';
   try {
     const sale = await buyerApi.createAfterSale(attempt.data, attempt.key);
-    rows.value = [sale, ...rows.value]; total.value += 1;
+    rows.value = [sale, ...rows.value];
+    total.value += 1;
     Object.assign(form, { orderItemId: undefined, quantity: 1, reason: '', subOrderNo: '', type: 'REFUND_ONLY' });
     feedback.value = '售后申请已提交';
     selected.value = { afterSale: sale, events: [] };
     activeTab.value = 'detail';
-  } catch (reason) { error.value = errorText(reason, '申请失败，请在当前页面重试'); }
-  finally { actionLoading.value = false; }
+  } catch (reason) {
+    error.value = formatError(reason, '申请失败，请在当前页面重试');
+  } finally {
+    actionLoading.value = false;
+  }
 }
+
 async function act(no: string, action: 'close' | 'receive') {
   if (actionLoading.value) return;
   const attemptId = `${action}:${no}`;
   const key = actionKeys.get(attemptId) || crypto.randomUUID();
-  actionKeys.set(attemptId, key); actionLoading.value = true; error.value = ''; feedback.value = '';
+  actionKeys.set(attemptId, key);
+  actionLoading.value = true;
+  error.value = '';
+  feedback.value = '';
   try {
     const sale = action === 'close' ? await buyerApi.closeAfterSale(no, key) : await buyerApi.receiveExchange(no, key);
-    applyResult(sale); actionKeys.delete(attemptId);
+    applyResult(sale);
+    actionKeys.delete(attemptId);
     feedback.value = action === 'close' ? '申请已关闭' : '已确认收到换货';
-  } catch (reason) { error.value = errorText(reason, '操作失败，请重试'); }
-  finally { actionLoading.value = false; }
+  } catch (reason) {
+    error.value = formatError(reason, '操作失败，请重试');
+  } finally {
+    actionLoading.value = false;
+  }
 }
+
 async function returnShipment() {
   if (actionLoading.value) return;
   const attempt = shipmentAttempt.value;
-  if (!attempt.no || !attempt.logisticsCompany || !attempt.trackingNo) { error.value = '请填写物流公司和单号'; return; }
-  actionLoading.value = true; error.value = ''; feedback.value = '';
+  if (!attempt.no || !attempt.logisticsCompany || !attempt.trackingNo) {
+    error.value = '请填写物流公司和单号';
+    return;
+  }
+  actionLoading.value = true;
+  error.value = '';
+  feedback.value = '';
   try {
     applyResult(await buyerApi.returnShipment(attempt.no, { logisticsCompany: attempt.logisticsCompany, trackingNo: attempt.trackingNo }, attempt.key));
     Object.assign(shipment, { logisticsCompany: '', trackingNo: '' });
     feedback.value = '退货物流已提交';
-  } catch (reason) { error.value = errorText(reason, '提交失败，请重试'); }
-  finally { actionLoading.value = false; }
+  } catch (reason) {
+    error.value = formatError(reason, '提交失败，请重试');
+  } finally {
+    actionLoading.value = false;
+  }
 }
-async function changePage(pagination: { current?: number }) { page.value = (pagination.current || 1) - 1; await load(); }
+
+async function changePage(pagination: { current?: number }) {
+  page.value = (pagination.current || 1) - 1;
+  await load();
+}
+
 function closeDetail() {
   selected.value = undefined;
-  activeTab.value = 'create';
+  activeTab.value = 'detail';
 }
 
 watch(() => [route.query.subOrderNo, route.query.orderItemId], ([subOrderNo, orderItemId]) => {
@@ -126,6 +228,7 @@ watch(() => [route.query.subOrderNo, route.query.orderItemId], ([subOrderNo, ord
     activeTab.value = 'create';
   }
 }, { immediate: true });
+
 onMounted(load);
 </script>
 
@@ -133,7 +236,6 @@ onMounted(load);
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">BUYER · 售后</span>
         <h1 class="market-heading">售后服务</h1>
         <p class="market-subtitle">从已发货或已签收的子订单发起申请；状态变化和退款以订单服务为准。</p>
       </div>
@@ -154,9 +256,14 @@ onMounted(load);
           <span class="panel-tip">点击「查看进度」查看单据流转</span>
         </div>
 
-        <Alert v-if="listError" :message="listError" type="error" show-icon class="panel-alert" />
+        <Alert v-if="listError" :message="listError" type="error" show-icon class="panel-alert">
+          <template #action>
+            <Button size="small" danger ghost :loading="loading" @click="load">重试</Button>
+          </template>
+        </Alert>
 
         <Table
+          v-if="!listError"
           :columns="columns"
           :data-source="rows"
           :loading="loading"
@@ -185,7 +292,7 @@ onMounted(load);
             </template>
           </template>
           <template #emptyText>
-            <div v-if="!listError && !loading" class="table-empty-wrap">
+            <div v-if="!loading" class="table-empty-wrap">
               <Empty description="暂无售后申请" :image="Empty.PRESENTED_IMAGE_SIMPLE">
                 <Button type="primary" size="small" @click="activeTab = 'create'">提交新申请</Button>
               </Empty>
@@ -306,20 +413,24 @@ onMounted(load);
             </div>
           </div>
 
-          <!-- Empty selected state -->
-          <div v-else class="empty-detail">
-            <Empty description="尚未选择售后申请" :image="Empty.PRESENTED_IMAGE_SIMPLE">
-              <p class="empty-guide">在左侧列表中点击任意申请的「查看进度」进行查看，或发起新申请。</p>
-              <Button type="primary" size="small" @click="activeTab = 'create'">发起售后申请</Button>
-            </Empty>
+          <!-- Empty selected state: compact placeholder -->
+          <div v-else class="compact-detail-placeholder">
+            <div class="compact-detail-copy">
+              <h4 class="compact-detail-title">处理进度</h4>
+              <p class="compact-detail-desc">选择左侧列表中的申请查看详细流转与物流；如需发起新诉求，可直接点击右侧提交。</p>
+            </div>
+            <Button type="primary" size="small" @click="activeTab = 'create'">发起申请</Button>
           </div>
         </div>
 
         <!-- Tab 2: Create New Request Form -->
         <div v-else class="tab-content" aria-labelledby="new-after-sale">
           <div class="create-head">
-            <h3 id="new-after-sale" class="create-title">发起新申请</h3>
-            <p class="market-note">可从订单明细跳转并自动填入子订单和明细 ID；申请金额由服务端计算。</p>
+            <div>
+              <h3 id="new-after-sale" class="create-title">发起新申请</h3>
+              <p class="market-note">可从订单明细跳转并自动填入子订单和明细 ID；申请金额由服务端计算。</p>
+            </div>
+            <Button size="small" @click="activeTab = 'detail'">返回查看</Button>
           </div>
           <Form :model="form" layout="vertical" class="create-form" @finish="submit">
             <Form.Item label="子订单号" name="subOrderNo" :rules="[{ required: true, message: '请输入子订单号' }]">
@@ -349,66 +460,4 @@ onMounted(load);
   </main>
 </template>
 
-<style scoped>
-.full { width: 100%; }
-.head-actions { display: flex; align-items: center; gap: 10px; }
-.after-sales-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(360px, 1fr); gap: 20px; align-items: start; }
-.list-panel, .op-panel { min-width: 0; }
-.panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; }
-.panel-title-group { display: flex; align-items: center; gap: 8px; }
-.panel-title-group .market-panel-title { margin: 0; }
-.count-badge { display: inline-block; padding: 1px 8px; font-size: 11px; font-weight: 600; border-radius: 10px; background: hsl(var(--muted)); color: var(--market-muted); }
-.panel-tip { font-size: 12px; color: var(--market-muted); }
-.panel-alert { margin-bottom: 14px; }
-.mono-code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12.5px; color: var(--market-text); font-weight: 500; }
-.amount-value { font-weight: 600; color: var(--market-text); }
-.action-link { padding: 0 4px; font-size: 13px; }
-.action-link.is-current { font-weight: 600; }
-:deep(.is-selected-row > td) { background-color: hsl(var(--accent) / 0.35) !important; }
-:deep(.is-selected-row > td:first-child) { box-shadow: inset 3px 0 0 hsl(var(--ring)); }
-.table-empty-wrap { padding: 8px 0; }
-.panel-nav { display: flex; align-items: center; gap: 4px; padding: 3px; margin-bottom: 18px; border-radius: var(--mall-radius-base); background: hsl(var(--muted) / 0.6); border: 1px solid var(--market-line); }
-.nav-tab { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 12px; font-size: 13px; font-weight: 550; color: var(--market-muted); background: transparent; border: none; border-radius: calc(var(--mall-radius-base) - 2px); cursor: pointer; transition: all 160ms ease; }
-.nav-tab:hover { color: var(--market-text); }
-.nav-tab.is-active { color: var(--market-text); background: var(--market-surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
-.nav-tag { font-size: 11px; font-family: ui-monospace, SFMono-Regular, monospace; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: hsl(var(--muted)); padding: 0 4px; border-radius: 4px; }
-.tab-content { min-width: 0; }
-.detail-flow { display: flex; flex-direction: column; gap: 16px; }
-.detail-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--market-line); }
-.detail-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--market-muted); }
-.detail-title-row { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
-.detail-no { margin: 0; font-size: 16px; font-weight: 650; font-family: ui-monospace, SFMono-Regular, monospace; color: var(--market-text); }
-.highlight-amount { color: hsl(var(--accent-foreground)); font-size: 15px; }
-.detail-descriptions :deep(.ant-descriptions-row) { border-bottom-color: var(--market-line); }
-.action-card { padding: 14px 16px; border-radius: var(--mall-radius-base); border: 1px solid var(--market-line); background: hsl(var(--muted) / 0.35); }
-.action-card-head { margin-bottom: 12px; }
-.action-card-title { margin: 0 0 2px; font-size: 13.5px; font-weight: 650; color: var(--market-text); }
-.action-card-subtitle { margin: 0; font-size: 12px; color: var(--market-muted); line-height: 1.4; }
-.action-card-inline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.status-tip-box { padding: 12px 14px; border-radius: var(--mall-radius-base); background: hsl(var(--muted) / 0.3); border: 1px dashed var(--market-line); text-align: center; }
-.status-tip-text { font-size: 12.5px; color: var(--market-muted); }
-.events-section { padding-top: 14px; border-top: 1px solid var(--market-line); }
-.events-heading { margin: 0 0 10px; font-size: 13px; font-weight: 620; color: var(--market-text); }
-.events-timeline { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.timeline-item { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; }
-.timeline-dot { width: 6px; height: 6px; border-radius: 50%; background: hsl(var(--ring)); margin-top: 5px; flex-shrink: 0; }
-.timeline-info { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; width: 100%; }
-.timeline-type { color: var(--market-text); font-weight: 550; }
-.timeline-date { color: var(--market-muted); }
-.empty-detail { padding: 36px 16px; text-align: center; }
-.empty-guide { margin: 4px 0 12px; font-size: 12.5px; color: var(--market-muted); }
-.create-head { margin-bottom: 14px; }
-.create-title { margin: 0 0 4px; font-size: 15px; font-weight: 650; color: var(--market-text); }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-col { margin-bottom: 16px; }
-.submit-btn { margin-top: 6px; }
-@media (max-width: 1080px) {
-  .after-sales-layout { grid-template-columns: 1fr; gap: 16px; }
-}
-@media (max-width: 640px) {
-  .head-actions { width: 100%; }
-  .head-actions .ant-btn { flex: 1; }
-  .form-row { grid-template-columns: 1fr; gap: 0; }
-  .action-card-inline { flex-direction: column; align-items: stretch; }
-}
-</style>
+<style scoped src="./buyer-after-sales.css"></style>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 
-import { Alert, Button, Form, InputNumber, Space } from 'ant-design-vue';
+import { Alert, Button, Form, InputNumber } from 'ant-design-vue';
 
 import { merchantApi } from '#/api/marketplace';
 
@@ -32,41 +32,26 @@ const isDraftModified = computed(() => {
 });
 
 const summaryFixedAmount = computed(() => {
-  if (!loadedOnce.value) {
-    return loading.value ? '读取中…' : '未知（规则尚未读取）';
-  }
-  if (form.fixedAmount == null) {
-    return '未设置';
-  }
+  if (!loadedOnce.value) return '—';
+  if (form.fixedAmount == null) return '未设置';
   return form.fixedAmount === 0 ? '0.00 元（免收运费）' : `¥${Number(form.fixedAmount).toFixed(2)} / 单`;
 });
 
 const summaryFreeThreshold = computed(() => {
-  if (!loadedOnce.value) {
-    return loading.value ? '读取中…' : '未知（规则尚未读取）';
-  }
-  if (form.freeThreshold == null) {
-    return '未开启';
-  }
-  return `满 ¥${Number(form.freeThreshold).toFixed(2)}`;
+  if (!loadedOnce.value) return '—';
+  if (form.freeThreshold == null) return '未开启';
+  return `满 ¥${Number(form.freeThreshold).toFixed(2)} 包邮`;
 });
 
 const summaryRuleStatus = computed(() => {
-  if (!loadedOnce.value) {
-    return loading.value ? '读取中…' : '未知（规则尚未读取）';
-  }
+  if (!loadedOnce.value) return { class: 'status-error', text: '未获取' };
   if (refreshFailed.value) {
-    if (isDraftModified.value) {
-      return '草稿编辑中（最新刷新失败）';
-    }
-    return sourceKind.value === 'saved'
-      ? '已保存配置（最新刷新失败）'
-      : '来自最近一次成功读取（刷新失败）';
+    return { class: 'status-draft', text: '刷新未同步（保留草稿）' };
   }
   if (isDraftModified.value) {
-    return '草稿编辑中（未保存）';
+    return { class: 'status-draft', text: '草稿修改中（未保存）' };
   }
-  return sourceKind.value === 'saved' ? '已保存当前规则' : '来自最近一次成功读取';
+  return { class: 'status-active', text: sourceKind.value === 'saved' ? '已保存生效' : '当前已生效' };
 });
 
 function message(error: unknown, fallback: string) {
@@ -132,12 +117,19 @@ async function save() {
     lastLoadedConfig.value = { fixedAmount: form.fixedAmount, freeThreshold: form.freeThreshold };
     sourceKind.value = 'saved';
     refreshFailed.value = false;
-    feedback.value = { text: '运费规则已保存，后续结算将由服务端实时试算', type: 'success' };
+    feedback.value = { text: '运费规则已保存生效', type: 'success' };
   } catch (error) {
     feedback.value = { text: message(error, '保存失败，请稍后重试'), type: 'error' };
   } finally {
     saving.value = false;
   }
+}
+
+function restoreConfig() {
+  if (!lastLoadedConfig.value) return;
+  form.fixedAmount = lastLoadedConfig.value.fixedAmount;
+  form.freeThreshold = lastLoadedConfig.value.freeThreshold;
+  feedback.value = null;
 }
 
 onMounted(load);
@@ -147,40 +139,28 @@ onMounted(load);
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">MERCHANT · DELIVERY</span>
         <h1 class="market-heading">运费规则</h1>
-        <p class="market-subtitle">设置固定运费与包邮门槛，订单结算时以服务端实时试算结果为准。</p>
+        <p class="market-subtitle">设置店铺基础运费与满额包邮策略；实际运费以订单结算时系统实时试算为准。</p>
       </div>
-      <Button v-if="loadedOnce || !loadError" :disabled="isBusy" :loading="loading" @click="load">
-        {{ !loadedOnce && loadError ? '重试读取' : '刷新规则' }}
-      </Button>
+      <Button :disabled="isBusy" :loading="loading" @click="load">刷新规则</Button>
     </header>
 
     <div class="market-grid">
+      <!-- 计费配置表单 -->
       <section class="market-panel" aria-labelledby="freight-rule-title">
-        <h2 id="freight-rule-title" class="market-panel-title">配送计费配置</h2>
-        <Alert
-          v-if="!loadedOnce && loadError"
-          :description="`${loadError}。当前未获取到已有运费规则，表单已锁定，请手动重试。`"
-          class="notice"
-          message="运费规则尚未读取成功"
-          show-icon
-          type="error"
-        >
-          <template #action>
-            <Button :loading="loading" ghost size="small" type="primary" @click="load">
-              手动重试
-            </Button>
-          </template>
-        </Alert>
-        <Alert
-          v-else-if="!loadedOnce && loading"
-          class="notice"
-          description="正在从服务端同步当前配送配置，请稍候。"
-          message="正在读取运费规则…"
-          show-icon
-          type="info"
-        />
+        <div class="panel-header-row">
+          <h2 id="freight-rule-title" class="market-panel-title">配送计费配置</h2>
+        </div>
+
+        <!-- 规则读取失败：单一集中说明与重试 -->
+        <div v-if="!loadedOnce && loadError" class="state-box">
+          <div class="state-info">
+            <span class="state-title">运费规则获取失败</span>
+            <span class="state-desc">{{ loadError }}</span>
+          </div>
+          <Button :loading="loading" size="small" type="primary" ghost @click="load">重试读取</Button>
+        </div>
+
         <Alert
           v-else-if="feedback"
           :message="feedback.text"
@@ -189,120 +169,97 @@ onMounted(load);
           closable
           show-icon
           @close="feedback = null"
-        >
-          <template v-if="refreshFailed" #action>
-            <Button :loading="loading" size="small" @click="load">
-              重试刷新
-            </Button>
-          </template>
-        </Alert>
+        />
 
         <Form :disabled="!loadedOnce || isBusy" :model="form" class="freight-form" layout="vertical" @finish="save">
-          <Form.Item label="固定运费（元）" name="fixedAmount" :rules="[{ required: true, message: '请填写固定运费' }]">
-            <InputNumber v-model:value="form.fixedAmount" :min="0" :precision="2" class="full" placeholder="0.00" prefix="¥" />
-          </Form.Item>
-          <Form.Item extra="留空表示不启用包邮门槛。" label="包邮门槛（元）">
-            <InputNumber v-model:value="form.freeThreshold" :min="0" :precision="2" class="full" placeholder="留空不启用包邮" prefix="¥" />
-          </Form.Item>
-          <Space :wrap="true">
-            <Button :disabled="!loadedOnce || isBusy" :loading="saving" html-type="submit" type="primary">
+          <div class="form-block">
+            <Form.Item
+              extra="订单基础运费；填 0 即全场免运费。"
+              label="固定运费（元）"
+              name="fixedAmount"
+              :rules="[{ required: true, message: '请填写固定运费' }]"
+            >
+              <InputNumber
+                v-model:value="form.fixedAmount"
+                :min="0"
+                :precision="2"
+                class="full"
+                placeholder="0.00"
+                prefix="¥"
+              />
+            </Form.Item>
+
+            <Form.Item
+              extra="商品总额达到此金额免收固定运费；留空表示不开启满额包邮。"
+              label="满额包邮门槛（元）"
+            >
+              <InputNumber
+                v-model:value="form.freeThreshold"
+                :min="0"
+                :precision="2"
+                class="full"
+                placeholder="留空表示不开启"
+                prefix="¥"
+              />
+            </Form.Item>
+          </div>
+
+          <div class="form-actions">
+            <Button
+              :disabled="!loadedOnce || isBusy"
+              :loading="saving"
+              html-type="submit"
+              type="primary"
+            >
               保存规则
             </Button>
-            <Button :disabled="!loadedOnce || isBusy" @click="load">
-              恢复当前规则
+            <Button
+              :disabled="!loadedOnce || isBusy || !isDraftModified"
+              @click="restoreConfig"
+            >
+              放弃草稿并恢复
             </Button>
-          </Space>
+          </div>
         </Form>
       </section>
 
-      <section class="market-panel" aria-labelledby="freight-summary-title">
-        <h2 id="freight-summary-title" class="market-panel-title">当前表单配置预览</h2>
-        <div class="summary-list">
+      <!-- 规则生效预览 -->
+      <section class="market-panel preview-panel" aria-labelledby="freight-summary-title">
+        <div class="panel-header-row">
+          <h2 id="freight-summary-title" class="market-panel-title">规则生效预览</h2>
+        </div>
+
+        <div v-if="!loadedOnce" class="preview-placeholder-box">
+          <span class="placeholder-text">{{ loading ? '正在读取运费规则…' : '规则读取成功后在此实时预览计费策略' }}</span>
+        </div>
+
+        <div v-else class="summary-list">
           <div class="summary-item">
-            <span class="summary-label">表单基础运费</span>
-            <span class="summary-value">
-              {{ summaryFixedAmount }}
+            <span class="summary-label">基础运费</span>
+            <span class="summary-value">{{ summaryFixedAmount }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">满额包邮</span>
+            <span class="summary-value">{{ summaryFreeThreshold }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">规则状态</span>
+            <span class="status-badge" :class="summaryRuleStatus.class">
+              {{ summaryRuleStatus.text }}
             </span>
           </div>
           <div class="summary-item">
-            <span class="summary-label">表单包邮门槛</span>
-            <span class="summary-value">
-              {{ summaryFreeThreshold }}
-            </span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">规则来源状态</span>
-            <span :class="{ 'text-warn': refreshFailed }" class="summary-value">
-              {{ summaryRuleStatus }}
-            </span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">计费机制</span>
+            <span class="summary-label">结算计费机制</span>
             <span class="summary-value">以服务端实时试算为准</span>
           </div>
         </div>
-        <div class="market-note rule-notes">
-          <p>1. 上方为当前表单编辑值的本地预览，并非已保存生效的规则；最终运费金额以服务端结算试算为准。</p>
-          <p>2. 修改后需点击“保存规则”提交；如需放弃未保存的草稿修改，可点击“恢复当前规则”重新同步。</p>
-        </div>
+
+        <p class="concise-tip">
+          提示：运费规则保存后立即生效；买家提交结算时以服务端实时试算结果为准。
+        </p>
       </section>
     </div>
   </main>
 </template>
 
-<style scoped>
-.freight-form {
-  max-width: 520px;
-}
-.full {
-  width: 100%;
-}
-.notice {
-  margin-bottom: 16px;
-}
-.summary-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.summary-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 6px;
-  background: hsl(var(--muted) / 0.4);
-  border: 1px solid var(--market-line);
-}
-.summary-label {
-  font-size: 13px;
-  color: var(--market-muted);
-  flex-shrink: 0;
-}
-.summary-value {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--market-text);
-  text-align: right;
-  word-break: break-word;
-}
-.text-warn {
-  color: hsl(var(--warning, 38 92% 50%));
-}
-.rule-notes {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  line-height: 1.5;
-}
-.rule-notes p {
-  margin: 0;
-}
-@media (max-width: 640px) {
-  .freight-form {
-    max-width: 100%;
-  }
-}
-</style>
+<style scoped src="./merchant-freight.css"></style>

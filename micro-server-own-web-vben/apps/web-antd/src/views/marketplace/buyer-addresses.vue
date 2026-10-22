@@ -47,22 +47,57 @@ const canReturnToCheckout = computed(() => {
   return typeof redirect === 'string' && redirect.startsWith('/buyer/checkout');
 });
 
-function humanizeError(reason: unknown, fallback: string): string {
+function isRawError(msg: string): boolean {
+  if (!msg) return true;
+  if (/^request failed with status code/i.test(msg)) return true;
+  if (/network\s*error/i.test(msg)) return true;
+  if (/timeout of \d+ms exceeded/i.test(msg)) return true;
+  if (/axioserror/i.test(msg)) return true;
+  if (/^(bad gateway|gateway timeout|internal server error|service unavailable)$/i.test(msg)) return true;
+  if (/^(econnrefused|etimedout|enotfound|err_)/i.test(msg)) return true;
+  return false;
+}
+
+function cleanFallback(fallback: string): string {
+  return fallback.replace(/，?请(稍后)?重试$/, '');
+}
+
+function formatError(reason: unknown, fallback: string): string {
   if (!reason) return fallback;
-  const msg = reason instanceof Error ? reason.message : String(reason);
-  if (/502|Bad Gateway/i.test(msg)) {
-    return '服务网关暂时不可用，请稍后重试';
+  const err = reason as any;
+  const data = err?.response?.data;
+  const serverMsg = typeof data === 'string' ? '' : (data?.message || data?.msg || data?.error);
+  if (typeof serverMsg === 'string' && serverMsg.trim() && !isRawError(serverMsg.trim())) {
+    return serverMsg.trim();
   }
-  if (/504|Gateway Timeout|timeout/i.test(msg)) {
-    return '服务响应超时，请重试';
+  const status = err?.response?.status;
+  const rawMsg = String(err?.message || (reason instanceof Error ? reason.message : '')).trim();
+  const base = cleanFallback(fallback);
+  if (status === 502 || status === 504 || /status code 50[24]/i.test(rawMsg)) {
+    return `${base}，网关响应超时或异常，请稍后重试`;
   }
-  if (/500|Internal Server Error/i.test(msg)) {
-    return '服务端处理异常，请稍后重试';
+  if ((typeof status === 'number' && status >= 500) || /status code 5\d\d/i.test(rawMsg)) {
+    return `${base}，服务暂时不可用，请稍后重试`;
   }
-  if (msg.includes('Request failed with status code')) {
-    return '服务请求失败，请稍后重试';
+  if (status === 404 || /status code 404/i.test(rawMsg)) {
+    return `${base}，请求的资源不存在`;
   }
-  return msg || fallback;
+  if (status === 403 || /status code 403/i.test(rawMsg)) {
+    return `${base}，暂无操作权限`;
+  }
+  if (status === 401 || /status code 401/i.test(rawMsg)) {
+    return '登录状态已失效，请重新登录';
+  }
+  if (/network\s*error/i.test(rawMsg)) {
+    return `${base}，网络连接异常，请检查网络后重试`;
+  }
+  if (/timeout/i.test(rawMsg)) {
+    return `${base}，请求超时，请稍后重试`;
+  }
+  if (rawMsg && !isRawError(rawMsg)) {
+    return rawMsg;
+  }
+  return fallback;
 }
 
 async function load() {
@@ -72,7 +107,7 @@ async function load() {
     const list = (await buyerApi.addresses()) as BuyerAddress[];
     addresses.value = list || [];
   } catch (reason) {
-    error.value = humanizeError(reason, '收货地址加载失败，请重试');
+    error.value = formatError(reason, '收货地址加载失败，请重试');
   } finally {
     loading.value = false;
   }
@@ -113,7 +148,7 @@ async function save() {
     message.success(editingId.value ? '收货地址更新成功' : '收货地址新增成功');
     await load();
   } catch (reason) {
-    message.error(humanizeError(reason, '保存地址失败，请重试'));
+    message.error(formatError(reason, '保存地址失败，请重试'));
   } finally {
     saving.value = false;
   }
@@ -126,7 +161,7 @@ async function setDefault(id: number) {
     message.success('已设为默认地址');
     await load();
   } catch (reason) {
-    message.error(humanizeError(reason, '设置默认地址失败，请重试'));
+    message.error(formatError(reason, '设置默认地址失败，请重试'));
   } finally {
     actionLoading.value = false;
   }
@@ -139,7 +174,7 @@ async function remove(id: number) {
     message.success('地址删除成功');
     await load();
   } catch (reason) {
-    message.error(humanizeError(reason, '删除地址失败，请重试'));
+    message.error(formatError(reason, '删除地址失败，请重试'));
   } finally {
     actionLoading.value = false;
   }
@@ -159,13 +194,12 @@ onMounted(load);
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">BUYER · ADDRESS</span>
         <h1 class="market-heading">收货地址</h1>
         <p class="market-subtitle">订单会保存当前收货信息快照；默认地址可用于预选结算。</p>
       </div>
       <Space wrap>
-        <Button v-if="canReturnToCheckout" @click="returnToCheckout">返回结算</Button>
-        <Button type="primary" @click="openForm()">新增地址</Button>
+        <Button v-if="canReturnToCheckout" type="primary" @click="returnToCheckout">返回结算</Button>
+        <Button :type="canReturnToCheckout ? 'default' : 'primary'" @click="openForm()">新增地址</Button>
         <Button :loading="loading" @click="load">刷新</Button>
       </Space>
     </header>
@@ -178,23 +212,33 @@ onMounted(load);
       closable
       class="notice-alert"
       @close="error = ''"
-    />
+    >
+      <template #action>
+        <Button size="small" danger ghost :loading="loading" @click="load">重试</Button>
+      </template>
+    </Alert>
 
     <section class="market-panel" :aria-busy="loading" aria-labelledby="address-list-title">
       <div class="panel-header">
         <h2 id="address-list-title" class="market-panel-title">地址簿</h2>
-        <span v-if="addresses.length" class="market-note">共 {{ addresses.length }} 处地址</span>
+        <span v-if="addresses.length" class="address-count">共 {{ addresses.length }} 处地址</span>
       </div>
 
       <div v-if="loading && !addresses.length" class="loading-wrap">
         <Spin tip="正在加载地址列表..." />
       </div>
 
-      <div v-else-if="error && !addresses.length" class="error-wrap">
-        <Empty description="地址服务暂不可用，未能加载收货地址">
-          <Button :loading="loading" type="primary" @click="load">重新加载</Button>
-        </Empty>
-      </div>
+      <Alert
+        v-else-if="error && !addresses.length"
+        :message="error"
+        type="error"
+        show-icon
+        class="address-error-alert"
+      >
+        <template #action>
+          <Button size="small" danger ghost :loading="loading" @click="load">重试</Button>
+        </template>
+      </Alert>
 
       <div v-else-if="addresses.length" class="address-grid">
         <article
@@ -207,7 +251,7 @@ onMounted(load);
               <strong class="user-name">{{ address.recipientName }}</strong>
               <span class="user-phone">{{ address.mobile }}</span>
             </div>
-            <Tag v-if="address.defaultAddress" color="blue">默认地址</Tag>
+            <Tag v-if="address.defaultAddress" color="blue" class="default-tag">默认地址</Tag>
           </header>
 
           <div class="address-body">
@@ -287,129 +331,13 @@ onMounted(load);
           <Switch v-model:checked="form.defaultAddress" />
         </Form.Item>
 
-        <Space class="form-actions">
+        <div class="form-actions">
           <Button :loading="saving" html-type="submit" type="primary">保存地址</Button>
           <Button @click="drawerOpen = false">取消</Button>
-        </Space>
+        </div>
       </Form>
     </Drawer>
   </main>
 </template>
 
-<style scoped>
-.notice-alert {
-  margin-bottom: 16px;
-}
-
-.panel-header {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.loading-wrap,
-.empty-wrap,
-.error-wrap {
-  padding: 36px 0;
-  text-align: center;
-}
-
-.address-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-}
-
-.address-card {
-  border: 1px solid var(--market-line);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 16px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.address-card.is-default {
-  border-color: hsl(var(--primary));
-  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2);
-}
-
-.card-head {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.user-meta {
-  align-items: baseline;
-  display: flex;
-  gap: 8px;
-}
-
-.user-name {
-  color: var(--market-text);
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.user-phone {
-  color: var(--market-muted);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
-
-.address-body {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 14px;
-}
-
-.region-text {
-  color: var(--market-muted);
-  font-size: 13px;
-}
-
-.detail-text {
-  color: var(--market-text);
-  font-size: 14px;
-  line-height: 1.5;
-  word-break: break-word;
-}
-
-.card-footer {
-  border-top: 1px dashed var(--market-line);
-  margin-top: auto;
-  padding-top: 10px;
-}
-
-.card-btn {
-  padding: 0 4px;
-}
-
-.form-row-2 {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr 1fr;
-}
-
-.form-row-3 {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: 1fr 1fr 1fr;
-}
-
-.form-actions {
-  margin-top: 8px;
-}
-
-@media (max-width: 560px) {
-  .form-row-2,
-  .form-row-3 {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
+<style scoped src="./buyer-addresses.css"></style>

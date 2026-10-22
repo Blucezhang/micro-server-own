@@ -30,13 +30,13 @@ const availableCount = computed(() => coupons.value.filter((c) => c.status === '
 const reservedCount = computed(() => coupons.value.filter((c) => c.status === 'RESERVED').length);
 
 const columns = [
-  { dataIndex: 'couponNo', key: 'couponNo', title: '券号', width: 160 },
+  { dataIndex: 'couponNo', key: 'couponNo', title: '券号', width: 150 },
   { key: 'type', title: '类型', width: 85 },
-  { key: 'merchantId', title: '商家 ID', width: 90 },
+  { key: 'merchantId', title: '归属商家', width: 95 },
   { key: 'minimumAmount', title: '使用门槛', width: 100 },
-  { key: 'discountAmount', title: '优惠金额', width: 100 },
-  { key: 'expiry', title: '有效期至', width: 165 },
-  { key: 'status', title: '状态', width: 90 },
+  { key: 'discountAmount', title: '优惠金额', width: 110 },
+  { key: 'expiry', title: '有效期至', minWidth: 160 },
+  { key: 'status', title: '状态', width: 95 },
 ];
 
 const statusNames: Record<BuyerCoupon['status'], string> = {
@@ -60,12 +60,19 @@ function statusColor(status: BuyerCoupon['status']) {
 }
 
 function errorMessage(reason: unknown, fallback: string) {
-  if (!(reason instanceof Error)) return fallback;
-  const status = reason.message.match(/(?:status code|HTTP)\s*:?[ ]*(5\d{2})/i)?.[1];
-  return status ? `服务暂时不可用（HTTP ${status}），请稍后重试` : reason.message;
+  if (!reason) return fallback;
+  const raw = reason instanceof Error ? reason.message : String(reason);
+  if (/502|Bad Gateway/i.test(raw)) return '服务网关暂时不可用，请稍后重试';
+  if (/504|Gateway Timeout|timeout/i.test(raw)) return '服务响应超时，请重试';
+  if (/500|Internal Server Error/i.test(raw)) return '服务端处理异常，请稍后重试';
+  if (/status code 5\d\d/i.test(raw)) return '服务暂时不可用，请稍后重试';
+  if (raw.includes('Network Error')) return '网络连接异常，请检查网络后重试';
+  return raw || fallback;
 }
 
-watch(() => form.merchantTemplateId, () => { feedback.value = null; }, { flush: 'sync' });
+watch(() => form.merchantTemplateId, () => {
+  feedback.value = null;
+}, { flush: 'sync' });
 
 function formatMinimumAmount(amount: BuyerCoupon['minimumAmount']) {
   if (amount === undefined || amount === null || amount === '') return '无门槛';
@@ -122,9 +129,8 @@ onMounted(loadCoupons);
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">BUYER · 优惠券</span>
         <h1 class="market-heading">我的优惠券</h1>
-        <p class="market-subtitle">已领取优惠券可在结算时选择；最终使用条件由服务端试算确认。</p>
+        <p class="market-subtitle">已领取优惠券可在结算时按适用条件抵扣订单金额。</p>
       </div>
       <Space class="head-actions">
         <Button v-if="checkoutReturn" type="primary" @click="router.push(checkoutReturn)">
@@ -142,20 +148,29 @@ onMounted(loadCoupons);
             <h2 id="coupons-title" class="market-panel-title">我的券包</h2>
             <span v-if="!listError && !listLoading" class="count-badge">{{ coupons.length }} 张</span>
           </div>
-          <div v-if="coupons.length" class="summary-pills">
+          <div v-if="!listError && coupons.length" class="summary-pills">
             <span class="pill pill-available">可用 {{ availableCount }}</span>
             <span v-if="reservedCount" class="pill pill-reserved">占用中 {{ reservedCount }}</span>
           </div>
         </div>
 
-        <Alert v-if="listError" :message="listError" class="panel-alert" show-icon type="error" />
+        <div v-if="listError" class="panel-alert">
+          <Alert :message="listError" show-icon type="error">
+            <template #action>
+              <Button :loading="listLoading" danger ghost size="small" type="primary" @click="loadCoupons">
+                重新加载
+              </Button>
+            </template>
+          </Alert>
+        </div>
 
         <Table
+          v-else
           :columns="columns"
           :data-source="coupons"
           :loading="listLoading"
-          :pagination="{ pageSize: 10, showSizeChanger: false }"
-          :scroll="{ x: 740 }"
+          :pagination="{ pageSize: 10, showSizeChanger: false, hideOnSinglePage: true }"
+          :scroll="{ x: 700 }"
           row-key="couponNo"
           size="middle"
         >
@@ -164,7 +179,7 @@ onMounted(loadCoupons);
               <span class="mono-code">{{ record.couponNo }}</span>
             </template>
             <template v-else-if="column.key === 'type'">
-              <Tag :color="record.couponType === 'MALL' ? 'blue' : 'purple'" class="type-tag">
+              <Tag class="type-tag">
                 {{ record.couponType === 'MALL' ? '平台券' : '店铺券' }}
               </Tag>
             </template>
@@ -187,7 +202,7 @@ onMounted(loadCoupons);
             </template>
           </template>
           <template #emptyText>
-            <div v-if="!listError && !listLoading" class="table-empty-wrap">
+            <div class="table-empty-wrap">
               <Empty description="券包中暂无优惠券" :image="Empty.PRESENTED_IMAGE_SIMPLE">
                 <p class="empty-tip">如有商家提供的模板 ID，可在右侧输入并领取</p>
               </Empty>
@@ -200,15 +215,8 @@ onMounted(loadCoupons);
       <section class="market-panel claim-panel" aria-labelledby="claim-title">
         <div class="claim-head">
           <h2 id="claim-title" class="market-panel-title">领取商家券</h2>
-          <p class="panel-subtitle">联系商家获取模板 ID 后，在此输入即可领取专属店铺券</p>
+          <p class="panel-subtitle">输入商家提供的优惠券模板 ID 即可领取专属店铺券</p>
         </div>
-
-        <Alert
-          class="compact-notice"
-          message="暂不提供公开领券列表。商家可在优惠券模板中复制 ID 发给买家，买家在此领取。"
-          show-icon
-          type="info"
-        />
 
         <Form :model="form" layout="vertical" class="claim-form" @finish="claim">
           <Form.Item label="商家券模板 ID" required class="form-item-tight">
@@ -230,8 +238,8 @@ onMounted(loadCoupons);
         <div class="guide-box">
           <h3 class="guide-title">使用说明</h3>
           <ul class="guide-list">
-            <li>可在结算时选择已领取的优惠券。</li>
-            <li>优惠券适用条件与最终抵扣金额以结算服务端试算为准。</li>
+            <li>可在结算页面根据商品与金额选择可用优惠券。</li>
+            <li>优惠券不可叠加使用，具体抵扣由结算试算确认。</li>
           </ul>
         </div>
       </section>
@@ -251,7 +259,7 @@ onMounted(loadCoupons);
 
 .coupon-layout {
   display: grid;
-  grid-template-columns: minmax(0, 2.2fr) minmax(300px, 1fr);
+  grid-template-columns: minmax(0, 1.8fr) minmax(300px, 1fr);
   gap: 20px;
   align-items: start;
 }
@@ -315,6 +323,10 @@ onMounted(loadCoupons);
   margin-bottom: 14px;
 }
 
+.panel-alert:last-child {
+  margin-bottom: 0;
+}
+
 .mono-code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12.5px;
@@ -323,14 +335,14 @@ onMounted(loadCoupons);
 }
 
 .type-tag {
-  border-radius: 4px;
+  border-radius: var(--mall-radius-base);
   font-size: 11.5px;
+  margin: 0;
 }
 
 .merchant-cell {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--market-muted);
-  font-family: ui-monospace, SFMono-Regular, monospace;
 }
 
 .amount-cell {
@@ -340,21 +352,16 @@ onMounted(loadCoupons);
 
 .discount-cell {
   font-size: 13px;
-  color: hsl(var(--accent-foreground));
+  color: hsl(var(--primary));
 }
 
 .discount-cell strong {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 650;
 }
 
-.discount-cell .currency {
-  font-size: 11px;
-  margin-right: 2px;
-}
-
 .expiry-cell {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--market-muted);
 }
 
@@ -384,16 +391,6 @@ onMounted(loadCoupons);
   line-height: 1.45;
 }
 
-.compact-notice {
-  margin-bottom: 14px;
-  border-radius: var(--mall-radius-base);
-  font-size: 12.5px;
-}
-
-.compact-notice :deep(.ant-alert-message) {
-  font-size: 12.5px;
-}
-
 .form-item-tight {
   margin-bottom: 14px;
 }
@@ -408,14 +405,14 @@ onMounted(loadCoupons);
 
 /* Guide Box */
 .guide-box {
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: var(--mall-radius-base);
   border: 1px solid var(--market-line);
   background: hsl(var(--muted) / 0.35);
 }
 
 .guide-title {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-size: 12.5px;
   font-weight: 650;
   color: var(--market-text);
@@ -437,7 +434,7 @@ onMounted(loadCoupons);
   margin-bottom: 0;
 }
 
-@media (max-width: 1440px) {
+@media (max-width: 1024px) {
   .coupon-layout {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -450,9 +447,5 @@ onMounted(loadCoupons);
     align-items: flex-start;
     gap: 8px;
   }
-}
-
-@media (max-width: 680px) {
-  .table-empty-wrap { padding: 6px 0; }
 }
 </style>

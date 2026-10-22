@@ -39,9 +39,9 @@ const drawerOpen = ref(false);
 const removeAttempts = new Map<number, string>();
 
 const columns = [
-  { dataIndex: 'productId', key: 'productId', title: '商品编号', width: 160 },
-  { key: 'createdAt', title: '收藏时间', minWidth: 200 },
-  { key: 'actions', title: '操作', width: 180, align: 'right' as const },
+  { dataIndex: 'productId', key: 'productId', title: '商品编号', width: 140 },
+  { key: 'createdAt', title: '收藏时间', minWidth: 180 },
+  { key: 'actions', title: '操作', width: 160, align: 'right' as const },
 ];
 
 function humanizeError(reason: unknown, fallback: string): string {
@@ -135,7 +135,7 @@ async function addToCart() {
   error.value = '';
   try {
     await cartApi.add(detail.value.id, 1);
-    feedback.value = '已成功加入购物车';
+    feedback.value = '已加入购物车';
   } catch (reason) {
     error.value = humanizeError(reason, '加入购物车失败，请重试');
   } finally {
@@ -150,9 +150,8 @@ onMounted(load);
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">BUYER · FAVORITES</span>
         <h1 class="market-heading">我的收藏</h1>
-        <p class="market-subtitle">收藏的商品若已下架或暂不可售，仍可在此查看编号并移除。</p>
+        <p class="market-subtitle">查看已收藏的商品清单；支持查看详情并直接加入购物车。</p>
       </div>
       <Space wrap>
         <Button :loading="loading" @click="load">刷新</Button>
@@ -171,7 +170,7 @@ onMounted(load);
     <Alert
       v-if="feedback"
       :message="feedback"
-      type="success"
+      type="info"
       show-icon
       closable
       class="notice-alert"
@@ -181,7 +180,7 @@ onMounted(load);
     <section class="market-panel" aria-labelledby="favorites-title">
       <div class="panel-header">
         <h2 id="favorites-title" class="market-panel-title">收藏清单</h2>
-        <span v-if="favorites.length" class="market-note">共 {{ favorites.length }} 项收藏</span>
+        <span v-if="favorites.length" class="market-note">共 {{ favorites.length }} 项商品</span>
       </div>
 
       <div v-if="loading && !favorites.length" class="loading-wrap">
@@ -189,9 +188,13 @@ onMounted(load);
       </div>
 
       <div v-else-if="error && !favorites.length" class="error-wrap">
-        <Empty description="收藏服务暂不可用，未能加载收藏列表">
-          <Button :loading="loading" type="primary" @click="load">重新加载</Button>
-        </Empty>
+        <Alert :message="error" show-icon type="error">
+          <template #action>
+            <Button :loading="loading" danger ghost size="small" type="primary" @click="load">
+              重新加载
+            </Button>
+          </template>
+        </Alert>
       </div>
 
       <Table
@@ -200,8 +203,8 @@ onMounted(load);
         :data-source="favorites"
         :loading="loading"
         :pagination="{ pageSize: 10, showSizeChanger: false, hideOnSinglePage: true }"
-        :scroll="{ x: 560 }"
-        row-key="id"
+        :scroll="{ x: 480 }"
+        row-key="productId"
       >
         <template #emptyText>
           <div class="empty-wrap">
@@ -213,7 +216,7 @@ onMounted(load);
           <template v-if="column.key === 'productId'">
             <div class="product-id-cell">
               <Tag class="id-tag">#{{ record.productId }}</Tag>
-              <span class="market-note">商品</span>
+              <span class="product-id-sub">商品</span>
             </div>
           </template>
 
@@ -245,7 +248,7 @@ onMounted(load);
     <Drawer
       :open="drawerOpen"
       :title="detail?.name || (selectedProductId ? `商品详情 · #${selectedProductId}` : '商品详情')"
-      width="min(480px, 100vw)"
+      width="min(500px, 100vw)"
       @close="closeDrawer"
     >
       <div v-if="detailLoading" class="drawer-loading">
@@ -269,22 +272,23 @@ onMounted(load);
 
         <div v-else-if="detail" class="product-summary">
           <div class="summary-header">
-            <span class="market-overline">商品 · #{{ detail.id }}</span>
+            <Tag class="id-tag">商品编号 #{{ detail.id }}</Tag>
             <h3 class="product-name">{{ detail.name }}</h3>
           </div>
 
           <div class="price-row">
-            <strong class="price-primary">¥{{ detail.promotionPrice || detail.originalPrice }}</strong>
-            <span
+            <span class="price-symbol">¥</span>
+            <strong class="price-primary">{{ detail.promotionPrice || detail.originalPrice }}</strong>
+            <del
               v-if="detail.promotionPrice && detail.originalPrice"
               class="original-price"
             >
               ¥{{ detail.originalPrice }}
-            </span>
+            </del>
           </div>
 
           <div v-if="detail.specification" class="meta-section">
-            <span class="meta-label">商品规格</span>
+            <span class="meta-label">规格参数</span>
             <p class="meta-value">{{ detail.specification }}</p>
           </div>
 
@@ -316,7 +320,7 @@ onMounted(load);
           v-if="feedback"
           :message="feedback"
           show-icon
-          type="success"
+          type="info"
           closable
           class="notice-alert"
           @close="feedback = ''"
@@ -338,10 +342,14 @@ onMounted(load);
   margin-bottom: 12px;
 }
 
+.panel-header .market-panel-title {
+  margin: 0;
+}
+
 .loading-wrap,
 .empty-wrap,
 .error-wrap {
-  padding: 36px 0;
+  padding: 32px 0;
   text-align: center;
 }
 
@@ -352,7 +360,13 @@ onMounted(load);
 }
 
 .id-tag {
-  border-radius: 4px;
+  border-radius: var(--mall-radius-base);
+  margin: 0;
+}
+
+.product-id-sub {
+  color: var(--market-muted);
+  font-size: 12px;
 }
 
 .date-text {
@@ -385,19 +399,20 @@ onMounted(load);
 .product-summary {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .summary-header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .product-name {
   color: var(--market-text);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 650;
   line-height: 1.4;
   margin: 0;
 }
@@ -405,20 +420,26 @@ onMounted(load);
 .price-row {
   align-items: baseline;
   display: flex;
-  gap: 8px;
+  gap: 4px;
+  color: hsl(var(--primary));
+}
+
+.price-symbol {
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .price-primary {
-  color: var(--market-text);
-  font-size: 26px;
-  font-weight: 650;
-  letter-spacing: -0.03em;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
 .original-price {
+  margin-left: 8px;
   color: var(--market-muted);
-  font-size: 14px;
+  font-size: 13px;
   text-decoration: line-through;
 }
 
@@ -433,18 +454,19 @@ onMounted(load);
 .meta-label {
   color: var(--market-muted);
   font-size: 12px;
-  text-transform: uppercase;
+  font-weight: 500;
 }
 
 .meta-value {
   color: var(--market-text);
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.6;
   margin: 0;
 }
 
 .detail-actions {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--market-line);
 }
 </style>

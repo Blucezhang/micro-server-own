@@ -78,7 +78,7 @@ export const overridesPreferences = defineOverridesPreferences({
   },
   theme: {
     builtinType: 'default',
-    colorPrimary: 'hsl(168 72% 30%)',
+    colorPrimary: '#0E665D',
     fontSize: 14,
     mode: 'light',
     radius: '0.625',

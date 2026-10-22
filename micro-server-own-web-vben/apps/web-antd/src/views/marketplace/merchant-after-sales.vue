@@ -2,17 +2,19 @@
 import type { AfterSale } from '#/api/marketplace';
 
 import { computed, onMounted, reactive, ref } from 'vue';
-
-import { Alert, Button, Descriptions, Empty, Form, Input, Popconfirm, Select, Space, Table, Tag } from 'ant-design-vue';
+import { useMediaQuery } from '@vueuse/core';
+import { Alert, Button, Descriptions, Empty, Form, Input, Pagination, Popconfirm, Select, Space, Table, Tag } from 'ant-design-vue';
 
 import { merchantApi } from '#/api/marketplace';
 import { afterSaleStatusNames, afterSaleTypeNames } from '#/api/marketplace-models';
 
 type Detail = {
   afterSale: AfterSale;
+  events: { createdAt: string; eventType: string }[];
   items: { orderItemId: number; quantity: number }[];
-  events: { eventType: string; createdAt: string }[];
 };
+
+const isMobile = useMediaQuery('(max-width: 768px)');
 
 const filter = reactive({
   page: 0,
@@ -33,28 +35,28 @@ const auditForm = reactive({ approved: true, remark: '' });
 const shipment = reactive({ logisticsCompany: '', trackingNo: '' });
 
 const auditAttempt = computed(() => ({
-  no: selected.value?.afterSale.afterSaleNo,
   approved: auditForm.approved,
-  remark: auditForm.remark.trim(),
   key: crypto.randomUUID(),
+  no: selected.value?.afterSale.afterSaleNo,
+  remark: auditForm.remark.trim(),
 }));
 
 const shipmentAttempt = computed(() => ({
-  no: selected.value?.afterSale.afterSaleNo,
-  logisticsCompany: shipment.logisticsCompany.trim(),
-  trackingNo: shipment.trackingNo.trim(),
   key: crypto.randomUUID(),
+  logisticsCompany: shipment.logisticsCompany.trim(),
+  no: selected.value?.afterSale.afterSaleNo,
+  trackingNo: shipment.trackingNo.trim(),
 }));
 
 const actionKeys = new Map<string, string>();
 
 const columns = [
-  { key: 'afterSaleNo', dataIndex: 'afterSaleNo', title: '售后单号', width: 170 },
+  { dataIndex: 'afterSaleNo', key: 'afterSaleNo', minWidth: 170, title: '售后单号' },
   { key: 'type', title: '申请类型', width: 110 },
-  { key: 'status', title: '当前状态', width: 130 },
-  { key: 'requestedAmount', dataIndex: 'requestedAmount', title: '申请退款金额', width: 140 },
-  { key: 'reason', dataIndex: 'reason', title: '申请原因', ellipsis: true },
-  { key: 'actions', title: '操作', width: 110, align: 'center' as const },
+  { key: 'status', title: '当前状态', width: 120 },
+  { dataIndex: 'requestedAmount', key: 'requestedAmount', title: '退款金额', width: 130 },
+  { dataIndex: 'reason', ellipsis: true, key: 'reason', title: '申请原因' },
+  { align: 'center' as const, key: 'actions', title: '操作', width: 110 },
 ];
 
 function humanizeError(reason: unknown, fallback: string): string {
@@ -79,11 +81,11 @@ function statusColor(status?: AfterSale['status']): string {
     case 'APPLYING':
       return 'processing';
     case 'APPROVED':
-    case 'RETURNING':
     case 'EXCHANGE_PENDING_SHIPMENT':
+    case 'RETURNING':
       return 'warning';
-    case 'REJECTED':
     case 'CLOSED':
+    case 'REJECTED':
       return 'default';
     default:
       return 'blue';
@@ -103,7 +105,7 @@ async function load() {
     rows.value = result.items || [];
     total.value = Number(result.total || 0);
   } catch (reason) {
-    listError.value = humanizeError(reason, '售后工单加载失败，请稍后重试');
+    listError.value = humanizeError(reason, '服务暂未响应，请稍后重试');
   } finally {
     listLoading.value = false;
   }
@@ -190,8 +192,9 @@ async function shipExchange() {
   }
 }
 
-async function changePage(pagination: { current?: number }) {
-  filter.page = (pagination.current || 1) - 1;
+async function changePage(pagination: number | { current?: number }) {
+  const targetPage = typeof pagination === 'number' ? pagination : (pagination.current || 1);
+  filter.page = targetPage - 1;
   await load();
 }
 
@@ -206,103 +209,145 @@ onMounted(() => load());
 <template>
   <main class="market-page">
     <header class="market-head">
-      <div>
-        <span class="market-overline">MERCHANT · 售后</span>
-        <h1 class="market-heading">售后与客诉处理</h1>
-        <p class="market-subtitle">实时处理退款、退货退款与换货业务流；遵循状态机仅展示当前可操作项。</p>
+      <div class="market-head-text">
+        <div class="head-title-row">
+          <h1 class="market-heading">售后处理</h1>
+          <span v-if="!listError && total > 0" class="catalog-badge">
+            共 {{ total }} 单
+          </span>
+        </div>
+        <p class="market-subtitle">按工单状态审核退款、退货与换货申请，并跟进寄件与收货记录。</p>
       </div>
-      <Button :loading="listLoading" @click="load">刷新列表</Button>
+      <div class="market-head-actions">
+        <Button :loading="listLoading" @click="load">刷新列表</Button>
+      </div>
     </header>
 
-    <section class="market-panel" aria-labelledby="after-sales-title">
-      <div class="list-head">
-        <div>
-          <h2 id="after-sales-title" class="market-panel-title">售后工单列表</h2>
-          <p class="panel-subtitle">
-            <template v-if="listError">工单列表加载受阻 · 请点击重试</template>
-            <template v-else-if="listLoading && rows.length === 0">正在同步售后工单...</template>
-            <template v-else>支持按工单流转状态快速筛选与处理</template>
-          </p>
-        </div>
-        <div class="filter-actions">
-          <Select
-            v-model:value="filter.status"
-            allow-clear
-            placeholder="全部流转状态"
-            class="status-filter"
-            :options="Object.entries(afterSaleStatusNames).map(([value, label]) => ({ value, label }))"
-            @change="changeStatus"
-          />
-        </div>
+    <Alert
+      v-if="actionError && !selected"
+      :message="actionError"
+      type="error"
+      show-icon
+      class="action-alert"
+      closable
+      @close="actionError = ''"
+    />
+
+    <section class="market-panel after-sales-panel" aria-label="售后工单列表">
+      <div class="toolbar-strip">
+        <h2 class="panel-title">工单列表</h2>
+        <Select
+          v-model:value="filter.status"
+          allow-clear
+          placeholder="全部流转状态"
+          class="status-filter"
+          :options="Object.entries(afterSaleStatusNames).map(([value, label]) => ({ label, value }))"
+          @change="changeStatus"
+        />
       </div>
 
-      <Alert v-if="actionError && !selected" :message="actionError" type="error" show-icon class="notice" closable @close="actionError = ''" />
-
-      <div v-if="listError" class="state-box state-error">
-        <div class="state-info">
-          <span class="state-title">售后工单加载失败</span>
-          <span class="state-desc">{{ listError }}</span>
+      <div v-if="listError" class="catalog-error-row" role="alert">
+        <div class="error-main">
+          <span class="error-badge">加载失败</span>
+          <span class="error-detail">{{ listError }}</span>
         </div>
-        <Button :loading="listLoading" size="small" type="primary" ghost @click="load">点击重试</Button>
+        <Button :loading="listLoading" size="small" type="primary" @click="load">重新加载</Button>
       </div>
 
-      <Table
-        v-else
-        :columns="columns"
-        :data-source="rows"
-        :loading="listLoading"
-        :pagination="total > 0 ? { current: filter.page + 1, pageSize: filter.size, total, showSizeChanger: false, showTotal: (t) => `共 ${t} 单` } : false"
-        :scroll="{ x: 840 }"
-        row-key="afterSaleNo"
-        @change="changePage"
-      >
-        <template #emptyText>
-          <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无符合条件的售后申请单" />
-        </template>
+      <template v-else>
+        <div v-if="!isMobile" class="table-container">
+          <Table
+            :columns="columns"
+            :data-source="rows"
+            :loading="listLoading"
+            :pagination="total > filter.size ? { current: filter.page + 1, pageSize: filter.size, total, showSizeChanger: false } : false"
+            row-key="afterSaleNo"
+            @change="changePage"
+          >
+            <template #emptyText>
+              <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无符合条件的售后申请单" />
+            </template>
 
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'afterSaleNo'">
-            <span class="mono-code">{{ record.afterSaleNo }}</span>
-          </template>
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'afterSaleNo'">
+                <span class="mono-code">{{ record.afterSaleNo }}</span>
+              </template>
 
-          <template v-else-if="column.key === 'type'">
-            <Tag color="cyan">{{ afterSaleTypeNames[record.type as AfterSale['type']] || record.type }}</Tag>
-          </template>
+              <template v-else-if="column.key === 'type'">
+                <Tag color="cyan">{{ afterSaleTypeNames[record.type as AfterSale['type']] || record.type }}</Tag>
+              </template>
 
-          <template v-else-if="column.key === 'status'">
-            <Tag :color="statusColor(record.status as AfterSale['status'])">
-              {{ afterSaleStatusNames[record.status as AfterSale['status']] || record.status }}
-            </Tag>
-          </template>
+              <template v-else-if="column.key === 'status'">
+                <Tag :color="statusColor(record.status as AfterSale['status'])">
+                  {{ afterSaleStatusNames[record.status as AfterSale['status']] || record.status }}
+                </Tag>
+              </template>
 
-          <template v-else-if="column.key === 'requestedAmount'">
-            <span class="amount-cell">¥{{ Number(record.requestedAmount).toFixed(2) }}</span>
-          </template>
+              <template v-else-if="column.key === 'requestedAmount'">
+                <span class="amount-cell">¥{{ Number(record.requestedAmount).toFixed(2) }}</span>
+              </template>
 
-          <template v-else-if="column.key === 'reason'">
-            <span :title="record.reason" class="reason-text">{{ record.reason || '无原因说明' }}</span>
-          </template>
+              <template v-else-if="column.key === 'reason'">
+                <span :title="record.reason" class="reason-text">{{ record.reason || '无原因说明' }}</span>
+              </template>
 
-          <template v-else-if="column.key === 'actions'">
-            <Button type="link" size="small" :loading="detailLoading" @click="openDetail(record.afterSaleNo)">
-              查看处理
-            </Button>
-          </template>
-        </template>
-      </Table>
+              <template v-else-if="column.key === 'actions'">
+                <Button type="link" size="small" :loading="detailLoading" @click="openDetail(record.afterSaleNo)">
+                  查看处理
+                </Button>
+              </template>
+            </template>
+          </Table>
+        </div>
+
+        <div v-else class="mobile-card-list">
+          <div v-if="listLoading" class="mobile-loading-tip">正在载入工单数据...</div>
+          <div v-else-if="rows.length === 0" class="mobile-empty">
+            <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无符合条件的售后申请单" />
+          </div>
+          <article v-for="item in (listLoading ? [] : rows)" :key="item.afterSaleNo" class="mobile-card">
+            <div class="mobile-card-top">
+              <span class="mono-code">{{ item.afterSaleNo }}</span>
+              <Tag :color="statusColor(item.status as AfterSale['status'])">
+                {{ afterSaleStatusNames[item.status as AfterSale['status']] || item.status }}
+              </Tag>
+            </div>
+            <div class="mobile-card-mid">
+              <div class="mobile-amount-row">
+                <span class="field-label">申请类型 / 金额</span>
+                <div>
+                  <Tag color="cyan">{{ afterSaleTypeNames[item.type as AfterSale['type']] || item.type }}</Tag>
+                  <strong class="amount-cell">¥{{ Number(item.requestedAmount).toFixed(2) }}</strong>
+                </div>
+              </div>
+              <div class="reason-text">{{ item.reason || '未填写具体原因说明' }}</div>
+            </div>
+            <div class="mobile-card-actions">
+              <span />
+              <Button size="small" type="primary" :loading="detailLoading" @click="openDetail(item.afterSaleNo)">
+                查看处理
+              </Button>
+            </div>
+          </article>
+          <div v-if="total > filter.size" class="mobile-pagination-wrap">
+            <Pagination :current="filter.page + 1" :page-size="filter.size" :total="total" size="small" simple @change="changePage" />
+          </div>
+        </div>
+      </template>
     </section>
 
-    <section v-if="selected" class="market-panel detail-panel" aria-labelledby="after-sale-detail">
-      <div class="list-head">
+    <!-- 详情处理面板 -->
+    <section v-if="selected" class="market-panel detail-panel" aria-label="售后工单详情">
+      <div class="detail-header">
         <div>
-          <h2 id="after-sale-detail" class="market-panel-title">工单详情 · {{ selected.afterSale.afterSaleNo }}</h2>
-          <p class="panel-subtitle">审核申请、确认用户退货寄件及发货换货跟踪</p>
+          <h2 class="detail-title">工单详情 · {{ selected.afterSale.afterSaleNo }}</h2>
+          <p class="detail-subtitle">审核申请、确认用户退货寄件及发货换货跟踪。</p>
         </div>
         <Button @click="selected = undefined">收起详情</Button>
       </div>
 
-      <Alert v-if="actionError" :message="actionError" type="error" show-icon class="notice" closable @close="actionError = ''" />
-      <Alert v-if="feedback" :message="feedback" type="success" show-icon class="notice" closable @close="feedback = ''" />
+      <Alert v-if="actionError" :message="actionError" type="error" show-icon class="action-alert" closable @close="actionError = ''" />
+      <Alert v-if="feedback" :message="feedback" type="success" show-icon class="action-alert" closable @close="feedback = ''" />
 
       <Descriptions :column="{ xs: 1, sm: 2, md: 3 }" bordered size="small" class="detail-descriptions">
         <Descriptions.Item label="售后工单号">
@@ -374,39 +419,10 @@ onMounted(() => load());
       </div>
 
       <div v-else class="action-panel-empty">
-        <Empty description="当前工单状态下无待处理操作" />
+        <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="当前工单状态下无待处理操作" />
       </div>
     </section>
   </main>
 </template>
 
-<style scoped>
-.list-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-.panel-subtitle { margin: 4px 0 0; font-size: 13px; color: var(--market-muted); }
-.filter-actions { display: flex; align-items: center; }
-.status-filter { width: 190px; }
-.notice { margin-bottom: 16px; }
-.mono-code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; color: var(--market-muted); }
-.amount-cell { font-weight: 600; color: var(--market-text); font-variant-numeric: tabular-nums; }
-.reason-text { color: var(--market-text); }
-.detail-panel { margin-top: 16px; }
-.detail-descriptions { margin-bottom: 16px; }
-.action-panel { max-width: 640px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--market-line); }
-.action-heading { margin: 0 0 6px; font-size: 15px; font-weight: 600; color: var(--market-text); }
-.market-note { margin: 0 0 12px; font-size: 13px; color: var(--market-muted); }
-.audit-input { margin-bottom: 12px; }
-.action-row { margin-top: 4px; }
-.shipment-form { max-width: 480px; }
-.action-panel-empty { margin-top: 24px; padding: 16px 0; }
-.state-box { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-radius: var(--mall-radius-base, 8px); border: 1px solid hsl(var(--border)); background: hsl(var(--muted) / 0.4); }
-.state-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.state-title { font-size: 13.5px; font-weight: 600; color: hsl(var(--foreground)); }
-.state-desc { font-size: 12.5px; color: hsl(var(--muted-foreground)); word-break: break-word; }
-@media (max-width: 760px) {
-  .list-head { align-items: stretch; flex-direction: column; }
-  .status-filter { width: 100%; }
-}
-@media (max-width: 480px) {
-  .state-box { flex-direction: column; align-items: flex-start; gap: 10px; }
-}
-</style>
+<style scoped src="./merchant-after-sales.css"></style>

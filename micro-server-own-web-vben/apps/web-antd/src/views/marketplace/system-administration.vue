@@ -2,7 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { Alert, Button, Form, Input, InputNumber, Space, Tag } from 'ant-design-vue';
+import { Alert, Button, Form, Input, InputNumber, Space } from 'ant-design-vue';
 
 import { systemApi } from '#/api/marketplace';
 
@@ -96,30 +96,18 @@ async function submit() {
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">SYSTEM · ACCESS</span>
-        <div class="head-title-row">
-          <h1 class="market-heading">{{ isAccount ? '账号与商家授权' : '角色功能授权' }}</h1>
-          <Tag :color="isAccount ? 'blue' : 'purple'" class="role-tag">
-            {{ isAccount ? '账号管控' : '角色管控' }}
-          </Tag>
-        </div>
-        <p class="market-subtitle">所有授权操作均由服务端再次校验系统管理权限。</p>
+        <h1 class="market-heading">{{ isAccount ? '账号与商家授权' : '角色功能授权' }}</h1>
+        <p class="market-subtitle">核对目标 ID 后提交授权；操作范围由服务端校验。</p>
       </div>
     </header>
 
-    <div class="market-grid">
-      <section class="market-panel" aria-labelledby="grant-form-title">
+    <div class="grant-layout">
+      <section class="market-panel grant-panel" aria-labelledby="grant-form-title">
         <h2 id="grant-form-title" class="market-panel-title">
           {{ isAccount ? '商家角色分配' : '角色功能权限追加' }}
         </h2>
 
-        <Alert
-          message="本页不提供账号、角色或功能目录检索"
-          description="请先核实目标 ID；目标是否存在及可操作范围由服务端在提交时校验。"
-          class="notice"
-          show-icon
-          type="info"
-        />
+        <p class="id-check-note">本页不提供目录检索，请先核实目标 ID；目标是否存在由服务端在提交时校验。</p>
 
         <Form :model="form" class="grant-form" layout="vertical" @finish="submit">
           <template v-if="isAccount">
@@ -154,6 +142,17 @@ async function submit() {
             </Form.Item>
           </template>
 
+          <div class="change-summary" aria-labelledby="guide-title">
+            <h3 id="guide-title">提交前请确认</h3>
+            <dl class="change-list">
+              <div v-for="note in changeNotes" :key="note.title" class="change-item">
+                <dt>{{ note.title }}</dt>
+                <dd>{{ note.description }}</dd>
+              </div>
+            </dl>
+            <p class="permission-note">此操作需系统管理员权限。</p>
+          </div>
+
           <Alert
             v-if="feedback"
             :message="feedback.text"
@@ -172,45 +171,32 @@ async function submit() {
           </Space>
         </Form>
       </section>
-
-      <section class="market-panel guide-panel" aria-labelledby="guide-title">
-        <span class="market-overline">CHANGE SUMMARY</span>
-        <h2 id="guide-title" class="market-panel-title">提交后会发生什么</h2>
-        <dl class="change-list">
-          <div v-for="note in changeNotes" :key="note.title" class="change-item">
-            <dt>{{ note.title }}</dt>
-            <dd>{{ note.description }}</dd>
-          </div>
-        </dl>
-        <p class="permission-note">所有操作仍需系统管理员权限，并由服务端再次校验。</p>
-      </section>
     </div>
   </main>
 </template>
 
 <style scoped>
-.head-title-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.role-tag {
-  font-weight: 600;
-  border-radius: 4px;
+.grant-layout {
+  max-width: 760px;
 }
 
 .grant-form {
-  max-width: 560px;
+  max-width: 600px;
 }
 
 .full {
   width: 100%;
 }
 
-.notice,
 .feedback {
   margin: 0 0 16px;
+}
+
+.id-check-note {
+  margin: -4px 0 20px;
+  color: var(--market-muted);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .field-hint {
@@ -224,21 +210,30 @@ async function submit() {
   margin-top: 8px;
 }
 
-.guide-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.change-summary {
+  margin: 4px 0 20px;
+  padding: 14px 16px 10px;
+  border: 1px solid var(--market-line);
+  border-radius: var(--mall-radius-base);
+  background: hsl(var(--muted) / 0.18);
+}
+
+.change-summary h3 {
+  margin: 0;
+  color: var(--market-text);
+  font-size: 13px;
+  font-weight: 650;
 }
 
 .change-list {
   display: flex;
   flex-direction: column;
   gap: 0;
-  margin: 4px 0 0;
+  margin: 2px 0 0;
 }
 
 .change-item {
-  padding: 14px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--market-line);
 }
 
@@ -262,11 +257,11 @@ async function submit() {
 }
 
 @media (max-width: 640px) {
-  .guide-panel {
-    gap: 6px;
+  .change-summary {
+    padding: 12px 14px 8px;
   }
   .change-item {
-    padding: 12px 0;
+    padding: 9px 0;
   }
 }
 </style>

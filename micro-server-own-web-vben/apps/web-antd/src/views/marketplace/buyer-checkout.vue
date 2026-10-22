@@ -5,11 +5,10 @@ import type { BuyerAddress } from '#/api/marketplace-models';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { Alert, Button, Empty, Radio, Space, Spin } from 'ant-design-vue';
+import { Alert, Button, Empty, Radio, Spin } from 'ant-design-vue';
 
 import { buyerApi } from '#/api/marketplace';
 import { preferredAddressId } from '#/api/marketplace-models';
-
 
 const route = useRoute();
 const router = useRouter();
@@ -26,6 +25,7 @@ const loading = ref(false);
 const quoteLoading = ref(false);
 const quoteError = ref('');
 const submitError = ref('');
+
 const merchantQuotes = computed(() => {
   const current = quote.value;
   return Object.entries(current?.merchantTotals || {}).map(([merchantId, amount]) => ({
@@ -35,23 +35,54 @@ const merchantQuotes = computed(() => {
     merchantId,
   }));
 });
-const freightTotal = computed(() => merchantQuotes.value.reduce((sum, item) => sum + Number(item.freight || 0), 0));
-const itemIds = computed(() => [...new Set(String(route.query.items || '').split(',').map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))]);
-const availableCoupons = computed(() => coupons.value.filter((coupon) =>
-  coupon.status === 'AVAILABLE' && new Date(coupon.expiresAt).getTime() >= Date.now()));
-const selectedCoupon = computed(() => availableCoupons.value.find((coupon) => coupon.couponNo === couponNo.value));
+
+const freightTotal = computed(() =>
+  merchantQuotes.value.reduce((sum, item) => sum + Number(item.freight || 0), 0),
+);
+
+const itemIds = computed(() => [
+  ...new Set(
+    String(route.query.items || '')
+      .split(',')
+      .map(Number)
+      .filter((id) => Number.isSafeInteger(id) && id > 0),
+  ),
+]);
+
+const availableCoupons = computed(() =>
+  coupons.value.filter(
+    (coupon) =>
+      coupon.status === 'AVAILABLE' &&
+      new Date(coupon.expiresAt).getTime() >= Date.now(),
+  ),
+);
+
+const selectedCoupon = computed(() =>
+  availableCoupons.value.find((coupon) => coupon.couponNo === couponNo.value),
+);
+
 const command = () => ({
   addressId: addressId.value,
   cartItemIds: itemIds.value,
-  ...(selectedCoupon.value ? { coupons: [{
-    couponNo: selectedCoupon.value.couponNo,
-    ...(selectedCoupon.value.merchantId ? { merchantId: selectedCoupon.value.merchantId } : {}),
-  }] } : {}),
+  ...(selectedCoupon.value
+    ? {
+        coupons: [
+          {
+            couponNo: selectedCoupon.value.couponNo,
+            ...(selectedCoupon.value.merchantId
+              ? { merchantId: selectedCoupon.value.merchantId }
+              : {}),
+          },
+        ],
+      }
+    : {}),
 });
+
 function money(value: number | string | undefined) {
   const amount = Number(value);
   return Number.isFinite(amount) ? `¥${amount.toFixed(2)}` : '—';
 }
+
 // Keep the key after a failed response; only changing the checkout command starts a new attempt.
 const orderAttemptKey = ref(crypto.randomUUID());
 const orderAttempt = computed(() => ({ data: command(), key: orderAttemptKey.value }));
@@ -120,7 +151,8 @@ function calculateQuote() {
     return;
   }
   quoteLoading.value = true;
-  buyerApi.quote(command())
+  buyerApi
+    .quote(command())
     .then((result) => {
       if (revision === quoteRevision) quote.value = result;
     })
@@ -160,7 +192,7 @@ async function loadAddresses() {
   addressLoading.value = true;
   addressError.value = '';
   try {
-    addresses.value = await buyerApi.addresses() as BuyerAddress[];
+    addresses.value = (await buyerApi.addresses()) as BuyerAddress[];
     if (!addressId.value || !addresses.value.some((item) => item.id === addressId.value)) {
       addressId.value = preferredAddressId(addresses.value);
     } else {
@@ -191,7 +223,15 @@ async function loadCoupons() {
 }
 
 async function submit() {
-  if (loading.value || quoteLoading.value || !quote.value || !addressId.value || !itemIds.value.length || !!addressError.value) return;
+  if (
+    loading.value ||
+    quoteLoading.value ||
+    !quote.value ||
+    !addressId.value ||
+    !itemIds.value.length ||
+    !!addressError.value
+  )
+    return;
   loading.value = true;
   submitError.value = '';
   try {
@@ -216,32 +256,38 @@ onMounted(() => {
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">BUYER · CHECKOUT</span>
         <h1 class="market-heading">确认结算</h1>
-        <p class="market-subtitle">{{ itemIds.length ? '订单金额、优惠和库存将以服务端试算结果为准。' : '请先在购物车中勾选需要结算的商品。' }}</p>
+        <p class="market-subtitle">
+          {{ itemIds.length ? '核对收货地址与优惠券，确认订单金额明细后提交。' : '请先在购物车中勾选需要结算的商品。' }}
+        </p>
       </div>
     </header>
+
     <section v-if="!itemIds.length" class="market-panel empty-selection-panel" aria-labelledby="empty-checkout-title">
       <div class="empty-selection-content">
-        <Empty :description="false" />
+        <div class="empty-icon-wrap" aria-hidden="true">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          </svg>
+        </div>
         <div class="empty-copy">
           <h2 id="empty-checkout-title" class="empty-title">未选择结算商品</h2>
-          <p class="empty-desc">结算需要基于购物车中勾选的有效商品发起。请先前往购物车选品。</p>
+          <p class="empty-desc">请先在购物车中勾选需要结算的商品，确认规格与数量后发起结算。</p>
         </div>
         <Button type="primary" @click="router.push('/buyer/cart')">
           前往购物车
         </Button>
       </div>
     </section>
+
     <Spin v-else :spinning="loading || quoteLoading || addressLoading">
       <div class="checkout-layout">
         <div class="checkout-options">
           <section class="market-panel" aria-labelledby="checkout-address-title">
             <div class="section-heading">
-              <div>
-                <span class="market-overline">配送信息</span>
-                <h2 id="checkout-address-title" class="market-panel-title">收货地址</h2>
-              </div>
+              <h2 id="checkout-address-title" class="market-panel-title">收货地址</h2>
               <Button @click="router.push({ path: '/buyer/addresses', query: { redirect: route.fullPath } })">
                 {{ addresses.length ? '管理地址' : '新增地址' }}
               </Button>
@@ -259,14 +305,12 @@ onMounted(() => {
                 <span class="address-detail">{{ address.province }}{{ address.city }}{{ address.district }}{{ address.detail }}</span>
               </Radio>
             </Radio.Group>
-            <Empty v-else-if="!addressLoading && !addressError" description="暂无收货地址，请先新增地址" />
+            <Empty v-else-if="!addressLoading && !addressError" description="暂无收货地址，请先新增地址" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
           </section>
+
           <section class="market-panel" aria-labelledby="checkout-coupon-title">
             <div class="section-heading">
-              <div>
-                <span class="market-overline">优惠抵扣</span>
-                <h2 id="checkout-coupon-title" class="market-panel-title">选择优惠券</h2>
-              </div>
+              <h2 id="checkout-coupon-title" class="market-panel-title">选择优惠券</h2>
               <Button @click="router.push({ path: '/buyer/coupons', query: { redirect: route.fullPath } })">
                 查看券包
               </Button>
@@ -287,10 +331,10 @@ onMounted(() => {
             </Radio.Group>
           </section>
         </div>
+
         <aside class="checkout-summary">
           <section class="market-panel" aria-labelledby="checkout-quote-title">
-            <span class="market-overline">ORDER SUMMARY</span>
-            <h2 id="checkout-quote-title" class="market-panel-title">结算摘要</h2>
+            <h2 id="checkout-quote-title" class="market-panel-title">结算明细</h2>
             <Alert v-if="quoteError" :message="quoteError" show-icon type="error" class="panel-alert">
               <template #action>
                 <Button size="small" danger ghost :loading="quoteLoading" @click="retryQuote">
@@ -303,7 +347,7 @@ onMounted(() => {
                 <div class="quote-line"><span>商品金额</span><strong>{{ money(quote.totalAmount) }}</strong></div>
                 <div class="quote-line"><span>优惠抵扣</span><strong class="discount">−{{ money(quote.discountAmount) }}</strong></div>
                 <div class="quote-line"><span>运费</span><strong>{{ money(freightTotal) }}</strong></div>
-                <div class="quote-line quote-payable"><span>应付金额</span><strong>{{ money(quote.payableAmount) }}</strong></div>
+                <div class="quote-line quote-payable"><span>应付总额</span><strong>{{ money(quote.payableAmount) }}</strong></div>
               </div>
               <div v-if="merchantQuotes.length" class="merchant-breakdown">
                 <h3>按商家拆分</h3>
@@ -313,17 +357,27 @@ onMounted(() => {
                 </div>
               </div>
             </template>
-            <p v-else class="market-note">请选择收货地址后，系统将自动试算金额。</p>
-            <p class="quote-footnote">价格、优惠、运费与库存以服务端试算结果为准。</p>
+            <p v-else class="market-note">请选择有效收货地址，系统将自动发起金额试算。</p>
+            <p class="quote-footnote">应付总额由结算服务试算确认。</p>
           </section>
+
           <section class="market-panel submit-panel" aria-label="提交订单">
             <Alert v-if="submitError" :message="submitError" description="可在当前页面重试；未修改结算内容时不会重复创建订单。" show-icon type="error" class="panel-alert" />
-            <Space class="checkout-actions">
-              <Button @click="router.push('/buyer/cart')">返回购物车</Button>
-              <Button :disabled="!addressId || !itemIds.length || !quote || quoteLoading || loading || !addresses.length || !!addressError" :loading="loading" type="primary" @click="submit">
+            <div class="checkout-actions">
+              <Button
+                :disabled="!addressId || !itemIds.length || !quote || quoteLoading || loading || !addresses.length || !!addressError"
+                :loading="loading"
+                size="large"
+                type="primary"
+                class="btn-submit"
+                @click="submit"
+              >
                 提交订单
               </Button>
-            </Space>
+              <Button size="large" class="btn-back" @click="router.push('/buyer/cart')">
+                返回购物车
+              </Button>
+            </div>
           </section>
         </aside>
       </div>
@@ -331,43 +385,4 @@ onMounted(() => {
   </main>
 </template>
 
-<style scoped>
-.empty-selection-panel { display: flex; align-items: center; justify-content: center; min-height: 360px; padding: 48px 20px; text-align: center; }
-.empty-selection-content { display: flex; flex-direction: column; align-items: center; max-width: 440px; width: 100%; margin: 0 auto; }
-.empty-selection-content :deep(.ant-empty) { margin: 0 0 8px; }
-.empty-copy { display: grid; gap: 8px; margin-bottom: 20px; }
-.empty-title { margin: 0; color: var(--market-text); font-size: 16px; font-weight: 650; }
-.empty-desc { margin: 0; color: var(--market-muted); font-size: 13px; line-height: 1.6; }
-.panel-alert { margin-bottom: 14px; }
-.checkout-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, .8fr); gap: 18px; align-items: start; }
-.checkout-options, .checkout-summary { display: grid; min-width: 0; gap: 16px; }
-.checkout-summary { position: sticky; top: 18px; }
-.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
-.section-heading .market-panel-title { margin: 4px 0 0; }
-.addresses { display: grid; gap: 8px; width: 100%; }
-.addresses :deep(.ant-radio-wrapper) { display: flex; align-items: flex-start; gap: 6px; margin: 0; padding: 12px; border: 1px solid var(--market-line); border-radius: 9px; }
-.addresses :deep(.ant-radio-wrapper-checked) { border-color: hsl(var(--primary) / .48); background: hsl(var(--accent) / .34); }
-.address-recipient, .address-detail, .coupon-name, .coupon-rule { display: block; }
-.address-recipient { color: var(--market-text); font-size: 13px; font-weight: 600; }
-.address-recipient span, .address-detail, .coupon-rule { color: var(--market-muted); font-size: 12px; font-weight: 400; }
-.address-detail { margin-top: 5px; line-height: 1.55; }
-.coupon-name { color: var(--market-text); font-size: 13px; font-weight: 600; }
-.coupon-rule { margin-top: 4px; }
-.quote-lines { display: grid; gap: 12px; margin-top: 18px; }
-.quote-line { display: flex; align-items: center; justify-content: space-between; gap: 14px; color: var(--market-muted); font-size: 13px; }
-.quote-line strong { color: var(--market-text); font-size: 13px; font-weight: 600; }
-.quote-line .discount { color: hsl(var(--primary)); }
-.quote-payable { margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--market-line); }
-.quote-payable span { color: var(--market-text); font-weight: 650; }
-.quote-payable strong { color: hsl(var(--primary)); font-size: 25px; font-weight: 700; letter-spacing: -.04em; }
-.merchant-breakdown { display: grid; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid hsl(var(--border) / .7); }
-.merchant-breakdown h3 { margin: 0; color: var(--market-text); font-size: 12px; font-weight: 650; }
-.merchant-quote { display: grid; gap: 4px; color: var(--market-text); font-size: 12px; }
-.merchant-quote span + span { color: var(--market-muted); }
-.quote-footnote { margin: 16px 0 0; color: var(--market-muted); font-size: 11px; line-height: 1.55; }
-.submit-panel { padding: 16px; }
-.checkout-actions { display: flex; width: 100%; justify-content: space-between; }
-.checkout-actions :deep(.ant-btn-primary) { min-width: 132px; }
-@media (max-width: 1080px) { .checkout-layout { grid-template-columns: 1fr; } .checkout-summary { position: static; } }
-@media (max-width: 640px) { .section-heading { align-items: flex-start; } .checkout-layout { gap: 14px; } .checkout-actions :deep(.ant-btn-primary) { min-width: 0; } }
-</style>
+<style scoped src="./buyer-checkout.css"></style>

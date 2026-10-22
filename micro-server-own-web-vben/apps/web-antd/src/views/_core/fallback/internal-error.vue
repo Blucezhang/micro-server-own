@@ -6,9 +6,9 @@ defineOptions({ name: 'Fallback500' });
 
 <template>
   <FallbackView
-    describe="微商城服务端处理请求时遇到了未预期的错误或服务超时。您可以尝试刷新重试，或返回工作台处理其他业务。"
+    describe="系统处理当前请求时遇到异常。请尝试刷新重试，或返回工作台继续其他操作。"
     show-refresh
     status="500"
-    title="500 · 微商城服务异常"
+    title="服务异常"
   />
 </template>

@@ -1,0 +1,149 @@
+/* Account Profile Styles */
+
+.profile-alert {
+  margin-bottom: 16px;
+}
+
+.identity-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--market-line);
+  border-radius: var(--mall-radius-base);
+  background: hsl(var(--muted) / 0.4);
+}
+
+.identity-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.identity-label {
+  color: var(--market-muted);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.identity-value {
+  color: var(--market-text);
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identity-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--market-line);
+}
+
+.save-btn {
+  margin-top: 4px;
+}
+
+.session-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.session-head .market-panel-title {
+  margin: 0 0 4px;
+}
+
+.session-table {
+  margin-bottom: 16px;
+}
+
+.profile-empty-state {
+  padding: 24px 0;
+  text-align: center;
+}
+
+.profile-loading-placeholder {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.danger-zone-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid hsl(0 84% 60% / 0.25);
+  border-radius: var(--mall-radius-base);
+  background: hsl(0 84% 60% / 0.04);
+}
+
+.danger-zone-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.danger-zone-title {
+  margin: 0;
+  color: hsl(0 75% 50%);
+  font-size: 13.5px;
+  font-weight: 650;
+}
+
+.danger-zone-desc {
+  margin: 0;
+  color: var(--market-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.danger-btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .session-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .session-head .ant-btn {
+    align-self: flex-start;
+  }
+
+  .identity-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .identity-divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .save-btn {
+    width: 100%;
+  }
+
+  .danger-zone-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .danger-btn {
+    width: 100%;
+  }
+}

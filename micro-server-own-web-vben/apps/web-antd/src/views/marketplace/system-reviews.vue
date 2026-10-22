@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useMediaQuery, useWindowSize } from '@vueuse/core';
 
-import { Alert, Button, Empty, Form, Input, InputNumber, Select, Space, Table, Tag } from 'ant-design-vue';
+import { Alert, Button, Form, Input, InputNumber, Select, Space, Table, Tag } from 'ant-design-vue';
 import type { ColumnType } from 'ant-design-vue/es/table';
 
 import { systemApi } from '#/api/marketplace';
@@ -187,7 +187,6 @@ onMounted(load);
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">SYSTEM · MODERATION</span>
         <div class="head-title-row">
           <h1 class="market-heading">评价举报处置</h1>
           <Tag color="orange" class="status-badge">待办审核</Tag>
@@ -205,26 +204,19 @@ onMounted(load);
       <div class="panel-header-row">
         <div>
           <h2 id="report-list-title" class="market-panel-title">待处置举报列表</h2>
-          <p class="market-note">仅展示待处置的用户举报记录，点击操作列的「处置」可直接载入表单。</p>
+          <p class="market-note">选择举报后，在下方提交处置结果。</p>
         </div>
         <div v-if="listLoading && !hasLoaded" class="total-tag">
-          <span>正在加载待办...</span>
-        </div>
-        <div v-else-if="listError" class="total-tag text-error">
-          <span>加载失败</span>
+          正在加载待办…
         </div>
         <div v-else-if="hasLoaded" class="total-tag">
           共 <span class="total-num">{{ total }}</span> 条待处置
         </div>
       </div>
 
-      <div v-if="listError" class="list-state-error">
-        <Alert :message="listError" type="error" show-icon />
-        <div class="state-actions">
-          <Button size="small" type="primary" ghost :loading="listLoading" @click="load">
-            重试加载
-          </Button>
-        </div>
+      <div v-if="listError" class="list-state-error" role="alert">
+        <span>{{ listError }}</span>
+        <Button size="small" :loading="listLoading" @click="load">重试加载</Button>
       </div>
 
       <Table
@@ -250,7 +242,7 @@ onMounted(load);
         @change="changePage"
       >
         <template #emptyText>
-          <Empty description="当前暂无待处置的评价举报" />
+          <span class="empty-note">当前暂无待处置的评价举报</span>
         </template>
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'id'">
@@ -360,9 +352,20 @@ onMounted(load);
 .panel-header-row .market-panel-title { margin-bottom: 4px; }
 .total-tag { font-size: 13px; color: var(--market-muted); white-space: nowrap; }
 .total-num { font-weight: 600; color: hsl(var(--primary)); }
-.text-error { color: #cf1322; }
-.list-state-error { padding: 4px 0 16px; display: flex; flex-direction: column; gap: 12px; }
-.state-actions { display: flex; justify-content: flex-start; }
+.list-state-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--market-line);
+  border-radius: var(--mall-radius-base);
+  background: hsl(var(--muted) / 0.2);
+  color: var(--market-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.empty-note { display: inline-block; padding: 20px 0; color: var(--market-muted); }
 .mono-id { font-family: monospace; font-weight: 600; color: var(--market-text); }
 .report-mobile-summary { display: grid; gap: 4px; margin-top: 4px; color: var(--market-muted); font-size: 12px; line-height: 1.45; }
 .report-mobile-summary .ant-tag { justify-self: start; margin: 0; }
@@ -401,6 +404,7 @@ onMounted(load);
 
 @media (max-width: 640px) {
   .panel-header-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .list-state-error { align-items: flex-start; flex-direction: column; }
   .form-row { grid-template-columns: 1fr; gap: 0; }
 }
 @media (min-width: 681px) { .report-mobile-summary { display: none; } }

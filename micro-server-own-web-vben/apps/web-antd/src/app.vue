@@ -13,6 +13,16 @@ defineOptions({ name: 'App' });
 const { isDark } = usePreferences();
 const { tokens } = useAntdDesignTokens();
 
+const effectivePrimary = computed(() => {
+  const base = preferences.theme.colorPrimary || tokens?.colorPrimary || '#0E665D';
+  if (isDark.value && (base === '#0E665D' || base.includes('174') || base.includes('168'))) {
+    return '#57C8B6';
+  }
+  return tokens?.colorPrimary || base;
+});
+
+const isTealDark = computed(() => isDark.value && effectivePrimary.value === '#57C8B6');
+
 const tokenTheme = computed(() => {
   const algorithm = isDark.value
     ? [theme.darkAlgorithm]
@@ -23,10 +33,23 @@ const tokenTheme = computed(() => {
     algorithm.push(theme.compactAlgorithm);
   }
 
+  const primary = effectivePrimary.value;
+
   return {
     algorithm,
     token: {
       ...tokens,
+      colorPrimary: primary,
+      colorPrimaryHover: isTealDark.value ? '#6EE0CE' : undefined,
+      colorLink: primary,
+      colorTextLightSolid: isTealDark.value ? '#101A1B' : '#FFFFFF',
+      colorBgBase: isDark.value ? '#101A1B' : '#F6F7F6',
+      colorBgContainer: isDark.value ? '#172223' : '#FFFFFF',
+      colorBgElevated: isDark.value ? '#1E2C2D' : '#FFFFFF',
+      colorTextBase: isDark.value ? '#E8F0ED' : '#1D2928',
+      colorTextSecondary: isDark.value ? '#A7B7B1' : '#66736F',
+      colorBorder: isDark.value ? '#30403E' : '#DDE4E1',
+      colorBorderSecondary: isDark.value ? '#253331' : '#E8ECEB',
       fontFamily:
         '-apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
       fontSize: 14,
@@ -39,6 +62,7 @@ const tokenTheme = computed(() => {
     components: {
       Button: {
         controlHeight: 38,
+        primaryColor: isTealDark.value ? '#101A1B' : '#FFFFFF',
       },
       Card: {
         borderRadiusLG: 12,

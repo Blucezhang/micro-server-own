@@ -4,7 +4,7 @@ import type { BuyerFavorite, ProductReview, ProductReviewPage } from '#/api/mark
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { Alert, Button, Drawer, Empty, Form, Input, Pagination, Rate, Select, Space, Spin, Table } from 'ant-design-vue';
+import { Alert, Button, Drawer, Empty, Form, Input, Pagination, Rate, Select, Space, Spin, Table, Tag } from 'ant-design-vue';
 
 import { buyerApi, cartApi, catalogApi } from '#/api/marketplace';
 
@@ -18,6 +18,7 @@ type Product = {
   content?: string;
   specification?: string;
 };
+
 const router = useRouter();
 const loading = ref(false);
 const detailLoading = ref(false);
@@ -43,8 +44,8 @@ const reportAttempt = computed(() => ({ productId: detail.value?.id, reviewId: r
 const favoriteAttempts = new Map<string, string>();
 
 function productCategoryName(product: Product): string {
-  if (!product.categoryId) return '未分类';
-  return categories.value.find((category) => category.id === product.categoryId)?.name || `类目 #${product.categoryId}`;
+  if (!product.categoryId) return '全品类';
+  return categories.value.find((category) => category.id === product.categoryId)?.name || `分类 #${product.categoryId}`;
 }
 
 function isRawError(msg: string): boolean {
@@ -123,11 +124,15 @@ async function loadFavorites() {
     actionError.value = formatError(reason, '收藏状态加载失败');
   }
 }
+
 async function loadReviews(productId: number, page = 0) {
   const result: ProductReviewPage = await catalogApi.reviews(productId, page);
   if (detail.value?.id !== productId) return;
-  reviews.value = result.items || []; reviewTotal.value = Number(result.total || 0); reviewPage.value = page;
+  reviews.value = result.items || [];
+  reviewTotal.value = Number(result.total || 0);
+  reviewPage.value = page;
 }
+
 async function openDetail(row: Record<string, any>) {
   detailLoading.value = true;
   detailError.value = '';
@@ -149,6 +154,7 @@ async function openDetail(row: Record<string, any>) {
     detailLoading.value = false;
   }
 }
+
 async function toggleFavorite(productId: number) {
   if (actionLoading.value) return;
   const isFavorite = favoriteIds.value.has(productId);
@@ -174,6 +180,7 @@ async function toggleFavorite(productId: number) {
     actionLoading.value = false;
   }
 }
+
 async function add(row: Record<string, any>) {
   if (actionLoading.value) return;
   actionLoading.value = true;
@@ -188,6 +195,7 @@ async function add(row: Record<string, any>) {
     actionLoading.value = false;
   }
 }
+
 async function createReview() {
   const attempt = reviewAttempt.value;
   if (actionLoading.value || !attempt.productId) return;
@@ -206,6 +214,7 @@ async function createReview() {
     actionLoading.value = false;
   }
 }
+
 async function reportReview() {
   const attempt = reportAttempt.value;
   if (actionLoading.value || !attempt.productId || !attempt.reviewId) return;
@@ -227,26 +236,53 @@ async function reportReview() {
     actionLoading.value = false;
   }
 }
-async function changePage(page: number) { filters.page = page - 1; await load(); }
-async function search() { filters.page = 0; await load(); }
-async function changeReviewPage(pagination: { current?: number }) { if (detail.value) await loadReviews(detail.value.id, (pagination.current || 1) - 1); }
+
+async function changePage(page: number) {
+  filters.page = page - 1;
+  await load();
+}
+
+async function search() {
+  filters.page = 0;
+  await load();
+}
+
+async function changeReviewPage(pagination: { current?: number }) {
+  if (detail.value) await loadReviews(detail.value.id, (pagination.current || 1) - 1);
+}
+
 onMounted(async () => {
   const [categoryResult] = await Promise.allSettled([catalogApi.categories(), loadFavorites(), load()]);
-  if (categoryResult.status === 'fulfilled') categories.value = categoryResult.value as { id: number; name: string }[];
+  if (categoryResult.status === 'fulfilled') {
+    categories.value = categoryResult.value as { id: number; name: string }[];
+  }
 });
 </script>
 
 <template>
   <main class="market-page">
     <header class="market-head">
-      <div><span class="market-overline">BUYER · 商品</span><h1 class="market-heading">发现好物</h1><p class="market-subtitle">浏览商品、查看评价并加入收藏；价格与可售状态以结算时为准。</p></div>
+      <div>
+        <h1 class="market-heading">发现好物</h1>
+        <p class="market-subtitle">浏览商品并可直接加入收藏或购物车；价格与优惠由结算服务试算确认。</p>
+      </div>
       <Button @click="router.push('/buyer/favorites')">我的收藏</Button>
     </header>
+
     <section class="market-panel catalog-filters" aria-label="商品筛选">
       <Form :model="filters" class="filters" layout="inline" @finish="search">
-        <Form.Item label="关键词" name="keyword"><Input v-model:value="filters.keyword" allow-clear /></Form.Item>
+        <Form.Item label="关键词" name="keyword">
+          <Input v-model:value="filters.keyword" placeholder="搜索商品名称..." allow-clear />
+        </Form.Item>
         <Form.Item label="分类" name="categoryId">
-          <Select v-model:value="filters.categoryId" class="category-select" allow-clear :field-names="{ label: 'name', value: 'id' }" :options="categories" />
+          <Select
+            v-model:value="filters.categoryId"
+            placeholder="全部分类"
+            class="category-select"
+            allow-clear
+            :field-names="{ label: 'name', value: 'id' }"
+            :options="categories"
+          />
         </Form.Item>
         <Space class="filter-actions">
           <Button html-type="submit" type="primary">搜索</Button>
@@ -256,24 +292,19 @@ onMounted(async () => {
       <Alert v-if="actionError && !catalogError" :message="actionError" show-icon type="error" class="notice" />
       <Alert v-if="feedback" :message="feedback" show-icon type="info" class="notice" />
     </section>
+
     <section class="catalog-results" aria-label="商品列表">
       <div class="results-heading">
         <div class="results-title">
           <h2>为你挑选</h2>
           <span v-if="loading">加载中...</span>
-          <span v-else-if="catalogError" class="catalog-status-error">加载失败</span>
-          <span v-else>{{ total }} 件商品</span>
+          <span v-else-if="!catalogError">{{ total }} 件商品</span>
         </div>
-        <p class="market-note">价格与可售状态以结算试算为准</p>
       </div>
+
       <Spin v-if="loading" class="catalog-loading" />
       <div v-else-if="catalogError" class="catalog-error-state">
-        <Alert
-          :message="catalogError"
-          description="未能成功获取商品列表，请检查网络或稍后重新加载。"
-          show-icon
-          type="error"
-        >
+        <Alert :message="catalogError" show-icon type="error">
           <template #action>
             <Button :loading="loading" danger ghost size="small" type="primary" @click="load">
               重新加载
@@ -285,49 +316,32 @@ onMounted(async () => {
       <template v-else>
         <div class="product-grid">
           <article v-for="product in rows" :key="product.id" class="product-card">
-            <button class="product-art" type="button" :aria-label="`查看${product.name}详情`" @click="openDetail(product)">
-              <div class="product-art-header">
-                <span class="product-art-tag">{{ productCategoryName(product) }}</span>
-                <span class="product-art-id">#{{ product.id }}</span>
+            <div class="product-card-top">
+              <div class="product-card-badges">
+                <Tag class="product-cat-tag">{{ productCategoryName(product) }}</Tag>
+                <span class="product-merchant-tag">商家 #{{ product.partyId }}</span>
               </div>
-              <div class="product-art-badge" aria-hidden="true">
-                <div class="product-art-emblem">
-                  <svg class="product-art-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-                    <path d="m3.3 7 8.7 5 8.7-5" />
-                    <path d="M12 12v10" />
-                  </svg>
-                  <span class="product-art-mark">{{ (product.name || '商品').slice(0, 2) }}</span>
-                </div>
-              </div>
-              <div class="product-art-footer">
-                <span v-if="product.specification" class="product-art-spec" :title="product.specification">
-                  {{ product.specification }}
-                </span>
-              </div>
-            </button>
-            <Button
-              class="favorite-action"
-              :class="{ 'is-active': favoriteIds.has(product.id) }"
-              :aria-label="favoriteIds.has(product.id) ? `取消收藏 ${product.name}` : `加入收藏 ${product.name}`"
-              :disabled="actionLoading"
-              :title="favoriteIds.has(product.id) ? '取消收藏' : '加入收藏'"
-              type="text"
-              @click="toggleFavorite(product.id)"
-            >
-              <span aria-hidden="true" class="favorite-glyph">{{ favoriteIds.has(product.id) ? '♥' : '♡' }}</span>
-            </Button>
+              <Button
+                class="favorite-action"
+                :class="{ 'is-active': favoriteIds.has(product.id) }"
+                :aria-label="favoriteIds.has(product.id) ? `取消收藏 ${product.name}` : `加入收藏 ${product.name}`"
+                :disabled="actionLoading"
+                :title="favoriteIds.has(product.id) ? '取消收藏' : '加入收藏'"
+                type="text"
+                @click="toggleFavorite(product.id)"
+              >
+                <span aria-hidden="true" class="favorite-glyph">{{ favoriteIds.has(product.id) ? '♥' : '♡' }}</span>
+              </Button>
+            </div>
+
             <div class="product-card-body">
               <h3 class="product-name">
                 <button type="button" :title="product.name" @click="openDetail(product)">{{ product.name }}</button>
               </h3>
-              <div class="product-meta">
-                <span class="product-merchant">商家 #{{ product.partyId }}</span>
-                <template v-if="product.specification">
-                  <span class="product-spec-dot" aria-hidden="true">·</span>
-                  <span class="product-spec" :title="product.specification">{{ product.specification }}</span>
-                </template>
+              <div v-if="product.specification" class="product-spec-line">
+                <span class="product-spec-text" :title="product.specification">{{ product.specification }}</span>
               </div>
+
               <div class="product-price-line">
                 <div class="price-current">
                   <span class="price-symbol">¥</span>
@@ -336,6 +350,7 @@ onMounted(async () => {
                 <del v-if="product.promotionPrice" class="price-original">¥{{ product.originalPrice }}</del>
                 <span v-if="product.promotionPrice" class="price-discount-tag">特惠</span>
               </div>
+
               <div class="product-actions">
                 <Button class="btn-detail" type="link" @click="openDetail(product)">详情与评价</Button>
                 <Button class="btn-add-cart" :disabled="actionLoading" type="primary" @click="add(product)">加入购物车</Button>
@@ -354,33 +369,77 @@ onMounted(async () => {
         />
       </template>
     </section>
+
     <Drawer :open="!!detail" :title="detail?.name || '商品详情'" width="min(600px, 100vw)" @close="detail = undefined">
       <template v-if="detail">
-        <div class="product-summary"><span class="market-overline">商品 · #{{ detail.id }}</span><strong>¥{{ detail.promotionPrice || detail.originalPrice }}</strong><p>商家 ID {{ detail.partyId }}<span v-if="detail.specification"> · {{ detail.specification }}</span></p><p v-if="detail.content">{{ detail.content }}</p></div>
+        <div class="product-summary">
+          <div class="detail-head-meta">
+            <Tag class="product-cat-tag">{{ productCategoryName(detail) }}</Tag>
+            <span class="detail-id-text">商品编号 #{{ detail.id }}</span>
+          </div>
+          <strong class="detail-price">¥{{ detail.promotionPrice || detail.originalPrice }}</strong>
+          <p class="detail-merchant">商家 #{{ detail.partyId }}<span v-if="detail.specification"> · 规格：{{ detail.specification }}</span></p>
+          <p v-if="detail.content" class="detail-content">{{ detail.content }}</p>
+        </div>
         <Space class="detail-actions">
-          <Button :disabled="actionLoading" @click="toggleFavorite(detail.id)">{{ favoriteIds.has(detail.id) ? '取消收藏' : '收藏商品' }}</Button>
+          <Button :disabled="actionLoading" @click="toggleFavorite(detail.id)">
+            {{ favoriteIds.has(detail.id) ? '取消收藏' : '收藏商品' }}
+          </Button>
           <Button type="primary" :disabled="actionLoading" @click="add(detail)">加入购物车</Button>
         </Space>
         <Alert v-if="detailError" :message="detailError" show-icon type="error" class="notice" />
         <Alert v-if="feedback" :message="feedback" show-icon type="info" class="notice" />
+
         <section class="drawer-section" aria-label="商品评价">
-<h2>商品评价</h2>
-          <Table :columns="[{ dataIndex: 'rating', key: 'rating', title: '评分' }, { dataIndex: 'content', key: 'content', title: '评价' }, { dataIndex: 'merchantReply', key: 'merchantReply', title: '商家回复' }, { key: 'actions', title: '操作' }]" :data-source="reviews" :loading="detailLoading" :pagination="{ current: reviewPage + 1, pageSize: 10, total: reviewTotal, showSizeChanger: false }" :scroll="{ x: 580 }" row-key="id" @change="changeReviewPage">
-            <template #bodyCell="{ column, record }"><Button v-if="column.key === 'actions'" type="link" @click="reportForm.reviewId = record.id; reportForm.reason = ''">举报</Button></template>
+          <h2>商品评价</h2>
+          <Table
+            :columns="[
+              { dataIndex: 'rating', key: 'rating', title: '评分', width: 80 },
+              { dataIndex: 'content', key: 'content', title: '评价内容' },
+              { dataIndex: 'merchantReply', key: 'merchantReply', title: '商家回复' },
+              { key: 'actions', title: '操作', width: 70, align: 'right' }
+            ]"
+            :data-source="reviews"
+            :loading="detailLoading"
+            :pagination="{ current: reviewPage + 1, pageSize: 10, total: reviewTotal, showSizeChanger: false }"
+            :scroll="{ x: 500 }"
+            row-key="id"
+            @change="changeReviewPage"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'rating'">
+                <span class="review-rating">{{ record.rating }} 星</span>
+              </template>
+              <template v-else-if="column.key === 'actions'">
+                <Button type="link" @click="reportForm.reviewId = record.id; reportForm.reason = ''">举报</Button>
+              </template>
+            </template>
           </Table>
         </section>
+
         <section v-if="reportForm.reviewId" class="drawer-section" aria-label="举报评价">
-<h2>举报评价 #{{ reportForm.reviewId }}</h2>
+          <h2>举报评价 #{{ reportForm.reviewId }}</h2>
           <Form :model="reportForm" layout="vertical" @finish="reportReview">
-            <Form.Item label="举报原因" name="reason" :rules="[{ required: true, message: '请填写举报原因' }]"><Input.TextArea v-model:value="reportForm.reason" :maxlength="200" :rows="2" show-count /></Form.Item>
-            <Space><Button html-type="submit" :loading="actionLoading" type="primary">提交举报</Button><Button :disabled="actionLoading" @click="reportForm.reviewId = undefined">取消</Button></Space>
+            <Form.Item label="举报原因" name="reason" :rules="[{ required: true, message: '请填写举报原因' }]">
+              <Input.TextArea v-model:value="reportForm.reason" :maxlength="200" :rows="2" show-count />
+            </Form.Item>
+            <Space>
+              <Button html-type="submit" :loading="actionLoading" type="primary">提交举报</Button>
+              <Button :disabled="actionLoading" @click="reportForm.reviewId = undefined">取消</Button>
+            </Space>
           </Form>
         </section>
+
         <section class="drawer-section" aria-label="发表评价">
-<h2>发表评价</h2><p class="market-note">仅已签收且尚未评价的买家可提交，资格由服务端校验。</p>
+          <h2>发表评价</h2>
+          <p class="market-note">仅已完成订单的买家可提交评价，资格由服务端校验。</p>
           <Form :model="reviewForm" layout="vertical" @finish="createReview">
-            <Form.Item label="评分" name="rating" :rules="[{ required: true, type: 'number', min: 1, max: 5 }]"><Rate v-model:value="reviewForm.rating" /></Form.Item>
-            <Form.Item label="评价内容" name="content"><Input.TextArea v-model:value="reviewForm.content" :maxlength="500" :rows="3" show-count /></Form.Item>
+            <Form.Item label="评分" name="rating" :rules="[{ required: true, type: 'number', min: 1, max: 5 }]">
+              <Rate v-model:value="reviewForm.rating" />
+            </Form.Item>
+            <Form.Item label="评价内容" name="content">
+              <Input.TextArea v-model:value="reviewForm.content" :maxlength="500" :rows="3" show-count />
+            </Form.Item>
             <Button :loading="actionLoading" html-type="submit" type="primary">提交评价</Button>
           </Form>
         </section>
@@ -389,78 +448,4 @@ onMounted(async () => {
   </main>
 </template>
 
-<style scoped>
-.category-select { width: 160px; }
-.filters { margin-bottom: 0; }
-.catalog-filters { padding: 18px 20px; }
-.catalog-error-state { margin: 16px 0; }
-.catalog-status-error { color: #cf1322; font-size: 12px; font-weight: 500; }
-.catalog-results { min-width: 0; }
-.results-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
-.results-title { display: flex; align-items: baseline; gap: 10px; }
-.results-title h2 { margin: 0; color: var(--market-text); font-size: 17px; font-weight: 650; letter-spacing: -.02em; }
-.results-title span { color: var(--market-muted); font-size: 12px; }
-.results-heading .market-note { margin: 0; font-size: 12px; }
-.catalog-loading { display: grid; min-height: 240px; place-items: center; }
-.product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-@media (min-width: 1200px) {
-  .product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-@media (min-width: 681px) and (max-width: 960px) {
-  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-.product-card { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--market-line); border-radius: var(--mall-radius-xl); background: var(--market-surface); box-shadow: 0 1px 2px rgb(28 36 48 / .035); transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease; }
-.product-card:hover { transform: translateY(-2px); border-color: hsl(var(--primary) / .28); box-shadow: 0 12px 28px rgb(28 36 48 / .08); }
-.product-art { display: flex; flex-direction: column; justify-content: space-between; position: relative; width: 100%; height: 132px; padding: 12px 14px; box-sizing: border-box; overflow: hidden; border: 0; border-bottom: 1px solid var(--market-line); background: linear-gradient(150deg, hsl(var(--muted) / .42) 0%, hsl(var(--muted) / .8) 100%); color: var(--market-text); cursor: pointer; text-align: left; transition: background 160ms ease; }
-.product-art:hover { background: linear-gradient(150deg, hsl(var(--muted) / .55) 0%, hsl(var(--muted) / .92) 100%); }
-.product-art:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -2px; }
-.product-art-header { display: flex; align-items: center; gap: 8px; max-width: calc(100% - 42px); }
-.product-art-tag { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: var(--mall-radius-base); background: hsl(var(--card) / .88); border: 1px solid hsl(var(--border) / .65); color: var(--market-muted); font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.product-art-id { color: var(--market-muted); font-size: 11px; font-weight: 500; opacity: .8; font-variant-numeric: tabular-nums; }
-.product-art-badge { display: flex; align-items: center; justify-content: center; }
-.product-art-emblem { display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border: 1px solid hsl(var(--border) / .75); border-radius: 9999px; background: hsl(var(--card) / .92); box-shadow: 0 2px 8px rgb(28 36 48 / .04); transition: transform 160ms ease; }
-.product-card:hover .product-art-emblem { transform: scale(1.03); }
-.product-art-icon { width: 15px; height: 15px; color: hsl(var(--primary)); flex-shrink: 0; }
-.product-art-mark { color: var(--market-text); font-size: 13px; font-weight: 650; letter-spacing: .04em; }
-.product-art-footer { display: flex; align-items: center; min-height: 16px; }
-.product-art-spec { display: inline-block; max-width: 100%; color: var(--market-muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.favorite-action { position: absolute; z-index: 2; top: 10px; right: 10px; display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid hsl(var(--border) / .85); border-radius: 50%; background: hsl(var(--card) / .92); color: hsl(var(--muted-foreground)); cursor: pointer; transition: transform 140ms ease, color 140ms ease, border-color 140ms ease; }
-.favorite-action:hover { transform: scale(1.08); color: hsl(var(--primary)); }
-.favorite-action.is-active { color: hsl(var(--primary)); border-color: hsl(var(--primary) / .35); background: hsl(var(--card)); }
-.favorite-glyph { font-family: Arial, sans-serif; font-size: 16px; line-height: 1; }
-.product-card-body { display: flex; flex-direction: column; padding: 13px 16px 14px; }
-.product-name { margin: 0; font-size: 14.5px; font-weight: 650; line-height: 1.45; }
-.product-name button { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%; height: 42px; padding: 0; border: 0; background: none; color: var(--market-text); cursor: pointer; text-align: left; font-size: inherit; font-weight: inherit; line-height: inherit; transition: color 140ms ease; }
-.product-name button:hover { color: hsl(var(--primary)); }
-.product-meta { display: flex; align-items: center; gap: 6px; margin: 6px 0 10px; color: var(--market-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.product-merchant { font-weight: 500; }
-.product-spec-dot { opacity: .5; }
-.product-spec { overflow: hidden; text-overflow: ellipsis; }
-.product-price-line { display: flex; align-items: baseline; gap: 7px; min-height: 28px; }
-.price-current { display: inline-flex; align-items: baseline; color: hsl(var(--primary)); font-weight: 700; line-height: 1; }
-.price-symbol { font-size: 13px; margin-right: 1px; }
-.price-amount { font-size: 21px; letter-spacing: -.03em; }
-.price-original { color: var(--market-muted); font-size: 12px; text-decoration: line-through; }
-.price-discount-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); font-size: 11px; font-weight: 600; line-height: 1.35; }
-.product-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--market-line); }
-.product-actions .btn-detail { padding-inline: 0; color: var(--market-muted); font-size: 13px; font-weight: 500; }
-.product-actions .btn-detail:hover { color: hsl(var(--primary)); }
-.product-actions .btn-add-cart { font-size: 13px; border-radius: var(--mall-radius-base); }
-.catalog-pagination { display: flex; justify-content: flex-end; margin-top: 20px; }
-.notice, .detail-actions { margin: 14px 0; }
-.product-summary { display: grid; gap: 7px; }
-.product-summary strong { font-size: 28px; font-weight: 650; letter-spacing: -.04em; }
-.product-summary p { margin: 0; color: var(--market-muted); font-size: 12px; line-height: 1.6; }
-.drawer-section { min-width: 0; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--market-line); }
-.drawer-section h2 { margin: 0 0 14px; font-size: 15px; font-weight: 620; }
-@media (max-width: 680px) {
-  .filters :deep(.ant-form-item), .filter-actions { width: 100%; margin-right: 0; margin-bottom: 12px; }
-  .filters :deep(.ant-form-item-control), .filters :deep(.ant-form-item-control-input), .filters :deep(.ant-form-item-control-input-content), .filters :deep(.ant-input), .category-select { width: 100%; }
-  .catalog-filters { padding: 16px; }
-  .results-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
-  .product-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .product-art { height: 120px; }
-  .product-actions { align-items: center; }
-  .product-actions .btn-add-cart { flex: 1; }
-}
-</style>
+<style scoped src="./buyer-catalog.css"></style>

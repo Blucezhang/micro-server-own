@@ -1,0 +1,169 @@
+/* Buyer Addresses Styles */
+
+.notice-alert {
+  margin-bottom: 16px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.panel-header .market-panel-title {
+  margin: 0;
+}
+
+.address-count {
+  color: var(--market-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.address-error-alert {
+  margin-top: 4px;
+}
+
+.loading-wrap,
+.empty-wrap {
+  padding: 36px 0;
+  text-align: center;
+}
+
+.address-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+}
+
+.address-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid var(--market-line);
+  border-radius: var(--mall-radius-base);
+  background: var(--market-surface);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.address-card:hover {
+  border-color: hsl(var(--border));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.address-card.is-default {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2);
+  background: hsl(var(--accent) / 0.1);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.user-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.user-name {
+  color: var(--market-text);
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-phone {
+  color: var(--market-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.default-tag {
+  flex-shrink: 0;
+}
+
+.address-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.region-text {
+  color: var(--market-muted);
+  font-size: 12.5px;
+}
+
+.detail-text {
+  color: var(--market-text);
+  font-size: 13.5px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  border-top: 1px dashed var(--market-line);
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.card-btn {
+  padding: 0 4px;
+  font-size: 13px;
+}
+
+.form-row-2 {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-row-3 {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+@media (max-width: 600px) {
+  .address-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row-2,
+  .form-row-3 {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .form-actions {
+    width: 100%;
+  }
+
+  .form-actions :deep(.ant-btn) {
+    flex: 1;
+  }
+}

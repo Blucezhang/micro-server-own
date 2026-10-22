@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useMediaQuery, useWindowSize } from '@vueuse/core';
+import { useMediaQuery } from '@vueuse/core';
 
 import {
   Alert,
@@ -32,7 +32,6 @@ const rows = ref<CartRow[]>([]);
 const selectedKeys = ref<number[]>([]);
 const error = ref('');
 const phoneLayout = useMediaQuery('(max-width: 680px)');
-const { width: viewportWidth } = useWindowSize();
 
 const total = computed(() =>
   rows.value
@@ -45,19 +44,20 @@ const isAllSelected = computed(
 );
 
 const desktopColumns: ColumnType[] = [
-  { dataIndex: 'productName', key: 'productName', title: '商品名称', width: 220, ellipsis: true },
+  { dataIndex: 'productName', key: 'productName', title: '商品名称', minWidth: 200, ellipsis: true },
   { dataIndex: 'merchantId', key: 'merchantId', title: '归属商家', width: 130 },
-  { dataIndex: 'unitPrice', key: 'unitPrice', title: '单价', width: 120 },
-  { key: 'quantity', title: '数量', width: 140 },
-  { key: 'subtotal', title: '小计', width: 130 },
-  { key: 'actions', title: '操作', width: 100, align: 'right' },
+  { dataIndex: 'unitPrice', key: 'unitPrice', title: '单价', width: 110 },
+  { key: 'quantity', title: '数量', width: 130 },
+  { key: 'subtotal', title: '小计', width: 120 },
+  { key: 'actions', title: '操作', width: 90, align: 'right' },
 ];
-const columns = computed<ColumnType[]>(() => phoneLayout.value
-  ? [
-      { dataIndex: 'productName', key: 'productName', title: '商品信息', width: Math.max(100, viewportWidth.value - 204) },
-      { key: 'actions', title: '操作', width: 100, align: 'right' },
-    ]
-  : desktopColumns);
+
+const mobileColumns: ColumnType[] = [
+  { dataIndex: 'productName', key: 'productName', title: '商品信息' },
+  { key: 'actions', title: '操作', width: 80, align: 'right' },
+];
+
+const columns = computed<ColumnType[]>(() => (phoneLayout.value ? mobileColumns : desktopColumns));
 
 function humanizeError(reason: unknown, fallback: string): string {
   if (!reason) return fallback;
@@ -135,9 +135,8 @@ onMounted(load);
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">BUYER · CART</span>
         <h1 class="market-heading">购物车</h1>
-        <p class="market-subtitle">商品按商家归集；金额与可售状态以结算服务试算结果为准。</p>
+        <p class="market-subtitle">管理待结算商品并核对数量；勾选后进入结算试算优惠。</p>
       </div>
       <Space wrap>
         <Button :loading="loading" @click="load">刷新</Button>
@@ -165,9 +164,13 @@ onMounted(load);
       </div>
 
       <div v-else-if="error && !rows.length" class="error-wrap">
-        <Empty description="购物车服务暂不可用，未能加载待结算商品">
-          <Button :loading="loading" type="primary" @click="load">重新加载</Button>
-        </Empty>
+        <Alert :message="error" show-icon type="error">
+          <template #action>
+            <Button :loading="loading" danger ghost size="small" type="primary" @click="load">
+              重新加载
+            </Button>
+          </template>
+        </Alert>
       </div>
 
       <Table
@@ -186,7 +189,9 @@ onMounted(load);
       >
         <template #emptyText>
           <div class="empty-wrap">
-            <Empty description="购物车暂无待结算商品" />
+            <Empty description="购物车暂无待结算商品">
+              <Button type="primary" @click="router.push('/buyer/catalog')">去挑选商品</Button>
+            </Empty>
           </div>
         </template>
 
@@ -195,9 +200,18 @@ onMounted(load);
             <div class="product-info">
               <span class="product-name">{{ record.productName }}</span>
               <span class="product-id">商品编号 #{{ record.id }}</span>
-              <span v-if="phoneLayout" class="cart-mobile-meta">
-                ¥{{ Number(record.unitPrice).toFixed(2) }} · {{ record.quantity }} 件 · 商家 #{{ record.merchantId }}
-              </span>
+              <div v-if="phoneLayout" class="cart-mobile-row">
+                <span class="price-val">¥{{ Number(record.unitPrice).toFixed(2) }}</span>
+                <span class="merchant-mini-tag">商家 #{{ record.merchantId }}</span>
+                <InputNumber
+                  :min="1"
+                  :value="record.quantity"
+                  size="small"
+                  aria-label="商品数量"
+                  class="quantity-input-mobile"
+                  @change="(value) => updateQuantity(record as CartRow, value)"
+                />
+              </div>
             </div>
           </template>
 
@@ -251,7 +265,7 @@ onMounted(load);
 
       <div class="settlement-right">
         <div class="price-summary">
-          <span class="market-note">商品金额：</span>
+          <span class="market-note">合计金额：</span>
           <strong class="total-price">¥{{ total.toFixed(2) }}</strong>
         </div>
         <Button
@@ -280,22 +294,27 @@ onMounted(load);
   margin-bottom: 12px;
 }
 
+.panel-header .market-panel-title {
+  margin: 0;
+}
+
 .loading-wrap,
 .empty-wrap,
 .error-wrap {
-  padding: 36px 0;
+  padding: 32px 0;
   text-align: center;
 }
 
 .product-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .product-name {
   color: var(--market-text);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 .product-id {
@@ -303,28 +322,41 @@ onMounted(load);
   font-size: 12px;
 }
 
-.cart-mobile-meta {
+.cart-mobile-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.merchant-mini-tag {
   color: var(--market-muted);
-  font-size: 12px;
+  font-size: 11px;
+}
+
+.quantity-input-mobile {
+  max-width: 80px;
 }
 
 .merchant-tag {
-  border-radius: 4px;
+  border-radius: var(--mall-radius-base);
 }
 
 .price-val {
   color: var(--market-text);
   font-variant-numeric: tabular-nums;
+  font-size: 13.5px;
 }
 
 .subtotal-val {
-  color: var(--market-text);
-  font-weight: 600;
+  color: hsl(var(--primary));
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
+  font-size: 14px;
 }
 
 .quantity-input {
-  max-width: 100px;
+  max-width: 96px;
 }
 
 .action-btn {
@@ -338,6 +370,7 @@ onMounted(load);
   gap: 16px;
   justify-content: space-between;
   margin-top: 16px;
+  padding: 16px 20px;
 }
 
 .settlement-left {
@@ -364,15 +397,16 @@ onMounted(load);
 }
 
 .total-price {
-  color: var(--market-text);
+  color: hsl(var(--primary));
   font-size: 24px;
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
 
 .checkout-btn {
-  min-width: 120px;
+  min-width: 124px;
+  font-weight: 600;
 }
 
 @media (max-width: 640px) {
@@ -380,6 +414,7 @@ onMounted(load);
     align-items: stretch;
     flex-direction: column;
     gap: 12px;
+    padding: 14px 16px;
   }
 
   .settlement-right {
@@ -395,9 +430,5 @@ onMounted(load);
   .checkout-btn {
     width: 100%;
   }
-}
-
-@media (min-width: 681px) {
-  .cart-mobile-meta { display: none; }
 }
 </style>

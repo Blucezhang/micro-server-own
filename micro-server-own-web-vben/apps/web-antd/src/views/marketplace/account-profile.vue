@@ -3,7 +3,7 @@ import type { AccountProfile, AccountSession } from '#/api/marketplace';
 
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 
-import { Alert, Button, Empty, Form, Input, Popconfirm, Space, Spin, Table, Tag } from 'ant-design-vue';
+import { Alert, Button, Empty, Form, Input, Popconfirm, Spin, Table, Tag } from 'ant-design-vue';
 
 import { accountApi } from '#/api/marketplace';
 import { useAuthStore } from '#/store';
@@ -33,10 +33,10 @@ const allSessionsKey = ref(crypto.randomUUID());
 let sessionSeq = 0;
 
 const columns = [
-  { dataIndex: 'actorType', key: 'actorType', title: '登录端' },
-  { key: 'createdAt', title: '创建时间' },
-  { key: 'expiresAt', title: '到期时间' },
-  { key: 'actions', title: '操作' },
+  { dataIndex: 'actorType', key: 'actorType', title: '登录端', width: 110 },
+  { key: 'createdAt', title: '创建时间', width: 180 },
+  { key: 'expiresAt', title: '到期时间', width: 180 },
+  { key: 'actions', title: '操作', width: 90 },
 ];
 
 function isRawError(msg: string): boolean {
@@ -234,28 +234,39 @@ onMounted(() => {
   <main class="market-page">
     <header class="market-head">
       <div>
-        <span class="market-overline">ACCOUNT · 账号设置</span>
         <h1 class="market-heading">个人资料与会话</h1>
         <p class="market-subtitle">只修改自己的联系资料；登录名、角色与所属商家不在此处变更。</p>
       </div>
     </header>
+
     <div class="market-grid">
+      <!-- Left Panel: Profile Info -->
       <section class="market-panel" aria-labelledby="profile-title">
         <h2 id="profile-title" class="market-panel-title">基本资料</h2>
-        <Alert v-if="profileError" :message="profileError" type="error" show-icon class="notice">
+
+        <Alert v-if="profileError" :message="profileError" type="error" show-icon class="profile-alert">
           <template #action>
             <Button size="small" danger ghost :loading="loading || saving" @click="profileErrorAction === 'save' ? save() : loadProfile()">
               重试
             </Button>
           </template>
         </Alert>
-        <Alert v-if="profileFeedback" :message="profileFeedback" type="success" show-icon class="notice" />
+        <Alert v-if="profileFeedback" :message="profileFeedback" type="success" show-icon class="profile-alert" />
+
         <Spin :spinning="loading">
           <template v-if="profile">
-            <div class="identity">
-              <span>登录名</span><strong>{{ profile.loginName }}</strong>
-              <span>账号 ID</span><strong>{{ profile.loginUserId }}</strong>
+            <div class="identity-card">
+              <div class="identity-field">
+                <span class="identity-label">登录名</span>
+                <strong class="identity-value">{{ profile.loginName }}</strong>
+              </div>
+              <div class="identity-divider" />
+              <div class="identity-field">
+                <span class="identity-label">账号 ID</span>
+                <strong class="identity-value">{{ profile.loginUserId }}</strong>
+              </div>
             </div>
+
             <Form :model="form" layout="vertical" :disabled="loading || saving" @finish="save">
               <Form.Item label="姓名" name="name" :rules="[{ required: true, message: '请填写姓名' }]">
                 <Input v-model:value="form.name" :maxlength="100" />
@@ -266,7 +277,7 @@ onMounted(() => {
               <Form.Item label="电话" name="phone" :rules="[{ required: true, pattern: /^[0-9+() -]{6,32}$/, message: '请输入 6–32 位电话' }]">
                 <Input v-model:value="form.phone" :maxlength="32" />
               </Form.Item>
-              <Button html-type="submit" type="primary" :loading="saving" :disabled="loading">
+              <Button html-type="submit" type="primary" :loading="saving" :disabled="loading" class="save-btn">
                 保存资料
               </Button>
             </Form>
@@ -274,6 +285,8 @@ onMounted(() => {
           <div v-else-if="loading" class="profile-loading-placeholder" />
         </Spin>
       </section>
+
+      <!-- Right Panel: Login Sessions -->
       <section class="market-panel" aria-labelledby="sessions-title">
         <div class="session-head">
           <div>
@@ -282,15 +295,22 @@ onMounted(() => {
           </div>
           <Button :loading="sessionLoading" :disabled="sessionActionBusy || sessionLoading" @click="loadSessions">刷新</Button>
         </div>
-        <Alert v-if="sessionError" :message="sessionError" description="请点击上方“刷新”重试。" type="error" show-icon class="notice" />
-        <Alert v-if="sessionFeedback" :message="sessionFeedback" type="success" show-icon class="notice" />
+
+        <Alert v-if="sessionError" :message="sessionError" type="error" show-icon class="profile-alert">
+          <template #action>
+            <Button size="small" danger ghost :loading="sessionLoading" :disabled="sessionActionBusy" @click="loadSessions">重试</Button>
+          </template>
+        </Alert>
+        <Alert v-if="sessionFeedback" :message="sessionFeedback" type="success" show-icon class="profile-alert" />
+
         <Table
           v-if="!sessionError || sessions.length"
           :columns="columns"
           :data-source="sessions"
           :loading="sessionLoading"
           :pagination="{ pageSize: 8, showSizeChanger: false }"
-          :scroll="{ x: 620 }"
+          :scroll="{ x: 500 }"
+          class="session-table"
           row-key="id"
         >
           <template #emptyText>
@@ -310,30 +330,28 @@ onMounted(() => {
             </Popconfirm>
           </template>
         </Table>
-        <Space class="danger-zone">
+
+        <!-- Danger Zone Card -->
+        <div class="danger-zone-card">
+          <div class="danger-zone-copy">
+            <h3 class="danger-zone-title">危险操作</h3>
+            <p class="danger-zone-desc">撤销全部登录会话将强制退出包含当前设备在内的所有已登录端，需重新登录。</p>
+          </div>
           <Popconfirm
-            title="撤销所有登录会话并退出当前账号？"
+            title="确认撤销所有登录会话并退出当前账号？"
+            ok-text="确认退出"
+            cancel-text="取消"
             :disabled="sessionActionBusy || sessionLoading"
             @confirm="revokeAll"
           >
-            <Button danger :loading="revokingAll" :disabled="sessionActionBusy || sessionLoading">退出所有设备</Button>
+            <Button danger :loading="revokingAll" :disabled="sessionActionBusy || sessionLoading" class="danger-btn">
+              退出所有设备
+            </Button>
           </Popconfirm>
-        </Space>
+        </div>
       </section>
     </div>
   </main>
 </template>
 
-<style scoped>
-.identity { display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 6px 12px; margin-bottom: 22px; padding: 14px 16px; border: 1px solid var(--market-line); border-radius: 10px; font-size: 12px; }
-.identity span { color: var(--market-muted); }
-.identity strong { overflow: hidden; font-weight: 550; text-overflow: ellipsis; white-space: nowrap; }
-.session-head { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
-.session-head .market-panel-title { margin-bottom: 4px; }
-.profile-loading-placeholder { min-height: 220px; }
-.danger-zone { margin-top: 18px; }
-.notice { margin-bottom: 16px; }
-@media (max-width: 760px) {
-  .session-head { flex-direction: column; }
-}
-</style>
+<style scoped src="./account-profile.css"></style>

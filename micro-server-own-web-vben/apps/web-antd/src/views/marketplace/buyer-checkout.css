@@ -1,0 +1,263 @@
+.empty-selection-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.empty-selection-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.empty-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: hsl(var(--muted));
+  color: var(--market-muted);
+  margin-bottom: 16px;
+}
+
+.empty-icon {
+  width: 26px;
+  height: 26px;
+}
+
+.empty-copy {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.empty-title {
+  margin: 0;
+  color: var(--market-text);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.empty-desc {
+  margin: 0;
+  color: var(--market-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.panel-alert {
+  margin-bottom: 14px;
+}
+
+.checkout-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.8fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.checkout-options, .checkout-summary {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+}
+
+.checkout-summary {
+  position: sticky;
+  top: 18px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-heading .market-panel-title {
+  margin: 0;
+}
+
+.addresses {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+.addresses :deep(.ant-radio-wrapper) {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--market-line);
+  border-radius: var(--mall-radius-base);
+}
+
+.addresses :deep(.ant-radio-wrapper-checked) {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--accent) / 0.3);
+}
+
+.address-recipient, .address-detail, .coupon-name, .coupon-rule {
+  display: block;
+}
+
+.address-recipient {
+  color: var(--market-text);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.address-recipient span {
+  color: var(--market-muted);
+  font-size: 12px;
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+.address-detail {
+  margin-top: 4px;
+  color: var(--market-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.coupon-name {
+  color: var(--market-text);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.coupon-rule {
+  margin-top: 4px;
+  color: var(--market-muted);
+  font-size: 12px;
+}
+
+.quote-lines {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.quote-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--market-muted);
+  font-size: 13px;
+}
+
+.quote-line strong {
+  color: var(--market-text);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.quote-line .discount {
+  color: hsl(var(--primary));
+}
+
+.quote-payable {
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--market-line);
+}
+
+.quote-payable span {
+  color: var(--market-text);
+  font-weight: 650;
+  font-size: 14px;
+}
+
+.quote-payable strong {
+  color: hsl(var(--primary));
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.merchant-breakdown {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--market-line);
+}
+
+.merchant-breakdown h3 {
+  margin: 0;
+  color: var(--market-text);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.merchant-quote {
+  display: grid;
+  gap: 3px;
+  color: var(--market-text);
+  font-size: 12px;
+}
+
+.merchant-quote span + span {
+  color: var(--market-muted);
+  font-size: 11.5px;
+}
+
+.quote-footnote {
+  margin: 14px 0 0;
+  color: var(--market-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.submit-panel {
+  padding: 16px;
+}
+
+.checkout-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn-submit {
+  width: 100%;
+  font-weight: 600;
+}
+
+.btn-back {
+  width: 100%;
+  color: var(--market-muted);
+}
+
+@media (max-width: 1080px) {
+  .checkout-layout {
+    grid-template-columns: 1fr;
+  }
+  .checkout-summary {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .checkout-layout {
+    gap: 14px;
+  }
+
+  .empty-selection-panel {
+    padding: 32px 16px;
+  }
+}

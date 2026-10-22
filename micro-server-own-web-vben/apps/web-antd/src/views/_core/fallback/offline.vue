@@ -6,9 +6,9 @@ defineOptions({ name: 'FallbackOffline' });
 
 <template>
   <FallbackView
-    describe="无法连接到微商城服务网络，请检查您的网络连接与本地网关，确认网络恢复后点击重试。"
+    describe="无法连接到服务网络。请检查本地网络连接后重试。"
     show-refresh
     status="offline"
-    title="网络连接中断 · 离线状态"
+    title="网络连接中断"
   />
 </template>

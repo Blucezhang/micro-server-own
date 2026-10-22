@@ -66,73 +66,30 @@ const formSchema = computed((): VbenFormSchema[] => {
     :show-qrcode-login="false"
     :show-register="false"
     :show-third-party-login="false"
-    sub-title="选择所属业务端并使用已授权账号登录"
-    title="微服务商城运营台"
+    sub-title="请选择所属业务端并使用已授权账号登录"
+    title="账号密码登录"
     @submit="authStore.authLogin"
   >
     <template v-if="authStore.uiDemoEnabled" #to-register>
       <div class="demo-entry">
-        <p class="demo-entry-tip">
-          本地 UI 走查入口（未连接真实业务网关）：
-        </p>
-        <button
-          v-for="actor in demoActors"
-          :key="actor.value"
-          class="demo-btn"
-          type="button"
-          @click="authStore.enterUiDemo(actor.value)"
-        >
-          {{ actor.label }}
-        </button>
+        <div class="demo-header">
+          <span class="demo-badge">本地走查</span>
+          <span class="demo-tip">UI 演示（未连接真实业务网关）</span>
+        </div>
+        <div class="demo-actions">
+          <button
+            v-for="actor in demoActors"
+            :key="actor.value"
+            class="demo-btn"
+            type="button"
+            @click="authStore.enterUiDemo(actor.value)"
+          >
+            {{ actor.label }}
+          </button>
+        </div>
       </div>
     </template>
   </AuthenticationLogin>
 </template>
 
-<style scoped>
-.demo-entry {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: 18px;
-  padding: 12px 14px;
-  border: 1px dashed hsl(var(--border));
-  border-radius: 8px;
-  background: hsl(var(--card) / 0.5);
-}
-
-.demo-entry-tip {
-  width: 100%;
-  margin: 0 0 4px;
-  color: hsl(var(--muted-foreground));
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.demo-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px 12px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 6px;
-  background: hsl(var(--card));
-  color: hsl(var(--foreground));
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.16s ease;
-}
-
-.demo-btn:hover {
-  border-color: hsl(var(--primary));
-  background: hsl(var(--primary) / 0.08);
-  color: hsl(var(--primary));
-}
-
-.demo-btn:focus-visible {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 1px;
-}
-</style>
+<style scoped src="./login.css"></style>

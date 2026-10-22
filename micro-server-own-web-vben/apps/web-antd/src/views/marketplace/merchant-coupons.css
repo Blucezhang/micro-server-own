@@ -1,0 +1,298 @@
+.coupon-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel-header-row .market-panel-title {
+  margin-bottom: 0;
+}
+
+.edit-pill {
+  font-size: 12px;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.list-count-tag {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Form structure & section hierarchy for desktop and mobile */
+.coupon-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--mall-radius-base, 8px);
+  background: hsl(var(--muted) / 0.28);
+  border: 1px solid hsl(var(--border) / 0.6);
+}
+
+.form-section-title {
+  font-size: 12.5px;
+  font-weight: 650;
+  color: hsl(var(--foreground));
+  letter-spacing: 0.02em;
+}
+
+.coupon-form :deep(.ant-form-item) {
+  margin-bottom: 8px;
+}
+
+.coupon-form :deep(.ant-form-item:last-child) {
+  margin-bottom: 0;
+}
+
+.form-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.full {
+  width: 100%;
+}
+
+.form-hint {
+  margin: 2px 0 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.notice {
+  margin-bottom: 14px;
+}
+
+/* Error state box (single point of failure message and retry) */
+.state-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: var(--mall-radius-base, 8px);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.35);
+}
+
+.state-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.state-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.state-desc {
+  font-size: 12.5px;
+  color: hsl(var(--muted-foreground));
+  word-break: break-word;
+}
+
+/* Table cells */
+.amount-val {
+  font-weight: 650;
+  color: hsl(var(--foreground));
+  font-variant-numeric: tabular-nums;
+}
+
+.coupon-info-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 140px;
+  line-height: 1.45;
+}
+
+.coupon-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coupon-id-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+}
+
+.coupon-id {
+  user-select: all;
+  font-variant-numeric: tabular-nums;
+}
+
+.copy-id-button {
+  height: auto;
+  padding: 0 4px;
+  font-size: 12px;
+}
+
+.sub-qty {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Mobile cards for coupons (<=768px) */
+.mobile-coupon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-coupon-card {
+  padding: 14px 16px;
+  border-radius: var(--mall-radius-base, 8px);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobile-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mobile-card-title {
+  font-size: 14px;
+  font-weight: 650;
+  color: hsl(var(--foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-card-badge-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.mobile-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: hsl(var(--primary));
+  font-variant-numeric: tabular-nums;
+}
+
+.mobile-threshold {
+  font-size: 12.5px;
+  color: hsl(var(--muted-foreground));
+}
+
+.mobile-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: hsl(var(--muted) / 0.3);
+  font-size: 12px;
+}
+
+.mobile-grid-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobile-grid-label {
+  color: hsl(var(--muted-foreground));
+  font-size: 11.5px;
+}
+
+.mobile-grid-value {
+  color: hsl(var(--foreground));
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.mobile-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid hsl(var(--border) / 0.6);
+  flex-wrap: wrap;
+}
+
+.mobile-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 640px) {
+  .form-pair {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel-header-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .state-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .state-box .ant-btn {
+    align-self: flex-start;
+  }
+  .mobile-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .mobile-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

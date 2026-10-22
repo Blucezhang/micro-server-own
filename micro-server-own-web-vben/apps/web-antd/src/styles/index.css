@@ -16,35 +16,37 @@
 .light,
 .light[data-theme='custom'],
 .light[data-theme='default'] {
-  --background: 38 28% 98%;
-  --background-deep: 36 24% 96%;
-  --foreground: 222 25% 17%;
+  --background: 120 4% 97%;
+  --background-deep: 120 4% 97%;
+  --foreground: 175 17% 14%;
   --card: 0 0% 100%;
-  --card-foreground: 222 25% 17%;
-  --muted: 36 18% 94%;
-  --muted-foreground: 218 10% 44%;
-  --border: 36 12% 88%;
-  --input: 36 12% 85%;
-  --accent: 168 36% 92%;
-  --accent-foreground: 168 68% 22%;
-  --ring: 168 72% 30%;
+  --card-foreground: 175 17% 14%;
+  --muted: 154 12% 94%;
+  --muted-foreground: 162 6% 43%;
+  --border: 154 12% 88%;
+  --input: 154 12% 88%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 174 36% 93%;
+  --accent-foreground: 174 76% 23%;
+  --ring: 174 76% 23%;
 }
 
 .dark,
 .dark[data-theme='custom'],
 .dark[data-theme='default'] {
-  --background: 222 47% 11%;
-  --background-deep: 222 47% 8%;
-  --foreground: 210 40% 96%;
-  --card: 222 47% 13%;
-  --card-foreground: 210 40% 96%;
-  --muted: 217 33% 18%;
-  --muted-foreground: 215 20% 65%;
-  --border: 217 33% 22%;
-  --input: 217 33% 22%;
-  --accent: 168 40% 20%;
-  --accent-foreground: 168 72% 75%;
-  --ring: 168 72% 45%;
+  --background: 185 26% 8%;
+  --background-deep: 185 26% 8%;
+  --foreground: 158 20% 93%;
+  --card: 185 21% 11%;
+  --card-foreground: 158 20% 93%;
+  --muted: 173 14% 17%;
+  --muted-foreground: 158 10% 69%;
+  --border: 173 14% 22%;
+  --input: 173 14% 22%;
+  --primary-foreground: 185 26% 8%;
+  --accent: 173 14% 17%;
+  --accent-foreground: 170 52% 56%;
+  --ring: 170 52% 56%;
 }
 
 /* ==========================================================================
@@ -105,26 +107,24 @@ aside.bg-sidebar {
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  padding: 4px 0 20px;
+  padding: 0 0 20px;
   border-bottom: 1px solid var(--market-line);
 }
 
 .market-overline {
   display: inline-block;
-  color: hsl(var(--primary));
+  color: var(--market-muted);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .dark .market-page {
-  --market-action-text: 211 90% 72%;
+  --market-action-text: var(--primary);
 }
 
 .dark .market-page .ant-btn-link:not(.ant-btn-dangerous),
-.dark .market-page .price-val,
-.dark .market-page .market-overline {
+.dark .market-page .price-val {
   color: hsl(var(--market-action-text));
 }
 
@@ -134,7 +134,7 @@ aside.bg-sidebar {
 }
 
 .market-heading {
-  margin: 6px 0 6px;
+  margin: 0 0 6px;
   color: var(--market-text);
   font-size: clamp(22px, 2vw, 28px);
   font-weight: 680;
@@ -156,7 +156,6 @@ aside.bg-sidebar {
   border: 1px solid var(--market-line);
   border-radius: var(--mall-radius-xl);
   background: var(--market-surface);
-  box-shadow: 0 1px 2px rgb(28 36 48 / 0.035), 0 10px 28px rgb(28 36 48 / 0.025);
   box-sizing: border-box;
 }
 

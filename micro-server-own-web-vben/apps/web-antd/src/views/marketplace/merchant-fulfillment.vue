@@ -1,10 +1,8 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue';
-import { useMediaQuery, useWindowSize } from '@vueuse/core';
-
+import { useMediaQuery } from '@vueuse/core';
 import type { ColumnType } from 'ant-design-vue/es/table';
-import { Alert, Button, Drawer, Empty, Form, Input, Space, Table, Tag } from 'ant-design-vue';
-
+import { Alert, Button, Drawer, Empty, Form, Input, Pagination, Space, Table, Tag } from 'ant-design-vue';
 import { merchantApi } from '#/api/marketplace';
 
 type SubOrder = {
@@ -14,34 +12,29 @@ type SubOrder = {
   subOrderNo: string;
 };
 
+const isMobile = useMediaQuery('(max-width: 768px)');
 const listLoading = ref(false);
 const actionLoading = ref(false);
 const rows = ref<SubOrder[]>([]);
 const page = ref(0);
 const total = ref(0);
-const shippingOpen = ref(false);
-const compactLayout = useMediaQuery('(max-width: 1000px)');
-const phoneLayout = useMediaQuery('(max-width: 680px)');
-const { width: viewportWidth } = useWindowSize();
 const pageSize = 20;
+
+const shippingOpen = ref(false);
 const form = reactive({ logisticsCompany: '', subOrderNo: '', trackingNo: '' });
 const actionFeedback = ref<null | { text: string; type: 'error' | 'success' }>(null);
 const drawerFeedback = ref<null | { text: string; type: 'error' | 'success' }>(null);
 const listError = ref('');
 
+const drawerWidth = computed(() => (isMobile.value ? '100%' : 520));
+
 const columns: ColumnType[] = [
-  { dataIndex: 'subOrderNo', key: 'subOrderNo', title: '子订单号', width: 260 },
+  { dataIndex: 'subOrderNo', key: 'subOrderNo', title: '子订单号', minWidth: 220 },
   { dataIndex: 'status', key: 'status', title: '履约状态', width: 120 },
-  { dataIndex: 'amount', key: 'amount', title: '订单金额', width: 150 },
-  { key: 'createdAt', title: '创建时间', width: 210 },
-  { key: 'actions', title: '操作', width: 118, fixed: 'right' as const },
+  { dataIndex: 'amount', key: 'amount', title: '订单金额', width: 140 },
+  { key: 'createdAt', title: '创建时间', width: 180 },
+  { key: 'actions', title: '操作', width: 110, fixed: 'right' as const },
 ];
-const responsiveColumns = computed<ColumnType[]>(() => phoneLayout.value
-  ? [
-      { dataIndex: 'subOrderNo', key: 'subOrderNo', title: '履约订单', width: Math.max(120, viewportWidth.value - 184) },
-      { key: 'actions', title: '操作', width: 118 },
-    ]
-  : columns);
 
 function message(error: unknown, fallback: string) {
   if (!(error instanceof Error) || /^request failed with status code \d{3}$/i.test(error.message)) {
@@ -86,14 +79,15 @@ async function load(clearActionFeedback = false) {
     rows.value = result.items || [];
     total.value = Number(result.total || 0);
   } catch (error) {
-    listError.value = message(error, '待发货订单加载失败，请重试');
+    listError.value = message(error, '服务暂未响应，请稍后重试');
   } finally {
     listLoading.value = false;
   }
 }
 
-async function changePage(pagination: { current?: number }) {
-  page.value = (pagination.current || 1) - 1;
+async function changePage(pagination: number | { current?: number }) {
+  const targetPage = typeof pagination === 'number' ? pagination : (pagination.current || 1);
+  page.value = targetPage - 1;
   await load();
 }
 
@@ -126,82 +120,132 @@ onMounted(() => load());
 <template>
   <main class="market-page">
     <header class="market-head">
-      <div>
-        <span class="market-overline">MERCHANT · FULFILLMENT</span>
-        <h1 class="market-heading">发货履约</h1>
-        <p class="market-subtitle">仅展示待发货子订单。录入物流信息后，订单服务负责状态流转与追踪记录。</p>
+      <div class="market-head-text">
+        <div class="head-title-row">
+          <h1 class="market-heading">待发货订单</h1>
+          <span v-if="!listError && total > 0" class="catalog-badge">
+            共 {{ total }} 笔待发货
+          </span>
+        </div>
+        <p class="market-subtitle">核对待发货订单并录入物流承运单号，提交后即进入物流履约链路。</p>
       </div>
-      <Button :loading="listLoading" @click="load(true)">刷新订单</Button>
+      <div class="market-head-actions">
+        <Button :loading="listLoading" @click="load(true)">刷新订单</Button>
+      </div>
     </header>
 
-    <Alert v-if="actionFeedback" :message="actionFeedback.text" :type="actionFeedback.type" closable show-icon @close="actionFeedback = null" />
+    <Alert
+      v-if="actionFeedback"
+      :message="actionFeedback.text"
+      :type="actionFeedback.type"
+      class="action-alert"
+      closable
+      show-icon
+      @close="actionFeedback = null"
+    />
 
-    <section class="market-panel fulfillment-panel" aria-labelledby="to-ship-title">
-      <div class="list-heading">
-        <div>
-          <h2 id="to-ship-title" class="market-panel-title">待处理订单</h2>
-          <p class="market-note">
-            <template v-if="listError">订单加载受阻 · 请点击重试</template>
-            <template v-else-if="listLoading && rows.length === 0">正在载入待处理订单...</template>
-            <template v-else>按订单录入物流信息，发货后状态由订单服务自动流转。</template>
-          </p>
+    <section class="market-panel fulfillment-panel" aria-label="待发货订单列表">
+      <div v-if="listError" class="catalog-error-row" role="alert">
+        <div class="error-main">
+          <span class="error-badge">加载失败</span>
+          <span class="error-detail">{{ listError }}</span>
         </div>
-        <Tag v-if="!listError" class="queue-count">{{ total }} 待发货</Tag>
-        <Tag v-else color="error" class="queue-status-tag">加载失败</Tag>
+        <Button :loading="listLoading" size="small" type="primary" @click="load(true)">重新加载</Button>
       </div>
 
-      <div v-if="listError" class="state-box state-error">
-        <div class="state-info">
-          <span class="state-title">待发货订单加载失败</span>
-          <span class="state-desc">{{ listError }}</span>
+      <template v-else>
+        <div v-if="!isMobile" class="table-container">
+          <Table
+            :columns="columns"
+            :data-source="rows"
+            :loading="listLoading"
+            :pagination="total > pageSize ? { current: page + 1, pageSize, total, showSizeChanger: false } : false"
+            row-key="subOrderNo"
+            @change="changePage"
+          >
+            <template #emptyText>
+              <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无待发货订单" />
+            </template>
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'subOrderNo'">
+                <span class="mono-code">{{ record.subOrderNo }}</span>
+              </template>
+              <template v-else-if="column.key === 'createdAt'">
+                <span class="date-text">{{ formatDate(record.createdAt) }}</span>
+              </template>
+              <template v-else-if="column.key === 'amount'">
+                <span class="order-amount">{{ formatAmount(record.amount) }}</span>
+              </template>
+              <template v-else-if="column.key === 'status'">
+                <Tag color="gold">待发货</Tag>
+              </template>
+              <template v-else-if="column.key === 'actions'">
+                <Button size="small" type="primary" @click="openShipping(String(record.subOrderNo))">
+                  录入物流
+                </Button>
+              </template>
+            </template>
+          </Table>
         </div>
-        <Button :loading="listLoading" size="small" type="primary" ghost @click="load(true)">重新加载</Button>
-      </div>
 
-      <Table
-        v-else
-        :class="{ 'compact-table': phoneLayout }"
-        :columns="responsiveColumns"
-        :data-source="rows"
-        :loading="listLoading"
-        :pagination="total > 0 ? { current: page + 1, pageSize, total, showSizeChanger: false } : false"
-        :scroll="phoneLayout ? undefined : compactLayout ? { x: 880 } : undefined"
-        row-key="subOrderNo"
-        @change="changePage"
-      >
-        <template #emptyText>
-          <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无待发货订单" />
-        </template>
-        <template #bodyCell="{ column, record }">
-          <div v-if="column.key === 'subOrderNo'" class="mobile-order-cell">
-            <span>{{ record.subOrderNo }}</span>
-            <span class="mobile-order-meta">待发货 · {{ formatAmount(record.amount) }}</span>
+        <div v-else class="mobile-card-list">
+          <div v-if="listLoading" class="mobile-loading-tip">正在载入订单数据...</div>
+          <div v-else-if="rows.length === 0" class="mobile-empty">
+            <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无待发货订单" />
           </div>
-          <template v-if="column.key === 'createdAt'">{{ formatDate(record.createdAt) }}</template>
-          <span v-else-if="column.key === 'amount'" class="order-amount">{{ formatAmount(record.amount) }}</span>
-          <Tag v-else-if="column.key === 'status'" color="gold">待发货</Tag>
-          <Button v-else-if="column.key === 'actions'" size="small" type="primary" @click="openShipping(String(record.subOrderNo))">录入物流</Button>
-        </template>
-      </Table>
-    </section>
-
-    <Drawer v-model:open="shippingOpen" :closable="false" :width="520" placement="right" @close="closeShipping">
-      <template #title>
-        <div class="editor-heading">
-          <span class="market-overline">MERCHANT · SHIPPING</span>
-          <h2>录入物流</h2>
-          <p>提交后将写入该子订单的发货记录，请核对物流单号。</p>
+          <article v-for="item in (listLoading ? [] : rows)" :key="item.subOrderNo" class="mobile-card">
+            <div class="mobile-card-top">
+              <span class="mono-code">{{ item.subOrderNo }}</span>
+              <Tag color="gold">待发货</Tag>
+            </div>
+            <div class="mobile-card-mid">
+              <div class="mobile-field">
+                <span class="field-label">订单金额</span>
+                <span class="order-amount">{{ formatAmount(item.amount) }}</span>
+              </div>
+              <div class="mobile-field" style="text-align: right">
+                <span class="field-label">下单时间</span>
+                <span class="date-text">{{ formatDate(item.createdAt) }}</span>
+              </div>
+            </div>
+            <div class="mobile-card-bot">
+              <span />
+              <Button size="small" type="primary" @click="openShipping(String(item.subOrderNo))">
+                录入物流
+              </Button>
+            </div>
+          </article>
+          <div v-if="total > pageSize" class="mobile-pagination-wrap">
+            <Pagination :current="page + 1" :page-size="pageSize" :total="total" size="small" simple @change="changePage" />
+          </div>
         </div>
       </template>
-      <Form :disabled="actionLoading" :model="form" class="shipment-form" layout="vertical" @finish="ship">
+    </section>
+
+    <!-- 录入物流抽屉 -->
+    <Drawer
+      v-model:open="shippingOpen"
+      :closable="false"
+      :width="drawerWidth"
+      destroy-on-close
+      placement="right"
+      @close="closeShipping"
+    >
+      <template #title>
+        <div class="editor-heading">
+          <h2>录入物流</h2>
+          <p>请核对承运公司与面单号，确认后提交至履约系统。</p>
+        </div>
+      </template>
+      <Form :disabled="actionLoading" :model="form" layout="vertical" @finish="ship">
         <Form.Item label="子订单号" name="subOrderNo">
           <Input v-model:value="form.subOrderNo" disabled />
         </Form.Item>
         <Form.Item label="物流公司" name="logisticsCompany" :rules="[{ required: true, message: '请填写物流公司' }]">
-          <Input v-model:value="form.logisticsCompany" placeholder="例如：顺丰速运" />
+          <Input v-model:value="form.logisticsCompany" placeholder="例如：顺丰速运、中通快递" />
         </Form.Item>
         <Form.Item label="物流单号" name="trackingNo" :rules="[{ required: true, message: '请填写物流单号' }]">
-          <Input v-model:value="form.trackingNo" placeholder="请输入物流面单号" />
+          <Input v-model:value="form.trackingNo" placeholder="请输入物流快递单号" />
         </Form.Item>
         <Alert v-if="drawerFeedback?.type === 'error'" :message="drawerFeedback.text" class="notice" show-icon type="error" />
         <div class="editor-footer">
@@ -215,28 +259,4 @@ onMounted(() => load());
   </main>
 </template>
 
-<style scoped>
-.shipment-form { max-width: 680px; }
-.notice { margin-bottom: 16px; }
-.fulfillment-panel { padding-bottom: 10px; }
-.list-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
-.list-heading .market-panel-title { margin-bottom: 4px; }
-.queue-count { margin: 0; padding: 5px 10px; border: 0; border-radius: 999px; background: hsl(42 88% 92%); color: hsl(31 75% 34%); font-weight: 600; }
-.queue-status-tag { margin: 0; font-weight: 600; }
-.state-box { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-radius: var(--mall-radius-base, 8px); border: 1px solid hsl(var(--border)); background: hsl(var(--muted) / 0.4); }
-.state-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.state-title { font-size: 13.5px; font-weight: 600; color: hsl(var(--foreground)); }
-.state-desc { font-size: 12.5px; color: hsl(var(--muted-foreground)); word-break: break-word; }
-.order-amount { color: hsl(var(--foreground)); font-weight: 650; font-variant-numeric: tabular-nums; }
-.mobile-order-cell { display: grid; gap: 4px; min-width: 0; }
-.mobile-order-meta { color: hsl(var(--muted-foreground)); font-size: 12px; }
-.editor-heading { padding: 2px 0 4px; }
-.editor-heading h2 { margin: 6px 0 5px; color: hsl(var(--foreground)); font-size: 20px; font-weight: 650; }
-.editor-heading p { margin: 0; color: hsl(var(--muted-foreground)); font-size: 13px; font-weight: 400; line-height: 1.6; }
-.editor-footer { position: sticky; bottom: -24px; display: flex; justify-content: flex-end; margin: 28px -24px -24px; padding: 16px 24px; border-top: 1px solid hsl(var(--border)); background: hsl(var(--card)); }
-@media (min-width: 681px) { .mobile-order-meta { display: none; } }
-@media (max-width: 480px) {
-  .list-heading { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .state-box { flex-direction: column; align-items: flex-start; gap: 10px; }
-}
-</style>
+<style scoped src="./merchant-fulfillment.css"></style>

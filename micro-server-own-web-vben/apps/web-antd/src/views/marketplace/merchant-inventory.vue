@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue';
-
+import { useMediaQuery } from '@vueuse/core';
 import {
-  Alert, Button, Descriptions, Empty, Form,
-  Input, InputNumber, Select, Space, Statistic, Switch, Table, Tag,
+  Alert, Button, Empty, Form, Input, InputNumber,
+  Radio, Select, Switch, Table, Tag,
 } from 'ant-design-vue';
 
 import { merchantApi } from '#/api/marketplace';
@@ -45,6 +45,9 @@ const alertColumns = [
   { key: 'actions', title: '快捷操作', width: 110 },
 ];
 
+const isMobile = useMediaQuery('(max-width: 768px)');
+const activeOpTab = ref<'adjust' | 'rule'>('adjust');
+
 const loading = ref(false);
 const alertsLoading = ref(false);
 const adjustLoading = ref(false);
@@ -81,6 +84,11 @@ const rule = reactive({
   thresholdQuantity: undefined as number | undefined,
 });
 
+const isOutOfStock = computed(() => {
+  if (!stock.value || stock.value.availableQuantity == null) return false;
+  return Number(stock.value.availableQuantity) <= 0;
+});
+
 function formatNumber(val: unknown) {
   if (val === undefined || val === null || val === '') return '—';
   const num = Number(val);
@@ -101,11 +109,6 @@ function hasProduct() {
 function hasScope() {
   return hasProduct() && Number.isSafeInteger(query.merchantId) && !!query.merchantId && query.merchantId > 0;
 }
-
-const isOutOfStock = computed(() => {
-  if (!stock.value || stock.value.availableQuantity == null) return false;
-  return Number(stock.value.availableQuantity) <= 0;
-});
 
 async function loadAlerts() {
   alertsLoading.value = true;
@@ -218,236 +221,248 @@ onMounted(loadAlerts);
 <template>
   <main class="market-page">
     <header class="market-head">
-      <div>
-        <span class="market-overline">MERCHANT · INVENTORY</span>
+      <div class="market-head-text">
         <h1 class="market-heading">库存管理</h1>
-        <p class="market-subtitle">
-          查询商品实时库存、执行出入库与盘点校准，并配置低库存预警规则；所有库存以库存服务计算结果为准。
-        </p>
+        <p class="market-subtitle">查询商品实时库存、执行出入库与盘点校准，并配置低库存预警规则。</p>
       </div>
-      <Space>
+      <div class="market-head-actions">
         <Button :loading="alertsLoading" @click="loadAlerts">刷新预警</Button>
-      </Space>
+      </div>
     </header>
 
     <Alert
       v-if="feedback"
       :message="feedback.text"
       :type="feedback.type"
-      class="notice"
+      class="action-alert"
       show-icon
       closable
       @close="feedback = null"
     />
 
     <!-- 库存查询面板 -->
-    <section class="market-panel" aria-labelledby="stock-query-title">
-      <div class="panel-header">
-        <h2 id="stock-query-title" class="market-panel-title">库存查询</h2>
-        <p class="market-note">输入商品 ID 与商家 ID 查询当前实物与可用库存。</p>
-      </div>
-
+    <section class="market-panel query-panel" aria-label="实时库存查询">
+      <h2 class="panel-title-sm">实时库存查询</h2>
       <Form :disabled="loading" :model="query" class="query-form" layout="inline" @finish="() => loadStock(false)">
-        <Form.Item label="商品 ID" name="productId" :rules="[{ required: true, message: '请填写商品 ID' }]">
-          <InputNumber v-model:value="query.productId" :min="1" :precision="0" placeholder="商品 ID" style="width: 160px" />
+        <Form.Item label="商品 ID" name="productId" class="query-form-item">
+          <InputNumber v-model:value="query.productId" :min="1" :precision="0" placeholder="商品 ID" class="query-input" />
         </Form.Item>
-        <Form.Item label="商家 ID" name="merchantId" :rules="[{ required: true, message: '请填写商家 ID' }]">
-          <InputNumber v-model:value="query.merchantId" :min="1" :precision="0" placeholder="商家 ID" style="width: 160px" />
+        <Form.Item label="商家 ID" name="merchantId" class="query-form-item">
+          <InputNumber v-model:value="query.merchantId" :min="1" :precision="0" placeholder="商家 ID" class="query-input" />
         </Form.Item>
-        <Form.Item>
+        <Form.Item class="query-form-actions">
           <Button :loading="loading" html-type="submit" type="primary">查询库存</Button>
         </Form.Item>
       </Form>
 
-      <div v-if="queryFeedback" class="query-feedback-wrap">
-        <Alert :message="queryFeedback.text" :type="queryFeedback.type" class="query-feedback" show-icon />
-        <div v-if="stockLoadError" class="state-actions stock-retry-actions">
-          <Button size="small" type="primary" ghost :loading="loading" @click="() => loadStock(true)">
-            重试查询库存
-          </Button>
-        </div>
+      <div v-if="queryFeedback" class="query-error-box">
+        <span class="query-error-text">{{ queryFeedback.text }}</span>
+        <Button v-if="stockLoadError" size="small" type="primary" ghost :loading="loading" @click="() => loadStock(true)">
+          重试查询
+        </Button>
       </div>
 
       <!-- 查询结果展示 -->
-      <div v-if="stock" class="stock-result-wrap">
-        <div class="stock-metrics-strip">
-          <div class="metric-item">
-            <Statistic title="可用库存" :value="stock.availableQuantity ?? 0" :value-style="{ color: isOutOfStock ? 'hsl(var(--destructive))' : 'hsl(var(--primary))', fontWeight: '700' }" />
-            <span class="metric-hint">可供买家直接下单的数量</span>
-          </div>
-          <div class="metric-item">
-            <Statistic title="预留库存" :value="stock.reservedQuantity ?? 0" :value-style="{ color: 'hsl(var(--foreground))', fontWeight: '700' }" />
-            <span class="metric-hint">下单待支付或待履约锁定量</span>
-          </div>
-          <div class="metric-item">
-            <Statistic title="已售数量" :value="stock.soldQuantity ?? 0" :value-style="{ color: 'hsl(var(--foreground))', fontWeight: '700' }" />
-            <span class="metric-hint">累计已确认售出数量</span>
-          </div>
+      <div v-if="stock" class="stock-summary-strip">
+        <div class="summary-metric">
+          <span class="metric-label">可用库存</span>
+          <strong :class="['metric-value', isOutOfStock ? 'val-danger' : 'val-primary']">
+            {{ formatNumber(stock.availableQuantity) }}
+          </strong>
+          <span class="metric-desc">可供买家直接下单</span>
         </div>
-
-        <Descriptions bordered size="small" class="stock-desc" :column="{ xs: 1, sm: 3 }">
-          <Descriptions.Item label="商品 ID">{{ stock.productId ?? '—' }}</Descriptions.Item>
-          <Descriptions.Item label="商家 ID">{{ stock.merchantId ?? '—' }}</Descriptions.Item>
-          <Descriptions.Item label="库存状态">
-            <Tag :color="isOutOfStock ? 'red' : 'green'">{{ isOutOfStock ? '已售罄' : '有可用库存' }}</Tag>
-          </Descriptions.Item>
-        </Descriptions>
+        <div class="summary-metric">
+          <span class="metric-label">预留锁定</span>
+          <strong class="metric-value">{{ formatNumber(stock.reservedQuantity) }}</strong>
+          <span class="metric-desc">下单待支付或履约中</span>
+        </div>
+        <div class="summary-metric">
+          <span class="metric-label">累计已售</span>
+          <strong class="metric-value">{{ formatNumber(stock.soldQuantity) }}</strong>
+          <span class="metric-desc">已确认售出总量</span>
+        </div>
+        <div class="summary-metric">
+          <span class="metric-label">库存状态</span>
+          <span :class="['status-pill', isOutOfStock ? 'status-pill-offline' : 'status-pill-available']">
+            <span class="status-dot" aria-hidden="true" />
+            <span>{{ isOutOfStock ? '已缺货' : '库存充足' }}</span>
+          </span>
+          <span class="metric-desc">商品 #{{ stock.productId }} · 商家 #{{ stock.merchantId }}</span>
+        </div>
       </div>
-      <Empty v-else-if="stockQueried && !loading && !stockLoadError" description="未查询到该商品的库存信息" class="empty-state" />
+
+      <div v-else-if="stockQueried && !loading && !stockLoadError" class="query-hint-bar">
+        未查询到该商品的库存信息，请核对商品与商家编号。
+      </div>
+      <div v-else-if="!stockQueried" class="query-hint-bar">
+        输入商品 ID 与商家 ID 查询实时库存并进行调整或预警设置。
+      </div>
     </section>
 
     <!-- 操作区域：库存调整与低库存规则 -->
-    <div class="market-grid">
-      <!-- 调整库存 -->
-      <section class="market-panel" aria-labelledby="adjust-title">
-        <div class="panel-header">
-          <h2 id="adjust-title" class="market-panel-title">库存调整</h2>
-          <p class="market-note">提交出入库单或盘点校准；请确认上方已选定目标商品与商家。</p>
-        </div>
+    <section class="ops-section" aria-label="库存操作">
+      <div v-if="isMobile" class="mobile-tab-switch">
+        <Radio.Group v-model:value="activeOpTab" button-style="solid">
+          <Radio.Button value="adjust">库存出入库调整</Radio.Button>
+          <Radio.Button value="rule">低库存预警规则</Radio.Button>
+        </Radio.Group>
+      </div>
 
-        <Form :disabled="adjustLoading" :model="adjust" layout="vertical" @finish="submitAdjust">
-          <Form.Item label="调整类型" name="adjustmentType" :rules="[{ required: true, message: '请选择调整类型' }]">
-            <Select v-model:value="adjust.adjustmentType" :options="adjustTypeOptions" />
-          </Form.Item>
-          <Form.Item label="调整数量" name="quantity" :rules="[{ required: true, message: '请填写调整数量' }]" extra="正整数，入库增加，出库扣减，盘点为实际数量。">
-            <InputNumber v-model:value="adjust.quantity" :min="1" :precision="0" class="full" placeholder="请输入正整数" />
-          </Form.Item>
-          <Form.Item label="调整原因" name="reason" :rules="[{ required: true, message: '请填写调整原因' }]">
-            <Input v-model:value="adjust.reason" placeholder="例如：供应商到货、破损出库、日常盘点校准" :maxlength="100" show-count />
-          </Form.Item>
-          <div class="form-action-row">
-            <Button :loading="adjustLoading" :disabled="!hasScope()" html-type="submit" type="primary">提交调整</Button>
-            <span v-if="!hasScope()" class="field-hint">需先在上方指定商品与商家 ID</span>
+      <div class="ops-grid">
+        <!-- 调整库存 -->
+        <div v-show="!isMobile || activeOpTab === 'adjust'" class="market-panel op-panel">
+          <div class="op-header">
+            <h2 class="op-title">库存调整</h2>
+            <p class="op-desc">提交出入库单或盘点校准；需先选定目标商品与商家。</p>
           </div>
-        </Form>
-      </section>
 
-      <!-- 低库存预警配置 -->
-      <section class="market-panel" aria-labelledby="rule-title">
-        <div class="panel-header">
-          <h2 id="rule-title" class="market-panel-title">低库存预警规则</h2>
-          <p class="market-note">配置商品可用库存的警戒线，低于阈值时将在此页面列表中提醒。</p>
-        </div>
-
-        <Form :disabled="ruleLoading" :model="rule" layout="vertical" @finish="submitRule">
-          <Form.Item label="预警状态" name="enabled">
-            <div class="switch-row">
-              <Switch v-model:checked="rule.enabled" />
-              <span class="switch-label">{{ rule.enabled ? '已开启预警' : '已停用预警' }}</span>
+          <Form :disabled="adjustLoading" :model="adjust" layout="vertical" @finish="submitAdjust">
+            <Form.Item label="调整类型" name="adjustmentType" :rules="[{ required: true, message: '请选择调整类型' }]">
+              <Select v-model:value="adjust.adjustmentType" :options="adjustTypeOptions" />
+            </Form.Item>
+            <Form.Item label="调整数量" name="quantity" :rules="[{ required: true, message: '请填写调整数量' }]">
+              <InputNumber v-model:value="adjust.quantity" :min="1" :precision="0" class="full" placeholder="输入正整数（入库增/出库减/盘点实存）" />
+            </Form.Item>
+            <Form.Item label="调整原因" name="reason" :rules="[{ required: true, message: '请填写调整原因' }]">
+              <Input v-model:value="adjust.reason" placeholder="例如：供应商到货、破损出库、日常盘点校准" :maxlength="100" show-count />
+            </Form.Item>
+            <div class="form-action-row">
+              <Button :loading="adjustLoading" :disabled="!hasScope()" html-type="submit" type="primary">提交调整</Button>
+              <span v-if="!hasScope()" class="field-hint">需先在上方查询指定商品与商家 ID</span>
             </div>
-          </Form.Item>
-          <Form.Item label="预警阈值数量" name="thresholdQuantity" :rules="[{ required: true, message: '请填写预警阈值' }]" extra="当可用库存小于等于该阈值时触发低库存提醒。">
-            <InputNumber v-model:value="rule.thresholdQuantity" :min="0" :precision="0" class="full" placeholder="例如：10" />
-          </Form.Item>
-          <div class="form-action-row">
-            <Button :loading="ruleLoading" :disabled="!hasProduct()" html-type="submit" type="primary">保存预警规则</Button>
-            <span v-if="!hasProduct()" class="field-hint">需先在上方指定商品 ID</span>
+          </Form>
+        </div>
+
+        <!-- 低库存预警配置 -->
+        <div v-show="!isMobile || activeOpTab === 'rule'" class="market-panel op-panel">
+          <div class="op-header">
+            <h2 class="op-title">低库存预警规则</h2>
+            <p class="op-desc">配置可用库存警戒线，低于阈值时在下方列表中标红提醒。</p>
           </div>
-        </Form>
-      </section>
-    </div>
+
+          <Form :disabled="ruleLoading" :model="rule" layout="vertical" @finish="submitRule">
+            <Form.Item label="预警状态" name="enabled">
+              <div class="switch-row">
+                <Switch v-model:checked="rule.enabled" />
+                <span class="switch-label">{{ rule.enabled ? '已开启预警' : '已停用预警' }}</span>
+              </div>
+            </Form.Item>
+            <Form.Item label="预警阈值数量" name="thresholdQuantity" :rules="[{ required: true, message: '请填写预警阈值' }]">
+              <InputNumber v-model:value="rule.thresholdQuantity" :min="0" :precision="0" class="full" placeholder="例如：10（可用库存低于等于该值触发）" />
+            </Form.Item>
+            <div class="form-action-row">
+              <Button :loading="ruleLoading" :disabled="!hasProduct()" html-type="submit" type="primary">保存预警规则</Button>
+              <span v-if="!hasProduct()" class="field-hint">需先在上方指定商品 ID</span>
+            </div>
+          </Form>
+        </div>
+      </div>
+    </section>
 
     <!-- 低库存提醒列表 -->
-    <section class="market-panel alert-list-panel" aria-labelledby="alerts-title">
-      <div class="list-heading">
-        <div>
-          <h2 id="alerts-title" class="market-panel-title">低库存预警列表</h2>
-          <p class="market-note">当前店铺所有达到或低于预警阈值的商品清单，请及时补货。</p>
-        </div>
-        <Tag
-          v-if="alertsLoaded && !alertsError"
-          class="alert-count"
-          :class="{ 'alert-count-zero': alerts.length === 0 }"
-        >
-          {{ alerts.length }} 件需关注
-        </Tag>
-      </div>
-
-      <div v-if="alertsError" class="list-state-error">
-        <Alert :message="alertsError" type="error" show-icon />
-        <div class="state-actions">
-          <Button size="small" type="primary" ghost :loading="alertsLoading" @click="loadAlerts">
-            重试加载
-          </Button>
+    <section class="market-panel alert-panel" aria-label="低库存预警列表">
+      <div class="alert-panel-head">
+        <div class="alert-head-text">
+          <h2 class="panel-title-sm" style="margin: 0">低库存预警列表</h2>
+          <span
+            v-if="alertsLoaded && !alertsError"
+            :class="['alert-badge', alerts.length === 0 ? 'alert-badge-zero' : '']"
+          >
+            {{ alerts.length }} 件需关注
+          </span>
         </div>
       </div>
 
-      <Table
-        v-else
-        :columns="alertColumns"
-        :data-source="alerts"
-        :loading="alertsLoading"
-        :pagination="{ pageSize: 10, showSizeChanger: false }"
-        :scroll="{ x: 800 }"
-        row-key="productId"
-      >
-        <template #emptyText>
-          <Empty description="暂无低库存预警商品" />
-        </template>
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'productId'">
-            <strong>#{{ record.productId }}</strong>
-          </template>
-          <template v-else-if="column.key === 'merchantId'">
-            <span>{{ record.merchantId ?? '—' }}</span>
-          </template>
-          <template v-else-if="column.key === 'thresholdQuantity'">
-            <span class="tabular-num">{{ formatNumber(record.thresholdQuantity) }}</span>
-          </template>
-          <template v-else-if="column.key === 'availableQuantity'">
-            <strong class="tabular-num warn-stock">{{ formatNumber(record.availableQuantity) }}</strong>
-          </template>
-          <template v-else-if="column.key === 'reservedQuantity'">
-            <span class="tabular-num">{{ formatNumber(record.reservedQuantity) }}</span>
-          </template>
-          <template v-else-if="column.key === 'soldQuantity'">
-            <span class="tabular-num">{{ formatNumber(record.soldQuantity) }}</span>
-          </template>
-          <template v-else-if="column.key === 'status'">
-            <Tag :color="Number(record.availableQuantity) <= 0 ? 'red' : 'gold'">
-              {{ Number(record.availableQuantity) <= 0 ? '已缺货' : '库存紧张' }}
-            </Tag>
-          </template>
-          <template v-else-if="column.key === 'actions'">
-            <Button size="small" type="link" @click="applyAlertTarget(record)">定位补货</Button>
-          </template>
-        </template>
-      </Table>
+      <div v-if="alertsError" class="catalog-error-row" role="alert">
+        <div class="error-main">
+          <span class="error-badge">加载失败</span>
+          <span class="error-detail">{{ alertsError }}</span>
+        </div>
+        <Button size="small" type="primary" :loading="alertsLoading" @click="loadAlerts">重新加载</Button>
+      </div>
+
+      <template v-else>
+        <div v-if="!isMobile" class="table-container">
+          <Table
+            :columns="alertColumns"
+            :data-source="alerts"
+            :loading="alertsLoading"
+            :pagination="{ pageSize: 10, showSizeChanger: false }"
+            row-key="productId"
+          >
+            <template #emptyText>
+              <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无低库存预警商品" />
+            </template>
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'productId'">
+                <strong>#{{ record.productId }}</strong>
+              </template>
+              <template v-else-if="column.key === 'merchantId'">
+                <span>{{ record.merchantId ?? '—' }}</span>
+              </template>
+              <template v-else-if="column.key === 'thresholdQuantity'">
+                <span class="tabular-num">{{ formatNumber(record.thresholdQuantity) }}</span>
+              </template>
+              <template v-else-if="column.key === 'availableQuantity'">
+                <strong class="tabular-num warn-stock">{{ formatNumber(record.availableQuantity) }}</strong>
+              </template>
+              <template v-else-if="column.key === 'reservedQuantity'">
+                <span class="tabular-num">{{ formatNumber(record.reservedQuantity) }}</span>
+              </template>
+              <template v-else-if="column.key === 'soldQuantity'">
+                <span class="tabular-num">{{ formatNumber(record.soldQuantity) }}</span>
+              </template>
+              <template v-else-if="column.key === 'status'">
+                <Tag :color="Number(record.availableQuantity) <= 0 ? 'red' : 'gold'">
+                  {{ Number(record.availableQuantity) <= 0 ? '已缺货' : '库存紧张' }}
+                </Tag>
+              </template>
+              <template v-else-if="column.key === 'actions'">
+                <Button size="small" type="link" @click="applyAlertTarget(record)">定位补货</Button>
+              </template>
+            </template>
+          </Table>
+        </div>
+
+        <div v-else class="mobile-card-list">
+          <div v-if="alertsLoading" class="mobile-loading-tip">正在载入预警数据...</div>
+          <div v-else-if="alerts.length === 0" class="mobile-empty">
+            <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无低库存预警商品" />
+          </div>
+          <article v-for="(item, idx) in (alertsLoading ? [] : alerts)" :key="String(item.productId ?? idx)" class="mobile-card">
+            <div class="mobile-card-top">
+              <strong>商品 #{{ item.productId }}</strong>
+              <Tag :color="Number(item.availableQuantity) <= 0 ? 'red' : 'gold'">
+                {{ Number(item.availableQuantity) <= 0 ? '已缺货' : '库存紧张' }}
+              </Tag>
+            </div>
+            <div class="mobile-card-grid">
+              <div class="mobile-grid-cell">
+                <span class="cell-label">可用库存</span>
+                <span class="cell-val warn-stock">{{ formatNumber(item.availableQuantity) }}</span>
+              </div>
+              <div class="mobile-grid-cell">
+                <span class="cell-label">预警阈值</span>
+                <span class="cell-val">{{ formatNumber(item.thresholdQuantity) }}</span>
+              </div>
+              <div class="mobile-grid-cell">
+                <span class="cell-label">预留锁定</span>
+                <span class="cell-val">{{ formatNumber(item.reservedQuantity) }}</span>
+              </div>
+              <div class="mobile-grid-cell">
+                <span class="cell-label">累计已售</span>
+                <span class="cell-val">{{ formatNumber(item.soldQuantity) }}</span>
+              </div>
+            </div>
+            <div class="mobile-card-actions">
+              <span class="field-hint">商家 #{{ item.merchantId ?? '—' }}</span>
+              <Button size="small" type="primary" ghost @click="applyAlertTarget(item)">定位补货</Button>
+            </div>
+          </article>
+        </div>
+      </template>
     </section>
   </main>
 </template>
 
-<style scoped>
-.notice { margin-bottom: 16px; }
-.query-feedback-wrap { margin-top: 14px; }
-.query-feedback { margin-bottom: 8px; }
-.panel-header { margin-bottom: 16px; }
-.query-form { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; }
-.stock-result-wrap { margin-top: 20px; }
-.stock-metrics-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
-.metric-item { padding: 12px 16px; border: 1px solid var(--market-line); border-radius: 8px; background: hsl(var(--muted) / 0.3); }
-.metric-hint { display: block; margin-top: 4px; color: hsl(var(--muted-foreground)); font-size: 11px; }
-.stock-desc { margin-top: 12px; }
-.empty-state { margin: 24px 0 12px; }
-.full { width: 100%; }
-.form-action-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
-.field-hint { color: hsl(var(--muted-foreground)); font-size: 12px; }
-.switch-row { display: flex; align-items: center; gap: 10px; }
-.switch-label { color: hsl(var(--foreground)); font-size: 13px; }
-.list-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-.alert-list-panel { padding-bottom: 10px; }
-.alert-count { margin: 0; padding: 4px 10px; border: 0; border-radius: 999px; background: hsl(38 92% 90%); color: hsl(32 81% 29%); font-weight: 600; }
-.alert-count-zero { background: var(--market-surface, #f1f5f9); color: var(--market-muted, #64748b); font-weight: 500; }
-.tabular-num { font-variant-numeric: tabular-nums; }
-.warn-stock { color: hsl(var(--destructive)); }
-.list-state-error { padding: 4px 0 16px; display: flex; flex-direction: column; gap: 12px; }
-.state-actions { display: flex; justify-content: flex-start; }
-.stock-retry-actions { margin-top: 8px; }
-
-@media (max-width: 768px) {
-  .stock-metrics-strip { grid-template-columns: 1fr; }
-  .query-form { flex-direction: column; align-items: stretch; }
-  .query-form :deep(.ant-form-item) { margin-inline-end: 0; width: 100%; }
-  .query-form :deep(.ant-input-number) { width: 100% !important; }
-}
-</style>
+<style scoped src="./merchant-inventory.css"></style>

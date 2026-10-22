@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue';
-import { useRoute } from 'vue-router';
-
-import { Alert, Button, Empty, Form, InputNumber, Space, Table } from 'ant-design-vue';
-
+import { onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useMediaQuery } from '@vueuse/core';
+import { Alert, Button, Empty, Form, InputNumber, Pagination, Space, Table } from 'ant-design-vue';
 import { merchantApi } from '#/api/marketplace';
 
 export interface ProductPriceAudit {
@@ -19,6 +18,9 @@ export interface ProductPriceAudit {
 }
 
 const route = useRoute();
+const router = useRouter();
+const isMobile = useMediaQuery('(max-width: 768px)');
+
 const loading = ref(false);
 const rows = ref<ProductPriceAudit[]>([]);
 const page = ref(0);
@@ -26,14 +28,16 @@ const total = ref(0);
 const pageSize = 20;
 const listError = ref('');
 const queryError = ref('');
-const hasLoaded = ref(false);
 const initialQueryDone = ref(false);
-const query = reactive({ productId: Number(route.query.productId) || undefined as number | undefined });
+
+const query = reactive({
+  productId: Number(route.query.productId) || undefined as number | undefined,
+});
 
 const columns = [
-  { key: 'id', title: '审计记录 ID', dataIndex: 'id', width: 110 },
-  { key: 'originalPrice', title: '原价变更', width: 180 },
-  { key: 'promotionPrice', title: '促销价变更', width: 180 },
+  { key: 'id', title: '审计记录 ID', dataIndex: 'id', width: 120 },
+  { key: 'originalPrice', title: '原价变更', width: 190 },
+  { key: 'promotionPrice', title: '促销价变更', width: 190 },
   { key: 'reason', title: '变更原因', dataIndex: 'reason', ellipsis: true },
   { key: 'changedAt', title: '变更时间', width: 170 },
 ];
@@ -61,7 +65,7 @@ function formatPrice(val?: null | number): string {
 }
 
 function formatDate(dateStr?: string): string {
-  if (!dateStr) return '-';
+  if (!dateStr) return '—';
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return dateStr;
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -80,10 +84,12 @@ async function load() {
   loading.value = true;
   listError.value = '';
   try {
-    const result = (await merchantApi.priceAudits(query.productId, page.value)) as { items?: ProductPriceAudit[]; total?: number };
+    const result = (await merchantApi.priceAudits(query.productId, page.value)) as {
+      items?: ProductPriceAudit[];
+      total?: number;
+    };
     rows.value = result.items || [];
     total.value = Number(result.total || 0);
-    hasLoaded.value = true;
   } catch (reason) {
     listError.value = humanizeError(reason, '价格审计记录加载失败，请稍后重试');
   } finally {
@@ -101,10 +107,22 @@ async function search() {
   await load();
 }
 
-async function changePage(pagination: { current?: number }) {
-  page.value = (pagination.current || 1) - 1;
+async function changePage(pagination: number | { current?: number }) {
+  const targetPage = typeof pagination === 'number' ? pagination : (pagination.current || 1);
+  page.value = targetPage - 1;
   await load();
 }
+
+watch(
+  () => route.query.productId,
+  (val) => {
+    const parsed = Number(val);
+    if (parsed && Number.isSafeInteger(parsed) && parsed > 0 && parsed !== query.productId) {
+      query.productId = parsed;
+      void search();
+    }
+  },
+);
 
 onMounted(() => {
   if (query.productId) void search();
@@ -114,202 +132,149 @@ onMounted(() => {
 <template>
   <main class="market-page">
     <header class="market-head">
-      <div>
-        <span class="market-overline">MERCHANT · AUDIT</span>
-        <h1 class="market-heading">商品价格审计</h1>
-        <p class="market-subtitle">追踪与核对商品价格的历史变更记录、前后的价差调整与审核原因说明。</p>
+      <div class="market-head-text">
+        <div class="head-title-row">
+          <h1 class="market-heading">商品价格审计</h1>
+          <span v-if="initialQueryDone && !listError && total > 0" class="catalog-badge">
+            共 {{ total }} 条记录
+          </span>
+        </div>
+        <p class="market-subtitle">追踪与核对商品原价与促销价的历史变更记录、调价幅度与原因追溯。</p>
+      </div>
+      <div class="market-head-actions">
+        <Button @click="router.push('/merchant/products')">返回商品管理</Button>
       </div>
     </header>
 
-    <section class="market-panel" aria-labelledby="audit-query-title">
-      <div class="panel-header">
-        <div>
-          <h2 id="audit-query-title" class="market-panel-title">查询审计记录</h2>
-          <p class="panel-subtitle">输入商品 ID 查看该商品所有的原价与促销价调整时间线</p>
+    <section class="market-panel audit-panel" aria-label="商品价格审计记录">
+      <div class="audit-toolbar">
+        <Form :disabled="loading" :model="query" class="query-form" layout="inline" @finish="search">
+          <Form.Item label="商品 ID" name="productId" class="query-form-item">
+            <InputNumber
+              v-model:value="query.productId"
+              :min="1"
+              :precision="0"
+              placeholder="输入商品 ID，例如：1001"
+              class="query-input"
+            />
+          </Form.Item>
+          <Form.Item class="query-form-actions">
+            <Space wrap>
+              <Button :loading="loading" html-type="submit" type="primary">查询审计记录</Button>
+              <Button v-if="initialQueryDone && query.productId" :disabled="loading" @click="load">刷新</Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </div>
+
+      <Alert v-if="queryError" :message="queryError" class="query-alert" show-icon type="error" closable @close="queryError = ''" />
+
+      <div v-if="listError" class="catalog-error-row" role="alert">
+        <div class="error-main">
+          <span class="error-badge">加载失败</span>
+          <span class="error-detail">{{ listError }}</span>
         </div>
+        <Button :loading="loading" size="small" type="primary" @click="load">重新加载</Button>
       </div>
-      <Alert v-if="queryError" :message="queryError" class="notice" show-icon type="error" />
-      <Form :disabled="loading" :model="query" class="query-form" layout="inline" @finish="search">
-        <Form.Item label="商品 ID" name="productId" :rules="[{ required: true, message: '请填写商品 ID' }]">
-          <InputNumber v-model:value="query.productId" :min="1" :precision="0" placeholder="例如：1001" style="width: 200px" />
-        </Form.Item>
-        <Form.Item>
-          <Space>
-            <Button :loading="loading" html-type="submit" type="primary">查询审计记录</Button>
-            <Button v-if="query.productId" :disabled="loading" @click="search">刷新</Button>
-          </Space>
-        </Form.Item>
-      </Form>
-    </section>
 
-    <section class="market-panel" aria-labelledby="audit-list-title">
-      <div class="panel-header">
-        <div>
-          <h2 id="audit-list-title" class="market-panel-title">
-            {{ query.productId ? `商品 #${query.productId} 价格变更历史` : '变更历史列表' }}
-          </h2>
-          <p v-if="initialQueryDone && hasLoaded && !listError" class="panel-subtitle">
-            共 {{ total }} 条调价审计记录
-          </p>
+      <div v-else-if="!initialQueryDone" class="query-guide-strip">
+        <div class="guide-content">
+          <span class="guide-dot" aria-hidden="true" />
+          <span class="guide-text">请输入商品 ID 并点击「查询审计记录」调取历史调价明细。</span>
         </div>
+        <Button size="small" type="link" class="guide-link" @click="router.push('/merchant/products')">
+          前往商品管理选择商品
+        </Button>
       </div>
 
-      <div v-if="!initialQueryDone" class="empty-wrap">
-        <Empty description="请先在上方输入商品 ID 并点击查询" />
-      </div>
+      <template v-else>
+        <div v-if="!isMobile" class="table-container">
+          <Table
+            :columns="columns"
+            :data-source="rows"
+            :loading="loading"
+            :pagination="total > pageSize ? { current: page + 1, pageSize, total, showSizeChanger: false } : false"
+            row-key="id"
+            @change="changePage"
+          >
+            <template #emptyText>
+              <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无该商品的价格变更审计记录" />
+            </template>
 
-      <div v-else-if="listError" class="list-state-error">
-        <Alert :message="listError" type="error" show-icon />
-        <div class="state-actions">
-          <Button size="small" type="primary" ghost :loading="loading" @click="load">
-            重试加载
-          </Button>
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'id'">
+                <span class="mono-code">#{{ record.id }}</span>
+              </template>
+
+              <template v-else-if="column.key === 'originalPrice'">
+                <div class="price-flow">
+                  <span class="price-before">{{ formatPrice(record.originalPriceBefore) }}</span>
+                  <span class="price-arrow">→</span>
+                  <span class="price-after">{{ formatPrice(record.originalPriceAfter) }}</span>
+                </div>
+              </template>
+
+              <template v-else-if="column.key === 'promotionPrice'">
+                <div v-if="record.promotionPriceBefore != null || record.promotionPriceAfter != null" class="price-flow">
+                  <span class="price-before">{{ formatPrice(record.promotionPriceBefore) }}</span>
+                  <span class="price-arrow">→</span>
+                  <span class="price-after">{{ formatPrice(record.promotionPriceAfter) }}</span>
+                </div>
+                <span v-else class="text-muted">无促销价变动</span>
+              </template>
+
+              <template v-else-if="column.key === 'reason'">
+                <span :title="record.reason" class="reason-text">{{ record.reason || '未填写原因' }}</span>
+              </template>
+
+              <template v-else-if="column.key === 'changedAt'">
+                <span class="date-text">{{ formatDate(record.changedAt) }}</span>
+              </template>
+            </template>
+          </Table>
         </div>
-      </div>
 
-      <Table
-        v-else
-        :columns="columns"
-        :data-source="rows"
-        :loading="loading"
-        :pagination="{ current: page + 1, pageSize, total, showSizeChanger: false, showTotal: (t) => `共 ${t} 条记录` }"
-        :scroll="{ x: 780 }"
-        row-key="id"
-        @change="changePage"
-      >
-        <template #emptyText>
-          <Empty description="暂无该商品的价格变更审计记录" />
-        </template>
-
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'id'">
-            <span class="mono-code">#{{ record.id }}</span>
-          </template>
-
-          <template v-else-if="column.key === 'originalPrice'">
-            <div class="price-flow">
-              <span class="price-before">{{ formatPrice(record.originalPriceBefore) }}</span>
-              <span class="price-arrow">→</span>
-              <span class="price-after">{{ formatPrice(record.originalPriceAfter) }}</span>
+        <div v-else class="mobile-card-list">
+          <div v-if="loading" class="mobile-loading-tip">正在载入审计记录...</div>
+          <div v-else-if="rows.length === 0" class="mobile-empty">
+            <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无该商品的价格变更审计记录" />
+          </div>
+          <article v-for="item in (loading ? [] : rows)" :key="item.id" class="mobile-card">
+            <div class="mobile-card-top">
+              <span class="mono-code">#{{ item.id }}</span>
+              <span class="date-text">{{ formatDate(item.changedAt) }}</span>
             </div>
-          </template>
-
-          <template v-else-if="column.key === 'promotionPrice'">
-            <div v-if="record.promotionPriceBefore != null || record.promotionPriceAfter != null" class="price-flow">
-              <span class="price-before">{{ formatPrice(record.promotionPriceBefore) }}</span>
-              <span class="price-arrow">→</span>
-              <span class="price-after">{{ formatPrice(record.promotionPriceAfter) }}</span>
+            <div class="mobile-card-mid">
+              <div class="mobile-price-row">
+                <span class="price-label">原价变更</span>
+                <div class="price-flow">
+                  <span class="price-before">{{ formatPrice(item.originalPriceBefore) }}</span>
+                  <span class="price-arrow">→</span>
+                  <span class="price-after">{{ formatPrice(item.originalPriceAfter) }}</span>
+                </div>
+              </div>
+              <div class="mobile-price-row">
+                <span class="price-label">促销价变更</span>
+                <div v-if="item.promotionPriceBefore != null || item.promotionPriceAfter != null" class="price-flow">
+                  <span class="price-before">{{ formatPrice(item.promotionPriceBefore) }}</span>
+                  <span class="price-arrow">→</span>
+                  <span class="price-after">{{ formatPrice(item.promotionPriceAfter) }}</span>
+                </div>
+                <span v-else class="text-muted">无促销变动</span>
+              </div>
             </div>
-            <span v-else class="text-muted">无促销价变动</span>
-          </template>
-
-          <template v-else-if="column.key === 'reason'">
-            <span :title="record.reason" class="reason-text">{{ record.reason || '未填写原因' }}</span>
-          </template>
-
-          <template v-else-if="column.key === 'changedAt'">
-            <span class="date-text">{{ formatDate(record.changedAt) }}</span>
-          </template>
-        </template>
-      </Table>
+            <div class="mobile-card-bot">
+              <span class="reason-label">变更原因</span>
+              <span class="reason-text">{{ item.reason || '未填写原因' }}</span>
+            </div>
+          </article>
+          <div v-if="total > pageSize" class="mobile-pagination-wrap">
+            <Pagination :current="page + 1" :page-size="pageSize" :total="total" size="small" simple @change="changePage" />
+          </div>
+        </div>
+      </template>
     </section>
   </main>
 </template>
 
-<style scoped>
-.panel-header {
-  margin-bottom: 16px;
-}
-
-.panel-subtitle {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: var(--market-muted);
-}
-
-.query-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.notice {
-  margin-bottom: 16px;
-}
-
-.empty-wrap {
-  padding: 24px 0;
-}
-
-.list-state-error {
-  padding: 4px 0 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.state-actions {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.mono-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
-  color: var(--market-muted);
-}
-
-.price-flow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-variant-numeric: tabular-nums;
-}
-
-.price-before {
-  color: var(--market-muted, #64748b);
-  text-decoration: line-through;
-}
-
-.price-arrow {
-  color: var(--market-muted);
-  font-size: 12px;
-}
-
-.price-after {
-  font-weight: 600;
-  color: var(--market-text);
-}
-
-.text-muted {
-  color: var(--market-muted);
-  font-size: 13px;
-}
-
-.reason-text {
-  color: var(--market-text);
-}
-
-.date-text {
-  font-size: 13px;
-  color: var(--market-muted);
-  white-space: nowrap;
-}
-
-@media (max-width: 640px) {
-  .query-form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .query-form :deep(.ant-form-item) {
-    margin-inline-end: 0;
-    width: 100%;
-  }
-
-  .query-form :deep(.ant-input-number) {
-    width: 100% !important;
-  }
-}
-</style>
+<style scoped src="./merchant-price-audits.css"></style>

@@ -6,8 +6,8 @@ defineOptions({ name: 'FallbackComingSoon' });
 
 <template>
   <FallbackView
-    describe="该微商城业务功能正在规划与持续迭代中，当前环境暂未对外开放。您可以返回工作台继续办理其他经营事项。"
+    describe="该业务模块暂未开放，当前正在建设中。请返回工作台办理其他经营业务。"
     status="coming-soon"
-    title="功能建设中 · 敬请期待"
+    title="功能建设中"
   />
 </template>
