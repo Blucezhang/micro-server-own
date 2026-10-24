@@ -3,8 +3,10 @@ package com.own.face.trade.idempotency;
 import com.own.face.trade.TradeActor;
 import com.own.face.trade.TradeException;
 import com.own.face.util.Resp;
+import java.sql.SQLException;
 import java.util.Date;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 
 /** Separate bean so Spring applies REQUIRES_NEW to idempotency record mutations. */
@@ -26,6 +28,7 @@ public class TradeIdempotencyStore {
         if (existing != null) return existingFor(existing, hash);
         try { return operations.create(serviceName, actor, path, key, hash, retentionHours); }
         catch (DataIntegrityViolationException exception) {
+            if (!scopeDuplicate(exception)) throw exception;
             existing = operations.lookup(serviceName, actor, path, key);
             if (existing == null) throw exception;
             return existingFor(existing, hash);
@@ -43,5 +46,20 @@ public class TradeIdempotencyStore {
             throw TradeException.conflict("request with this Idempotency-Key is still processing");
         }
         return existing;
+    }
+
+    private boolean scopeDuplicate(Throwable exception) {
+        boolean duplicate = false;
+        boolean scopeIndex = false;
+        for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+            if (cause instanceof DuplicateKeyException
+                    || (cause instanceof SQLException && ((SQLException) cause).getErrorCode() == 1062)) {
+                duplicate = true;
+            }
+            if (cause.getMessage() != null && cause.getMessage().contains("uk_trade_idempotency_scope")) {
+                scopeIndex = true;
+            }
+        }
+        return duplicate && scopeIndex;
     }
 }

@@ -170,6 +170,20 @@ public class OrderController extends BaseController {
         return new Resp(orderService.settlementLines(TradeHeaders.actor(request), orderNo));
     }
 
+    @GetMapping("/internal/orders/{orderNo}/recovery-snapshot")
+    public Resp recoverySnapshot(@PathVariable String orderNo, HttpServletRequest request) {
+        internalServiceGuard.require(request);
+        TradeActor actor = TradeHeaders.actor(request); actor.require(ActorType.SYSTEM);
+        return new Resp(orderService.recoverySnapshot(actor, orderNo));
+    }
+
+    @GetMapping("/internal/orders/{orderNo}/payable-amount")
+    public Resp payableAmount(@PathVariable String orderNo, @RequestParam Long buyerId, HttpServletRequest request) {
+        internalServiceGuard.require(request);
+        TradeHeaders.actor(request).require(ActorType.SYSTEM);
+        return new Resp(orderService.paymentAmount(buyerId, orderNo));
+    }
+
     @GetMapping("/internal/buyers/{buyerId}/products/{productId}/reviewable")
     public Resp reviewable(@PathVariable Long buyerId, @PathVariable Long productId, HttpServletRequest request) {
         internalServiceGuard.require(request);

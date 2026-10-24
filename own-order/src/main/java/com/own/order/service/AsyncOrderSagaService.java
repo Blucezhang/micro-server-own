@@ -61,6 +61,9 @@ public class AsyncOrderSagaService {
         this.coupons = coupons;
         this.objectMapper = objectMapper;
         this.retrySeconds = retrySeconds;
+        if (reservationTtlMinutes < 1 || reservationTtlMinutes > 60) {
+            throw new IllegalArgumentException("trade.saga.reservation-ttl-minutes must be between 1 and 60");
+        }
         this.reservationTtlMinutes = reservationTtlMinutes;
     }
 
@@ -84,15 +87,16 @@ public class AsyncOrderSagaService {
     public void process(String orderNo) {
         OrderSaga saga = sagas.findLockedByOrderNo(orderNo);
         if (saga == null || saga.getStatus() == OrderSagaStatus.COMPLETED || saga.getStatus() == OrderSagaStatus.FAILED) return;
+        if (saga.getStatus() == OrderSagaStatus.COMPENSATING) {
+            processCompensation(saga);
+            return;
+        }
+        OrderSagaCommand finalizationCommand;
         try {
             if (saga.getStatus() == OrderSagaStatus.PROCESSING && expired(saga)) {
                 saga.compensate("saga reservation expired", OrderSagaStep.COMPENSATE_INVENTORY);
                 sagas.save(saga);
                 event(orderNo, "SAGA_COMPENSATION_STARTED", "saga reservation expired");
-                return;
-            }
-            if (saga.getStatus() == OrderSagaStatus.COMPENSATING) {
-                compensate(saga);
                 return;
             }
             OrderSagaCommand command = decode(saga);
@@ -105,10 +109,10 @@ public class AsyncOrderSagaService {
             }
             if (saga.getCurrentStep() == OrderSagaStep.RESERVE_COUPON) {
                 reserveCoupons(command);
-                readyForPayment(saga, command);
-                return;
+                finalizationCommand = command;
+            } else {
+                throw new IllegalStateException("unsupported saga step " + saga.getCurrentStep());
             }
-            throw new IllegalStateException("unsupported saga step " + saga.getCurrentStep());
         } catch (RuntimeException exception) {
             if (saga.getStatus() == OrderSagaStatus.PROCESSING) {
                 saga.compensate(message(exception), OrderSagaStep.COMPENSATE_INVENTORY);
@@ -118,7 +122,10 @@ public class AsyncOrderSagaService {
                 event(orderNo, "SAGA_COMPENSATION_RETRY", message(exception));
             }
             sagas.save(saga);
+            return;
         }
+        // Keep local writes outside the compensation catch so Spring rolls them back on failure.
+        readyForPayment(saga, finalizationCommand);
     }
 
     private void reserveInventory(OrderSagaCommand command) {
@@ -154,10 +161,23 @@ public class AsyncOrderSagaService {
         event(command.getOrderNo(), "SAGA_COMPLETED", "pending_payment");
     }
 
-    private void compensate(OrderSaga saga) {
-        OrderSagaCommand command = decode(saga);
-        coupons.release(command.getOrderNo());
-        inventory.release(command.getOrderNo());
+    private void processCompensation(OrderSaga saga) {
+        OrderSagaCommand command;
+        try {
+            command = decode(saga);
+            coupons.release(command.getOrderNo());
+            inventory.release(command.getOrderNo());
+        } catch (RuntimeException exception) {
+            saga.retry(message(exception), retrySeconds);
+            event(saga.getOrderNo(), "SAGA_COMPENSATION_RETRY", message(exception));
+            sagas.save(saga);
+            return;
+        }
+        // A local write failure must roll back; remote releases are idempotent on retry.
+        finishCompensation(saga, command);
+    }
+
+    private void finishCompensation(OrderSaga saga, OrderSagaCommand command) {
         TradeOrder order = requiredOrder(command.getOrderNo());
         if (order.getStatus() == OrderStatus.PROCESSING) {
             order.sagaFailed();

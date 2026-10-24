@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -10,6 +11,10 @@ import urllib.error
 import urllib.request
 import uuid
 from decimal import Decimal, InvalidOperation
+
+from marketplace_e2e_writes import verify_catalog_operations
+from marketplace_e2e_finance import prepare_high_value_product, complete_exchange, settle_and_withdraw, verify_uncertain_idempotency, verify_database_state
+from marketplace_e2e_evidence import redact, save_evidence
 
 
 class AcceptanceFailure(RuntimeError):
@@ -19,6 +24,7 @@ class AcceptanceFailure(RuntimeError):
 class MarketplaceApi:
     def __init__(self, base_url):
         self.base_url = base_url.rstrip("/")
+        self.evidence = []
 
     def request(self, method, path, token=None, body=None, expected=(200,), headers=None):
         request_headers = {"Accept": "application/json"}
@@ -45,6 +51,9 @@ class MarketplaceApi:
             payload = json.loads(raw.decode("utf-8")) if raw else {}
         except (UnicodeDecodeError, json.JSONDecodeError):
             payload = {"message": "response was not JSON"}
+        self.evidence.append({"kind": "http", "method": method, "path": path,
+                              "request": redact(body), "httpStatus": status,
+                              "response": redact(payload)})
         if status not in expected:
             message = payload.get("message", "") if isinstance(payload, dict) else ""
             raise ApiResponseFailure(status, method, path, message)
@@ -57,6 +66,9 @@ class MarketplaceApi:
         payload = self.request(method, path, token, body, expected, request_headers)
         if not isinstance(payload, dict) or "data" not in payload:
             raise AcceptanceFailure("response envelope missing data for " + method + " " + path)
+        status = payload.get("status")
+        if type(status) is not int or not 200 <= status < 300:
+            raise AcceptanceFailure("response envelope status " + str(status) + " for " + method + " " + path)
         return payload["data"]
 
     def wait_for_data(self, path, token, predicate, timeout=120):
@@ -250,12 +262,25 @@ def create_coupon(api, actors):
         }, label="create-coupon-template",
     )
     template_id = require_field(template, "id", "coupon template")
+    updated_terms = {
+        "name": "Updated disposable acceptance coupon", "totalQuantity": 3,
+        "minimumAmount": "10.00", "discountAmount": "3.00",
+        "claimStartsAt": now - 10_000, "claimEndsAt": now + 300_000,
+        "expiresAt": now + 86_400_000,
+    }
+    template_path = "/sale/api/v1/coupons/merchant/templates/" + str(template_id)
+    edited = write(api, "PUT", template_path, actors["merchant_token"], updated_terms,
+                   label="edit-coupon-template")
+    if edited.get("name") != updated_terms["name"]:
+        raise AcceptanceFailure("coupon template edit did not persist")
     coupon = write(
         api, "POST", "/sale/api/v1/coupons/claim", actors["buyer_token"],
         {"couponType": "STORE", "merchantId": actors["merchant_id"], "merchantTemplateId": template_id},
         label="claim-coupon",
     )
     coupon_no = require_field(coupon, "couponNo", "claimed coupon")
+    api.request("PUT", template_path, actors["merchant_token"], updated_terms,
+                expected=(409,), headers={"Idempotency-Key": "e2e-edit-claimed-coupon-" + str(template_id)})
     api.request(
         "POST", "/sale/api/v1/coupons/claim", actors["buyer_token"],
         {"couponType": "STORE", "merchantId": actors["merchant_id"], "merchantTemplateId": template_id},
@@ -273,7 +298,7 @@ def assert_coupon_status(api, buyer_token, coupon_no, expected_status):
         raise AcceptanceFailure("coupon state is " + actual + ", expected " + expected_status)
 
 
-def place_order(api, actors, product_id):
+def place_order(api, actors, product_id, expected_payable=Decimal("17.90"), expected_freight=Decimal("2.00")):
     address = write(
         api, "POST", "/user/api/v1/addresses", actors["buyer_token"],
         {
@@ -303,8 +328,14 @@ def place_order(api, actors, product_id):
         discount = Decimal(str(require_field(quote, "discountAmount", "checkout quote")))
     except InvalidOperation:
         raise AcceptanceFailure("checkout quote has an invalid payable amount")
-    if payable != Decimal("16.90") or discount != Decimal("3.00"):
-        raise AcceptanceFailure("checkout quote did not apply the expected 3.00 coupon discount")
+    freight = require_field(quote, "merchantFreights", "checkout quote")
+    try:
+        merchant_freight = Decimal(str(freight.get(str(actors["merchant_id"]))))
+    except (InvalidOperation, TypeError):
+        raise AcceptanceFailure("checkout quote has an invalid merchant freight amount")
+    if (payable != expected_payable or discount != Decimal("3.00")
+            or merchant_freight != expected_freight):
+        raise AcceptanceFailure("checkout quote did not reflect edited price, coupon, and freight")
     order = write(api, "POST", "/order/api/v1/orders", actors["buyer_token"], checkout, expected=(200,), label="create-order")
     order_no = require_field(order, "orderNo", "order creation")
     api.wait_for_data(
@@ -395,7 +426,7 @@ def complete_return(api, actors, suffix, product_id, coupon_no, sub_order_no, or
         "GET", "/inventory/api/v1/stocks/" + str(product_id)
         + "?merchantId=" + str(actors["merchant_id"]), actors["merchant_token"],
     )
-    if (stock.get("availableQuantity") != 5 or stock.get("reservedQuantity") != 0
+    if (stock.get("availableQuantity") != 7 or stock.get("reservedQuantity") != 0
             or stock.get("soldQuantity") != 0):
         raise AcceptanceFailure("return refund did not restore the isolated stock balances")
     assert_coupon_status(api, actors["buyer_token"], coupon_no, "USED")
@@ -412,19 +443,48 @@ def verify_access_boundaries(api, actors, order_no):
 
 
 def run():
+    if not re.fullmatch(r"micro-server-own-e2e-[0-9a-f]{12}", os.environ.get("E2E_COMPOSE_PROJECT", "")):
+        raise AcceptanceFailure("marketplace acceptance requires the disposable local-acceptance Compose project")
     base_url = os.environ.get("GATEWAY_URL", "http://127.0.0.1:9632").rstrip("/")
     suffix = uuid.uuid4().hex[:10]
     password = "E2e-" + uuid.uuid4().hex + "-Aa9!"
     api = MarketplaceApi(base_url)
+    try:
+        run_scenario(api, suffix, password)
+    except Exception:
+        try:
+            save_evidence(api.evidence)
+        except OSError as error:
+            print("Could not save acceptance evidence: " + str(error), file=sys.stderr)
+        raise
+    try:
+        save_evidence(api.evidence)
+    except OSError as error:
+        raise AcceptanceFailure("could not create a new acceptance evidence file: " + str(error)) from error
+
+
+def run_scenario(api, suffix, password):
     api.wait_for_data("/product/api/v1/products", None, lambda value: isinstance(value, dict) and isinstance(value.get("items"), list))
     print("PASS: gateway and product service are reachable")
     wait_for_auth_service(api, suffix)
     verify_registration_idempotency(api, suffix, password)
     actors = create_actors(api, suffix, password)
     product_id = create_product(api, actors, suffix)
+    product_edit = verify_catalog_operations(api, actors, product_id, suffix, require_field, AcceptanceFailure)
     order_no, coupon_no = place_order(api, actors, product_id)
     sub_order_no, order_item_id = complete_payment(api, actors, order_no, coupon_no)
-    complete_return(api, actors, suffix, product_id, coupon_no, sub_order_no, order_item_id)
+    first_after_sale = complete_return(api, actors, suffix, product_id, coupon_no, sub_order_no, order_item_id)
+    prepare_high_value_product(api, actors, product_id, suffix, write, AcceptanceFailure)
+    second_order_no, second_coupon = place_order(api, actors, product_id, Decimal("197.00"), Decimal("0.00"))
+    second_sub_order_no, second_item_id = complete_payment(api, actors, second_order_no, second_coupon)
+    second_after_sale = complete_exchange(api, actors, suffix, product_id, second_sub_order_no, second_item_id,
+                                          write, require_field, AcceptanceFailure)
+    settle_and_withdraw(api, actors, suffix, second_order_no, write, require_field, AcceptanceFailure)
+    verify_uncertain_idempotency(api, actors, product_edit, product_id, AcceptanceFailure)
+    verify_database_state(api, actors, product_id,
+                          {"order": order_no, "coupon": coupon_no, "after_sale": first_after_sale},
+                          {"order": second_order_no, "coupon": second_coupon, "after_sale": second_after_sale},
+                          AcceptanceFailure)
     verify_access_boundaries(api, actors, order_no)
     print("Local acceptance passed; all created accounts and business rows are disposable.")
 

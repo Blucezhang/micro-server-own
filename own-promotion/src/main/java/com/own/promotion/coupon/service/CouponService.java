@@ -29,11 +29,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.math.RoundingMode;
+import java.sql.SQLException;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 
 @Service
 public class CouponService {
@@ -92,8 +94,24 @@ public class CouponService {
         try {
             return onePerBuyer ? userCouponRepository.saveAndFlush(coupon) : userCouponRepository.save(coupon);
         } catch (DataIntegrityViolationException exception) {
+            if (!buyerSourceDuplicate(exception)) throw exception;
             throw TradeException.conflict("merchant coupon template has already been claimed by this buyer");
         }
+    }
+
+    private boolean buyerSourceDuplicate(Throwable exception) {
+        boolean duplicate = false;
+        boolean buyerSourceIndex = false;
+        for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+            if (cause instanceof DuplicateKeyException
+                    || (cause instanceof SQLException && ((SQLException) cause).getErrorCode() == 1062)) {
+                duplicate = true;
+            }
+            if (cause.getMessage() != null && cause.getMessage().contains("uk_mkt_coupon_buyer_source")) {
+                buyerSourceIndex = true;
+            }
+        }
+        return duplicate && buyerSourceIndex;
     }
 
     public List<UserCoupon> findByBuyer(Long buyerId) {
@@ -209,7 +227,8 @@ public class CouponService {
                 storeMerchants.add(coupon.getMerchantId());
             }
             Date now = new Date();
-            Date configuredDeadline = new Date(now.getTime() + reservationTtlMinutes * 60L * 1000L);
+            int ttlMinutes = command.getTtlMinutes() == null ? reservationTtlMinutes : command.getTtlMinutes();
+            Date configuredDeadline = new Date(now.getTime() + ttlMinutes * 60L * 1000L);
             coupon.reserve(command.getOrderNo(), coupon.getExpiresAt().before(configuredDeadline) ? coupon.getExpiresAt() : configuredDeadline);
             userCouponRepository.save(coupon);
             total = total.add(coupon.getDiscountAmount());
@@ -220,8 +239,23 @@ public class CouponService {
     }
 
     @Transactional
-    public void consumeOrder(String orderNo) {
-        for (UserCoupon coupon : userCouponRepository.findByReservedOrderNoAndStatus(orderNo, CouponStatus.RESERVED)) {
+    public void consumeOrder(String orderNo, BigDecimal expectedDiscount) {
+        if (orderNo == null || orderNo.trim().isEmpty() || expectedDiscount == null || expectedDiscount.signum() < 0) {
+            throw TradeException.badRequest("orderNo and nonnegative expectedDiscount are required");
+        }
+        List<UserCoupon> reserved = userCouponRepository.findByReservedOrderNoAndStatus(orderNo, CouponStatus.RESERVED);
+        List<UserCoupon> used = userCouponRepository.findByReservedOrderNoAndStatus(orderNo, CouponStatus.USED);
+        BigDecimal actual = BigDecimal.ZERO;
+        Date now = new Date();
+        for (UserCoupon coupon : reserved) {
+            if (coupon.getReservationExpiresAt() == null || !coupon.getReservationExpiresAt().after(now)) {
+                throw TradeException.conflict("coupon reservation has expired");
+            }
+            actual = actual.add(coupon.getDiscountAmount());
+        }
+        for (UserCoupon coupon : used) actual = actual.add(coupon.getDiscountAmount());
+        if (actual.compareTo(expectedDiscount) != 0) throw TradeException.conflict("coupon reservation does not match order discount");
+        for (UserCoupon coupon : reserved) {
             coupon.consume();
             userCouponRepository.save(coupon);
         }
@@ -329,6 +363,10 @@ public class CouponService {
         if (command == null || command.getBuyerId() == null || (requireOrderNo && (command.getOrderNo() == null || command.getOrderNo().trim().isEmpty()))) {
             throw TradeException.badRequest(requireOrderNo ? "orderNo and buyerId are required" : "buyerId is required");
         }
+        if (requireOrderNo && command.getTtlMinutes() != null
+                && (command.getTtlMinutes() < 1 || command.getTtlMinutes() > 60)) {
+            throw TradeException.unprocessable("ttlMinutes must be between 1 and 60");
+        }
     }
 
     private Set<String> requestedCouponNos(List<CouponUse> uses) {
@@ -421,7 +459,19 @@ public class CouponService {
         return new TemplateTerms(command.getName().trim(), command.getTotalQuantity(), minimum, discount, start, end, expires);
     }
 
-    private BigDecimal decimal(String value, String name) { try { return new BigDecimal(value); } catch (Exception exception) { throw TradeException.unprocessable(name + " is invalid"); } }
+    private BigDecimal decimal(String value, String name) {
+        try {
+            BigDecimal amount = new BigDecimal(value);
+            if (amount.stripTrailingZeros().scale() > 2) {
+                throw TradeException.unprocessable(name + " must be an amount in cents");
+            }
+            return amount;
+        } catch (TradeException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw TradeException.unprocessable(name + " is invalid");
+        }
+    }
 
     private static final class OfferTerms {
         private final String scopeKey;

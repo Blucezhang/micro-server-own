@@ -52,35 +52,47 @@ public class InventoryStock {
     }
 
     public void reserve(int quantity) {
-        if (availableQuantity < quantity) {
+        if (quantity <= 0 || availableQuantity < quantity) {
             throw new IllegalStateException("insufficient inventory");
         }
+        int nextReserved = increased(reservedQuantity, quantity);
         availableQuantity -= quantity;
-        reservedQuantity += quantity;
+        reservedQuantity = nextReserved;
     }
 
     public void commit(int quantity) {
-        if (reservedQuantity < quantity) {
+        if (quantity <= 0 || reservedQuantity < quantity) {
             throw new IllegalStateException("reserved inventory is inconsistent");
         }
+        int nextSold = increased(soldQuantity, quantity);
         reservedQuantity -= quantity;
-        soldQuantity += quantity;
+        soldQuantity = nextSold;
     }
 
     public void release(int quantity) {
-        if (reservedQuantity < quantity) {
+        if (quantity <= 0 || reservedQuantity < quantity) {
             throw new IllegalStateException("reserved inventory is inconsistent");
         }
+        int nextAvailable = increased(availableQuantity, quantity);
         reservedQuantity -= quantity;
-        availableQuantity += quantity;
+        availableQuantity = nextAvailable;
     }
 
     public void refund(int quantity) {
-        if (soldQuantity < quantity) {
+        if (quantity <= 0 || soldQuantity < quantity) {
             throw new IllegalStateException("sold inventory is inconsistent");
         }
+        int nextAvailable = increased(availableQuantity, quantity);
         soldQuantity -= quantity;
-        availableQuantity += quantity;
+        availableQuantity = nextAvailable;
+    }
+
+    private int increased(int current, int quantity) {
+        long result = (long) current + quantity;
+        if (current < 0 || result > Integer.MAX_VALUE) {
+            throw new IllegalStateException("inventory quantity exceeds supported range");
+        }
+        return (int) result;
     }
     /** A same-SKU exchange returns one sold item and immediately ships its replacement. */
     public void exchange(int quantity) {

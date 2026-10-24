@@ -32,6 +32,9 @@ public class TradeOrder {
     @Column(name = "recipient_detail", length = 255) private String recipientDetail;
     @Column(name = "request_key", nullable = false, unique = true, length = 100) private String requestKey;
     @Column(name = "created_at", nullable = false) private Date createdAt;
+    @Column(name = "payment_started_at") private Date paymentStartedAt;
+    @Column(name = "payment_recovery_attempts", nullable = false) private int paymentRecoveryAttempts;
+    @Column(name = "payment_recovery_status", nullable = false, length = 32) private String paymentRecoveryStatus = "NONE";
 
     protected TradeOrder() { }
     /** Compatibility constructor for historical orders and unit tests; new checkouts must use address snapshots. */
@@ -51,7 +54,27 @@ public class TradeOrder {
         this.recipientProvince = recipientProvince; this.recipientCity = recipientCity; this.recipientDistrict = recipientDistrict; this.recipientDetail = recipientDetail;
         this.createdAt = new Date();
     }
-    public void markPaid() { require(OrderStatus.PENDING_PAYMENT); status = OrderStatus.PAID; }
+    public void markPaid() {
+        require(OrderStatus.PENDING_PAYMENT); status = OrderStatus.PAID;
+        if (paymentStartedAt != null) paymentRecoveryStatus = "COMPLETED";
+    }
+    public boolean beginPayment(int maxAttempts) {
+        require(OrderStatus.PENDING_PAYMENT);
+        if ("RECONCILIATION_REQUIRED".equals(paymentRecoveryStatus) || paymentRecoveryAttempts >= maxAttempts) {
+            paymentRecoveryStatus = "RECONCILIATION_REQUIRED";
+            return false;
+        }
+        if (paymentStartedAt == null) paymentStartedAt = new Date();
+        paymentRecoveryStatus = "PENDING";
+        paymentRecoveryAttempts++;
+        return true;
+    }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public boolean isPaymentStarted() { return paymentStartedAt != null; }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public int getPaymentRecoveryAttempts() { return paymentRecoveryAttempts; }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getPaymentRecoveryStatus() { return paymentRecoveryStatus; }
     public void startSaga() { require(OrderStatus.PENDING_PAYMENT); status = OrderStatus.PROCESSING; }
     public void sagaReadyForPayment() { require(OrderStatus.PROCESSING); status = OrderStatus.PENDING_PAYMENT; }
     public void sagaFailed() { require(OrderStatus.PROCESSING); status = OrderStatus.SAGA_FAILED; }

@@ -30,6 +30,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionSynchronizationUtils;
 
 public class AfterSaleServiceTest {
     @Test
@@ -98,6 +100,165 @@ public class AfterSaleServiceTest {
             Assertions.fail("previously refunded quantity must not be requested again");
         } catch (TradeException expected) {
             // expected
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void splitRefundsMustAllocateTheSingleCentDiscountExactlyOnce() {
+        TradeSubOrder subOrder = new TradeSubOrder("SUB-1", "ORD-1", 2L,
+                new BigDecimal("0.06"), new BigDecimal("0.01"), BigDecimal.ZERO);
+        subOrder.markToShip();
+        subOrder.ship("DEMO", "TRACK-1");
+        OrderItem item = new OrderItem("ORD-1", "SUB-1",
+                new CartItem(1L, 101L, 2L, "product", new BigDecimal("0.02"), 3));
+        ReflectionTestUtils.setField(item, "id", 11L);
+        AfterSale previous = new AfterSale("AS-OLD", "ORD-1", "SUB-1", 1L, 2L,
+                AfterSaleType.REFUND_ONLY, new BigDecimal("0.02"), "missing");
+        previous.approve("approved");
+        previous.refund();
+        AfterSaleRepository sales = Mockito.mock(AfterSaleRepository.class);
+        Mockito.when(sales.findBySubOrderNoAndStatusIn(Mockito.eq("SUB-1"),
+                Mockito.<com.own.order.domain.AfterSaleStatus>anyList())).thenReturn(Collections.emptyList());
+        Mockito.when(sales.findBySubOrderNoOrderByIdAsc("SUB-1")).thenReturn(Collections.singletonList(previous));
+        Mockito.when(sales.save(Mockito.any(AfterSale.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        AfterSaleItemRepository saleItems = Mockito.mock(AfterSaleItemRepository.class);
+        Mockito.when(saleItems.findByAfterSaleNo("AS-OLD")).thenReturn(Collections.singletonList(
+                new AfterSaleItem("AS-OLD", item, 1, new BigDecimal("0.02"))));
+        TradeSubOrderRepository subOrders = Mockito.mock(TradeSubOrderRepository.class);
+        Mockito.when(subOrders.findBySubOrderNoForUpdate("SUB-1")).thenReturn(subOrder);
+        TradeOrderRepository orders = Mockito.mock(TradeOrderRepository.class);
+        Mockito.when(orders.findByOrderNo("ORD-1")).thenReturn(new TradeOrder("ORD-1", 1L,
+                new BigDecimal("0.06"), new BigDecimal("0.01"), "history", "key-1"));
+        OrderItemRepository orderItems = Mockito.mock(OrderItemRepository.class);
+        Mockito.when(orderItems.findBySubOrderNo("SUB-1")).thenReturn(Collections.singletonList(item));
+        AfterSaleService service = new AfterSaleService(sales, saleItems, subOrders, orders, orderItems,
+                Mockito.mock(OrderEventRepository.class));
+
+        AfterSale second = service.create(new TradeActor(1L, ActorType.BUYER), singleItemCommand());
+
+        Assertions.assertEquals(new BigDecimal("0.01"), second.getRequestedAmount());
+        Assertions.assertEquals(new BigDecimal("0.03"), previous.getRequestedAmount().add(second.getRequestedAmount()));
+        second.approve("approved");
+        second.refund();
+        Mockito.when(sales.findBySubOrderNoOrderByIdAsc("SUB-1")).thenReturn(Arrays.asList(previous, second));
+        Mockito.when(saleItems.findByAfterSaleNo(second.getAfterSaleNo())).thenReturn(Collections.singletonList(
+                new AfterSaleItem(second.getAfterSaleNo(), item, 1, new BigDecimal("0.02"))));
+
+        AfterSale third = service.create(new TradeActor(1L, ActorType.BUYER), singleItemCommand());
+
+        Assertions.assertEquals(new BigDecimal("0.02"), third.getRequestedAmount());
+        Assertions.assertEquals(subOrder.getPayableAmount(), previous.getRequestedAmount()
+                .add(second.getRequestedAmount()).add(third.getRequestedAmount()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void fullyDiscountedItemCannotCreateARefundThatSettlementWillReject() {
+        TradeSubOrder subOrder = new TradeSubOrder("SUB-1", "ORD-1", 2L,
+                new BigDecimal("0.01"), new BigDecimal("0.01"), BigDecimal.ZERO);
+        subOrder.markToShip();
+        subOrder.ship("DEMO", "TRACK-1");
+        OrderItem item = new OrderItem("ORD-1", "SUB-1",
+                new CartItem(1L, 101L, 2L, "product", new BigDecimal("0.01"), 1));
+        ReflectionTestUtils.setField(item, "id", 11L);
+        AfterSaleRepository sales = Mockito.mock(AfterSaleRepository.class);
+        Mockito.when(sales.findBySubOrderNoAndStatusIn(Mockito.eq("SUB-1"),
+                Mockito.<com.own.order.domain.AfterSaleStatus>anyList())).thenReturn(Collections.emptyList());
+        Mockito.when(sales.findBySubOrderNoOrderByIdAsc("SUB-1")).thenReturn(Collections.emptyList());
+        TradeSubOrderRepository subOrders = Mockito.mock(TradeSubOrderRepository.class);
+        Mockito.when(subOrders.findBySubOrderNoForUpdate("SUB-1")).thenReturn(subOrder);
+        TradeOrderRepository orders = Mockito.mock(TradeOrderRepository.class);
+        Mockito.when(orders.findByOrderNo("ORD-1")).thenReturn(new TradeOrder("ORD-1", 1L,
+                new BigDecimal("0.01"), new BigDecimal("0.01"), "history", "key-1"));
+        OrderItemRepository orderItems = Mockito.mock(OrderItemRepository.class);
+        Mockito.when(orderItems.findBySubOrderNo("SUB-1")).thenReturn(Collections.singletonList(item));
+        AfterSaleService service = new AfterSaleService(sales, Mockito.mock(AfterSaleItemRepository.class),
+                subOrders, orders, orderItems, Mockito.mock(OrderEventRepository.class));
+
+        TradeException rejected = Assertions.assertThrows(TradeException.class,
+                () -> service.create(new TradeActor(1L, ActorType.BUYER), singleItemCommand()));
+
+        Assertions.assertEquals(409, rejected.getStatus());
+        Mockito.verify(sales, Mockito.never()).save(Mockito.any(AfterSale.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void appliedQuantityOverflowCannotPermitAnExtraRefund() {
+        BigDecimal fullAmount = new BigDecimal("0.01").multiply(BigDecimal.valueOf(Integer.MAX_VALUE));
+        TradeSubOrder subOrder = new TradeSubOrder("SUB-1", "ORD-1", 2L,
+                fullAmount, BigDecimal.ZERO, BigDecimal.ZERO);
+        subOrder.markToShip();
+        subOrder.ship("DEMO", "TRACK-1");
+        OrderItem item = new OrderItem("ORD-1", "SUB-1",
+                new CartItem(1L, 101L, 2L, "product", new BigDecimal("0.01"), Integer.MAX_VALUE));
+        ReflectionTestUtils.setField(item, "id", 11L);
+        AfterSale previous = new AfterSale("AS-OLD", "ORD-1", "SUB-1", 1L, 2L,
+                AfterSaleType.REFUND_ONLY, fullAmount, "missing");
+        previous.approve("approved");
+        previous.refund();
+        AfterSaleRepository sales = Mockito.mock(AfterSaleRepository.class);
+        Mockito.when(sales.findBySubOrderNoAndStatusIn(Mockito.eq("SUB-1"),
+                Mockito.<com.own.order.domain.AfterSaleStatus>anyList())).thenReturn(Collections.emptyList());
+        Mockito.when(sales.findBySubOrderNoOrderByIdAsc("SUB-1")).thenReturn(Collections.singletonList(previous));
+        Mockito.when(sales.save(Mockito.any(AfterSale.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        AfterSaleItemRepository saleItems = Mockito.mock(AfterSaleItemRepository.class);
+        Mockito.when(saleItems.findByAfterSaleNo("AS-OLD")).thenReturn(Collections.singletonList(
+                new AfterSaleItem("AS-OLD", item, Integer.MAX_VALUE, fullAmount)));
+        TradeSubOrderRepository subOrders = Mockito.mock(TradeSubOrderRepository.class);
+        Mockito.when(subOrders.findBySubOrderNoForUpdate("SUB-1")).thenReturn(subOrder);
+        TradeOrderRepository orders = Mockito.mock(TradeOrderRepository.class);
+        Mockito.when(orders.findByOrderNo("ORD-1")).thenReturn(new TradeOrder("ORD-1", 1L,
+                fullAmount, BigDecimal.ZERO, "history", "key-1"));
+        OrderItemRepository orderItems = Mockito.mock(OrderItemRepository.class);
+        Mockito.when(orderItems.findBySubOrderNo("SUB-1")).thenReturn(Collections.singletonList(item));
+        AfterSaleService service = new AfterSaleService(sales, saleItems, subOrders, orders, orderItems,
+                Mockito.mock(OrderEventRepository.class));
+
+        TradeException rejected = Assertions.assertThrows(TradeException.class,
+                () -> service.create(new TradeActor(1L, ActorType.BUYER), singleItemCommand()));
+
+        Assertions.assertEquals(422, rejected.getStatus());
+        Mockito.verify(sales, Mockito.never()).save(Mockito.any(AfterSale.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void pendingOrShippedExchangeBlocksAnotherAfterSaleForTheSubOrder() {
+        for (com.own.order.domain.AfterSaleStatus status : Arrays.asList(
+                com.own.order.domain.AfterSaleStatus.EXCHANGE_PENDING_SHIPMENT,
+                com.own.order.domain.AfterSaleStatus.EXCHANGE_SHIPPED)) {
+            AfterSale previous = new AfterSale("AS-OLD", "ORD-1", "SUB-1", 1L, 2L,
+                    AfterSaleType.EXCHANGE, BigDecimal.TEN, "wrong size");
+            previous.approve("approved");
+            previous.submitReturn("DEMO", "RETURN-1");
+            previous.receiveReturn();
+            if (status == com.own.order.domain.AfterSaleStatus.EXCHANGE_SHIPPED) {
+                previous.exchangeShip("DEMO", "REPLACEMENT-1");
+            }
+            AfterSaleRepository sales = Mockito.mock(AfterSaleRepository.class);
+            Mockito.when(sales.findBySubOrderNoAndStatusIn(Mockito.eq("SUB-1"),
+                    Mockito.<com.own.order.domain.AfterSaleStatus>anyList())).thenAnswer(invocation -> {
+                        java.util.List<com.own.order.domain.AfterSaleStatus> active = invocation.getArgument(1);
+                        return active.contains(status) ? Collections.singletonList(previous) : Collections.emptyList();
+                    });
+            Mockito.when(sales.findBySubOrderNoOrderByIdAsc("SUB-1")).thenReturn(Collections.emptyList());
+            Mockito.when(sales.save(Mockito.any(AfterSale.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            TradeSubOrderRepository subOrders = Mockito.mock(TradeSubOrderRepository.class);
+            Mockito.when(subOrders.findBySubOrderNoForUpdate("SUB-1")).thenReturn(shippedSubOrder());
+            TradeOrderRepository orders = Mockito.mock(TradeOrderRepository.class);
+            Mockito.when(orders.findByOrderNo("ORD-1")).thenReturn(new TradeOrder("ORD-1", 1L,
+                    BigDecimal.TEN, BigDecimal.ZERO, "history", "key-1"));
+            OrderItemRepository orderItems = Mockito.mock(OrderItemRepository.class);
+            Mockito.when(orderItems.findBySubOrderNo("SUB-1")).thenReturn(Collections.singletonList(orderItem()));
+            AfterSaleService service = new AfterSaleService(sales, Mockito.mock(AfterSaleItemRepository.class),
+                    subOrders, orders, orderItems, Mockito.mock(OrderEventRepository.class));
+
+            TradeException rejected = Assertions.assertThrows(TradeException.class,
+                    () -> service.create(new TradeActor(1L, ActorType.BUYER), singleItemCommand()));
+            Assertions.assertEquals(409, rejected.getStatus());
+            Mockito.verify(sales, Mockito.never()).save(Mockito.any(AfterSale.class));
         }
     }
 
@@ -227,7 +388,16 @@ public class AfterSaleServiceTest {
         Mockito.when(sales.findByAfterSaleNoForUpdate("AS-RECEIVE")).thenReturn(received);
         SettlementClient settlement = Mockito.mock(SettlementClient.class);
         ReflectionTestUtils.setField(service, "settlement", settlement);
-        service.receiveReturn(new TradeActor(2L, ActorType.MERCHANT), "AS-RECEIVE");
+        TransactionSynchronizationManager.initSynchronization();
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        try {
+            service.receiveReturn(new TradeActor(2L, ActorType.MERCHANT), "AS-RECEIVE");
+            Mockito.verifyNoInteractions(settlement);
+            TransactionSynchronizationUtils.triggerAfterCommit();
+        } finally {
+            TransactionSynchronizationManager.setActualTransactionActive(false);
+            TransactionSynchronizationManager.clearSynchronization();
+        }
 
         Mockito.verify(sales).findByAfterSaleNoForUpdate("AS-AUDIT");
         Mockito.verify(sales).findByAfterSaleNoForUpdate("AS-RETURN");

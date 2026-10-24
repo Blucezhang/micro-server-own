@@ -19,4 +19,6 @@ public interface TradeOrderRepository extends JpaRepository<TradeOrder, Long> {
     @Query("select o from TradeOrder o where o.buyerId = ?1 and (?2 is null or o.status = ?2) and (?3 is null or o.createdAt >= ?3) and (?4 is null or o.createdAt <= ?4) order by o.id desc")
     Page<TradeOrder> pageByBuyer(Long buyerId, com.own.order.domain.OrderStatus status, Date from, Date to, Pageable pageable);
     List<TradeOrder> findByStatusAndCreatedAtBefore(com.own.order.domain.OrderStatus status, Date createdAt);
+    List<TradeOrder> findTop50ByStatusAndPaymentRecoveryStatusOrderByPaymentStartedAtAsc(
+            com.own.order.domain.OrderStatus status, String paymentRecoveryStatus);
 }

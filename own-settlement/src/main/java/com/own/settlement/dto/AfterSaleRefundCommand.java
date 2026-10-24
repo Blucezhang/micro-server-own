@@ -7,6 +7,7 @@ public class AfterSaleRefundCommand {
     private String afterSaleNo;
     private String orderNo;
     private Long buyerId;
+    private Long merchantId;
     private BigDecimal amount;
     public String getAfterSaleNo() { return afterSaleNo; }
     public void setAfterSaleNo(String value) { afterSaleNo = value; }
@@ -14,6 +15,8 @@ public class AfterSaleRefundCommand {
     public void setOrderNo(String value) { orderNo = value; }
     public Long getBuyerId() { return buyerId; }
     public void setBuyerId(Long value) { buyerId = value; }
+    public Long getMerchantId() { return merchantId; }
+    public void setMerchantId(Long value) { merchantId = value; }
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal value) { amount = value; }
 }

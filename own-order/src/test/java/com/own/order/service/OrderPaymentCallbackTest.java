@@ -26,6 +26,72 @@ import org.springframework.data.domain.Pageable;
 
 public class OrderPaymentCallbackTest {
     @Test
+    public void paymentAmountRequiresBuyerAndPendingPaymentState() {
+        for (String state : new String[] {"PROCESSING", "SAGA_FAILED", "CANCELED"}) {
+            TradeOrder order = new TradeOrder("ORD-1", 1L, BigDecimal.ONE, BigDecimal.ZERO, "address", "key-1");
+            if ("CANCELED".equals(state)) order.cancel();
+            else {
+                order.startSaga();
+                if ("SAGA_FAILED".equals(state)) order.sagaFailed();
+            }
+            TradeOrderRepository orders = Mockito.mock(TradeOrderRepository.class);
+            Mockito.when(orders.findByOrderNo("ORD-1")).thenReturn(order);
+            OrderService service = service(orders, Mockito.mock(InventoryClient.class), Mockito.mock(CouponClient.class));
+            TradeException error = Assertions.assertThrows(TradeException.class,
+                    () -> service.paymentAmount(1L, "ORD-1"), state);
+            Assertions.assertEquals(409, error.getStatus(), state);
+            Assertions.assertEquals(404, Assertions.assertThrows(TradeException.class,
+                    () -> service.paymentAmount(2L, "ORD-1")).getStatus());
+        }
+    }
+
+    @Test
+    public void pendingPaymentAmountUsesTheStoredOrderQuote() {
+        TradeOrder order = new TradeOrder("ORD-1", 1L, new BigDecimal("19.90"),
+                new BigDecimal("3.00"), "address", "key-1");
+        TradeOrderRepository orders = Mockito.mock(TradeOrderRepository.class);
+        Mockito.when(orders.findByOrderNo("ORD-1")).thenReturn(order);
+
+        BigDecimal amount = service(orders, Mockito.mock(InventoryClient.class), Mockito.mock(CouponClient.class))
+                .paymentAmount(1L, "ORD-1");
+
+        Assertions.assertEquals(new BigDecimal("16.90"), amount);
+    }
+
+    @Test
+    public void overduePendingOrderCannotCreatePaymentBeforeExpirySchedulerRuns() {
+        TradeOrder order = new TradeOrder("ORD-1", 1L, BigDecimal.ONE, BigDecimal.ZERO, "address", "key-1");
+        org.springframework.test.util.ReflectionTestUtils.setField(order, "createdAt",
+                new java.util.Date(System.currentTimeMillis() - 16 * 60_000L));
+        TradeOrderRepository orders = Mockito.mock(TradeOrderRepository.class);
+        Mockito.when(orders.findByOrderNo("ORD-1")).thenReturn(order);
+
+        TradeException error = Assertions.assertThrows(TradeException.class,
+                () -> service(orders, Mockito.mock(InventoryClient.class), Mockito.mock(CouponClient.class))
+                        .paymentAmount(1L, "ORD-1"));
+
+        Assertions.assertEquals(409, error.getStatus());
+    }
+
+    @Test
+    public void overduePendingOrderRejectsPaymentBeforeExpirySchedulerRuns() {
+        TradeOrder order = new TradeOrder("ORD-1", 1L, BigDecimal.ONE, BigDecimal.ZERO, "address", "key-1");
+        org.springframework.test.util.ReflectionTestUtils.setField(order, "createdAt",
+                new java.util.Date(System.currentTimeMillis() - 16 * 60_000L));
+        TradeOrderRepository orders = Mockito.mock(TradeOrderRepository.class);
+        InventoryClient inventory = Mockito.mock(InventoryClient.class);
+        CouponClient coupons = Mockito.mock(CouponClient.class);
+        Mockito.when(orders.findLockedByOrderNo("ORD-1")).thenReturn(order);
+
+        TradeException error = Assertions.assertThrows(TradeException.class,
+                () -> service(orders, inventory, coupons).paymentSucceeded("ORD-1", new TradeActor(1L, ActorType.SYSTEM)));
+
+        Assertions.assertEquals(409, error.getStatus());
+        Mockito.verify(inventory, Mockito.never()).commit(Mockito.eq("ORD-1"), Mockito.anyList());
+        Mockito.verify(coupons, Mockito.never()).consume("ORD-1", BigDecimal.ZERO);
+    }
+
+    @Test
     public void expiredOrderRejectsLatePaymentCallback() {
         TradeOrder order = new TradeOrder("ORD-1", 1L, BigDecimal.ONE, BigDecimal.ZERO, "address", "key-1");
         order.cancel();
@@ -41,8 +107,8 @@ public class OrderPaymentCallbackTest {
         } catch (TradeException expected) {
             Assertions.assertEquals(409, expected.getStatus());
         }
-        Mockito.verify(inventory, Mockito.never()).commit("ORD-1");
-        Mockito.verify(coupons, Mockito.never()).consume("ORD-1");
+        Mockito.verify(inventory, Mockito.never()).commit(Mockito.eq("ORD-1"), Mockito.anyList());
+        Mockito.verify(coupons, Mockito.never()).consume("ORD-1", BigDecimal.ZERO);
     }
 
     @Test
@@ -58,8 +124,44 @@ public class OrderPaymentCallbackTest {
                 .paymentSucceeded("ORD-1", new TradeActor(1L, ActorType.SYSTEM));
 
         Assertions.assertSame(order, result);
-        Mockito.verify(inventory, Mockito.never()).commit("ORD-1");
-        Mockito.verify(coupons, Mockito.never()).consume("ORD-1");
+        Mockito.verify(inventory, Mockito.never()).commit(Mockito.eq("ORD-1"), Mockito.anyList());
+        Mockito.verify(coupons, Mockito.never()).consume("ORD-1", BigDecimal.ZERO);
+    }
+
+    @Test
+    public void refundedOrderAcceptsIdempotentRefundCallback() {
+        TradeOrder order = new TradeOrder("ORD-1", 1L, BigDecimal.ONE, BigDecimal.ZERO, "address", "key-1");
+        order.markPaid();
+        order.startRefund();
+        order.refund();
+        TradeOrderRepository orders = Mockito.mock(TradeOrderRepository.class);
+        InventoryClient inventory = Mockito.mock(InventoryClient.class);
+        CouponClient coupons = Mockito.mock(CouponClient.class);
+        Mockito.when(orders.findLockedByOrderNo("ORD-1")).thenReturn(order);
+
+        TradeOrder result = service(orders, inventory, coupons)
+                .refundSucceeded("ORD-1", new TradeActor(1L, ActorType.SYSTEM));
+
+        Assertions.assertSame(order, result);
+        Mockito.verify(inventory, Mockito.never()).refund(Mockito.eq("ORD-1"), Mockito.anyList());
+        Mockito.verify(coupons, Mockito.never()).release("ORD-1");
+    }
+
+    @Test
+    public void freightRuleRejectsAmountsBelowOneCent() {
+        OrderService service = service(Mockito.mock(TradeOrderRepository.class), Mockito.mock(InventoryClient.class),
+                Mockito.mock(CouponClient.class));
+        com.own.order.dto.FreightRuleCommand command = new com.own.order.dto.FreightRuleCommand();
+        command.setFixedAmount(new BigDecimal("2.001"));
+        command.setFreeThreshold(new BigDecimal("50.00"));
+        TradeException error = Assertions.assertThrows(TradeException.class,
+                () -> service.saveFreightRule(new TradeActor(8L, ActorType.MERCHANT), command));
+        Assertions.assertEquals(422, error.getStatus());
+        command.setFixedAmount(new BigDecimal("2.00"));
+        command.setFreeThreshold(new BigDecimal("50.001"));
+        error = Assertions.assertThrows(TradeException.class,
+                () -> service.saveFreightRule(new TradeActor(8L, ActorType.MERCHANT), command));
+        Assertions.assertEquals(422, error.getStatus());
     }
 
     @Test
@@ -145,12 +247,16 @@ public class OrderPaymentCallbackTest {
     }
 
     private OrderService service(TradeOrderRepository orders, InventoryClient inventory, CouponClient coupons) {
-        return new OrderService(Mockito.mock(CartItemRepository.class), guard(), orders, Mockito.mock(TradeSubOrderRepository.class),
+        OrderService service = new OrderService(Mockito.mock(CartItemRepository.class), guard(), orders, Mockito.mock(TradeSubOrderRepository.class),
                 Mockito.mock(OrderItemRepository.class), Mockito.mock(OrderEventRepository.class), Mockito.mock(CatalogClient.class),
                 inventory, coupons, Mockito.mock(AddressClient.class),
                 Mockito.mock(com.own.order.repository.MerchantFreightRuleRepository.class),
                 Mockito.mock(com.own.order.repository.LogisticsTraceRepository.class),
                 Mockito.mock(com.own.order.repository.AfterSaleRepository.class), Mockito.mock(SensitiveAccessAuditRepository.class));
+        OrderPaymentGuard paymentGuard = Mockito.mock(OrderPaymentGuard.class);
+        Mockito.when(paymentGuard.claim(Mockito.anyString())).thenReturn(true);
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "paymentGuard", paymentGuard);
+        return service;
     }
 
     private com.own.order.repository.CartBuyerGuardRepository guard() {

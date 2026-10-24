@@ -12,6 +12,7 @@ import com.own.inventory.dto.InventoryBootstrapRequest;
 import com.own.inventory.dto.ReservationCommand;
 import com.own.inventory.dto.StockCommand;
 import com.own.inventory.dto.InventoryAdjustmentCommand;
+import com.own.inventory.dto.OrderInventoryItem;
 import com.own.inventory.dto.AfterSaleInventoryRefundCommand;
 import com.own.inventory.dto.LowStockAlertRuleCommand;
 import com.own.inventory.service.InventoryService;
@@ -105,11 +106,12 @@ public class InventoryController extends BaseController {
     }
 
     @PostMapping("/internal/orders/{orderNo}/inventory/commit")
-    public Resp commit(@PathVariable String orderNo, HttpServletRequest request) {
+    public Resp commit(@PathVariable String orderNo, @RequestBody List<OrderInventoryItem> items,
+                       HttpServletRequest request) {
         internalServiceGuard.require(request);
         requireSystem(request);
         TradeHeaders.idempotencyKey(request);
-        inventoryService.commitOrder(orderNo);
+        inventoryService.commitOrder(orderNo, items);
         return new Resp(orderNo);
     }
 
@@ -123,11 +125,12 @@ public class InventoryController extends BaseController {
     }
 
     @PostMapping("/internal/orders/{orderNo}/inventory/refund")
-    public Resp refund(@PathVariable String orderNo, HttpServletRequest request) {
+    public Resp refund(@PathVariable String orderNo, @RequestBody List<OrderInventoryItem> items,
+                       HttpServletRequest request) {
         internalServiceGuard.require(request);
         requireSystem(request);
         TradeHeaders.idempotencyKey(request);
-        inventoryService.refundOrder(orderNo);
+        inventoryService.refundOrder(orderNo, items);
         return new Resp(orderNo);
     }
 

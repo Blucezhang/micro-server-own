@@ -60,11 +60,49 @@ public class TradeIdempotencyStoreTest {
         completed.complete(200, "{}");
         Mockito.when(operations.lookup("order", buyer, "/api/v1/orders", "key")).thenReturn(null, completed);
         Mockito.when(operations.create("order", buyer, "/api/v1/orders", "key", "hash", 24))
-                .thenThrow(new DataIntegrityViolationException("duplicate"));
+                .thenThrow(new DataIntegrityViolationException("idempotency insert failed",
+                        new java.sql.SQLIntegrityConstraintViolationException(
+                                "Duplicate entry for key 'uk_trade_idempotency_scope'", "23000", 1062)));
         TradeIdempotencyStore store = new TradeIdempotencyStore(operations);
 
         Assertions.assertSame(completed, store.begin("order", buyer, "/api/v1/orders", "key", "hash", 24));
         Mockito.verify(operations, Mockito.times(2)).lookup("order", buyer, "/api/v1/orders", "key");
+    }
+
+    @Test
+    public void unrelatedInsertFailureIsNotTreatedAsAnIdempotencyRace() {
+        TradeIdempotencyRecordTransactions operations = Mockito.mock(TradeIdempotencyRecordTransactions.class);
+        IdempotencyRecord completed = new IdempotencyRecord("order", 1L, "BUYER", "/api/v1/orders", "key", "hash",
+                new java.util.Date(System.currentTimeMillis() + 1000));
+        completed.complete(200, "{}");
+        DataIntegrityViolationException failure = new DataIntegrityViolationException("response column overflow");
+        Mockito.when(operations.lookup("order", buyer, "/api/v1/orders", "key")).thenReturn(null, completed);
+        Mockito.when(operations.create("order", buyer, "/api/v1/orders", "key", "hash", 24)).thenThrow(failure);
+
+        DataIntegrityViolationException actual = Assertions.assertThrows(DataIntegrityViolationException.class,
+                () -> new TradeIdempotencyStore(operations).begin("order", buyer, "/api/v1/orders", "key", "hash", 24));
+
+        Assertions.assertSame(failure, actual);
+        Mockito.verify(operations).lookup("order", buyer, "/api/v1/orders", "key");
+    }
+
+    @Test
+    public void differentUniqueKeyFailureIsNotTreatedAsAnIdempotencyRace() {
+        TradeIdempotencyRecordTransactions operations = Mockito.mock(TradeIdempotencyRecordTransactions.class);
+        IdempotencyRecord completed = new IdempotencyRecord("order", 1L, "BUYER", "/api/v1/orders", "key", "hash",
+                new java.util.Date(System.currentTimeMillis() + 1000));
+        completed.complete(200, "{}");
+        DataIntegrityViolationException failure = new DataIntegrityViolationException("idempotency insert failed",
+                new java.sql.SQLIntegrityConstraintViolationException(
+                        "Duplicate entry for key 'another_unique_key'", "23000", 1062));
+        Mockito.when(operations.lookup("order", buyer, "/api/v1/orders", "key")).thenReturn(null, completed);
+        Mockito.when(operations.create("order", buyer, "/api/v1/orders", "key", "hash", 24)).thenThrow(failure);
+
+        DataIntegrityViolationException actual = Assertions.assertThrows(DataIntegrityViolationException.class,
+                () -> new TradeIdempotencyStore(operations).begin("order", buyer, "/api/v1/orders", "key", "hash", 24));
+
+        Assertions.assertSame(failure, actual);
+        Mockito.verify(operations).lookup("order", buyer, "/api/v1/orders", "key");
     }
 
     @Test

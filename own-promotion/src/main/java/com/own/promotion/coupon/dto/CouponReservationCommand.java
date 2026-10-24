@@ -10,6 +10,7 @@ public class CouponReservationCommand {
     private BigDecimal parentAmount;
     private Map<Long, BigDecimal> merchantAmounts;
     private List<CouponUse> coupons;
+    private Integer ttlMinutes;
 
     public String getOrderNo() { return orderNo; }
     public void setOrderNo(String orderNo) { this.orderNo = orderNo; }
@@ -21,4 +22,6 @@ public class CouponReservationCommand {
     public void setMerchantAmounts(Map<Long, BigDecimal> merchantAmounts) { this.merchantAmounts = merchantAmounts; }
     public List<CouponUse> getCoupons() { return coupons; }
     public void setCoupons(List<CouponUse> coupons) { this.coupons = coupons; }
+    public Integer getTtlMinutes() { return ttlMinutes; }
+    public void setTtlMinutes(Integer ttlMinutes) { this.ttlMinutes = ttlMinutes; }
 }

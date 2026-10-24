@@ -3,12 +3,14 @@ package com.own.promotion.coupon.controller;
 import com.own.face.trade.ActorType;
 import com.own.face.trade.TradeActor;
 import com.own.face.trade.TradeHeaders;
+import com.own.face.trade.TradeException;
 import com.own.face.security.InternalServiceGuard;
 import com.own.face.util.Resp;
 import com.own.face.util.base.BaseController;
 import com.own.promotion.coupon.domain.UserCoupon;
 import com.own.promotion.coupon.dto.ClaimCouponCommand;
 import com.own.promotion.coupon.dto.CouponReservationCommand;
+import com.own.promotion.coupon.dto.CouponConsumptionCommand;
 import com.own.promotion.coupon.dto.CouponReservationResult;
 import com.own.promotion.coupon.dto.MerchantCouponTemplateCommand;
 import com.own.promotion.coupon.domain.MerchantCouponTemplate;
@@ -102,11 +104,12 @@ public class CouponController extends BaseController {
     }
 
     @PostMapping("/internal/orders/consume")
-    public Resp consume(@RequestBody String orderNo, HttpServletRequest request) {
+    public Resp consume(@RequestBody CouponConsumptionCommand command, HttpServletRequest request) {
         requireSystem(request);
         TradeHeaders.idempotencyKey(request);
-        couponService.consumeOrder(orderNo);
-        return new Resp(orderNo);
+        if (command == null) throw TradeException.badRequest("coupon consumption request is required");
+        couponService.consumeOrder(command.getOrderNo(), command.getExpectedDiscount());
+        return new Resp(command.getOrderNo());
     }
 
     @PostMapping("/internal/orders/release")

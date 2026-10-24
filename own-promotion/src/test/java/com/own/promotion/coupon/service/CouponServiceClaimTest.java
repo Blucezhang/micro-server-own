@@ -26,6 +26,7 @@ import java.util.Calendar;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Arrays;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.junit.jupiter.api.Test;
 
 public class CouponServiceClaimTest {
@@ -84,6 +85,135 @@ public class CouponServiceClaimTest {
 
         org.junit.jupiter.api.Assertions.assertEquals(CouponStatus.RESERVED, coupon.getStatus());
         verify(coupons).findByCouponNoForUpdate("CPN-1");
+    }
+
+    @Test
+    public void reservationUsesTheOrderDeadlineWhenProvided() {
+        UserCouponRepository coupons = mock(UserCouponRepository.class);
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        UserCoupon coupon = new UserCoupon("CPN-1", 1L, com.own.promotion.coupon.domain.CouponType.MALL,
+                7L, null, BigDecimal.ZERO, BigDecimal.ONE, calendar.getTime());
+        when(coupons.findByCouponNoForUpdate("CPN-1")).thenReturn(coupon);
+        CouponService service = new CouponService(mock(CouponStockRepository.class), coupons,
+                mock(MallTicketDao.class), mock(StoreTicketDao.class), 15);
+        CouponReservationCommand command = reservationCommand();
+        command.setTtlMinutes(30);
+
+        long before = System.currentTimeMillis();
+        service.reserve(command);
+
+        long deadline = coupon.getReservationExpiresAt().getTime();
+        org.junit.jupiter.api.Assertions.assertTrue(deadline >= before + 30 * 60_000L);
+        org.junit.jupiter.api.Assertions.assertTrue(deadline <= System.currentTimeMillis() + 30 * 60_000L);
+    }
+
+    @Test
+    public void reservationRejectsDeadlineOutsideInventoryContract() {
+        CouponService service = new CouponService(mock(CouponStockRepository.class), mock(UserCouponRepository.class),
+                mock(MallTicketDao.class), mock(StoreTicketDao.class), 15);
+        CouponReservationCommand command = reservationCommand();
+        command.setTtlMinutes(61);
+
+        TradeException error = org.junit.jupiter.api.Assertions.assertThrows(TradeException.class,
+                () -> service.reserve(command));
+        org.junit.jupiter.api.Assertions.assertEquals(422, error.getStatus());
+    }
+
+    @Test
+    public void missingReservedCouponCannotBeSilentlyConsumed() {
+        CouponService service = new CouponService(mock(CouponStockRepository.class), mock(UserCouponRepository.class),
+                mock(MallTicketDao.class), mock(StoreTicketDao.class), 15);
+
+        TradeException error = org.junit.jupiter.api.Assertions.assertThrows(TradeException.class,
+                () -> service.consumeOrder("ORD-1", BigDecimal.ONE));
+
+        org.junit.jupiter.api.Assertions.assertEquals(409, error.getStatus());
+    }
+
+    @Test
+    public void expiredReservationCannotBeConsumedBeforeExpiryScan() {
+        UserCouponRepository coupons = mock(UserCouponRepository.class);
+        UserCoupon coupon = couponForConsumption();
+        coupon.reserve("ORD-1", new java.util.Date(System.currentTimeMillis() - 1_000L));
+        when(coupons.findByReservedOrderNoAndStatus("ORD-1", CouponStatus.RESERVED))
+                .thenReturn(Collections.singletonList(coupon));
+        CouponService service = new CouponService(mock(CouponStockRepository.class), coupons,
+                mock(MallTicketDao.class), mock(StoreTicketDao.class), 15);
+
+        TradeException error = org.junit.jupiter.api.Assertions.assertThrows(TradeException.class,
+                () -> service.consumeOrder("ORD-1", BigDecimal.ONE));
+
+        org.junit.jupiter.api.Assertions.assertEquals(409, error.getStatus());
+        verify(coupons, org.mockito.Mockito.never()).save(coupon);
+    }
+
+    @Test
+    public void oneExpiredCouponPreventsPartialMultiCouponConsumption() {
+        UserCouponRepository coupons = mock(UserCouponRepository.class);
+        UserCoupon valid = couponForConsumption();
+        UserCoupon expired = new UserCoupon("CPN-2", 1L, com.own.promotion.coupon.domain.CouponType.STORE,
+                8L, 8L, BigDecimal.ZERO, BigDecimal.ONE, valid.getExpiresAt());
+        valid.reserve("ORD-1", new java.util.Date(System.currentTimeMillis() + 15 * 60_000L));
+        expired.reserve("ORD-1", new java.util.Date(System.currentTimeMillis() - 1_000L));
+        when(coupons.findByReservedOrderNoAndStatus("ORD-1", CouponStatus.RESERVED))
+                .thenReturn(Arrays.asList(valid, expired));
+        CouponService service = new CouponService(mock(CouponStockRepository.class), coupons,
+                mock(MallTicketDao.class), mock(StoreTicketDao.class), 15);
+
+        org.junit.jupiter.api.Assertions.assertEquals(409, org.junit.jupiter.api.Assertions.assertThrows(
+                TradeException.class, () -> service.consumeOrder("ORD-1", new BigDecimal("2.00"))).getStatus());
+        org.junit.jupiter.api.Assertions.assertEquals(CouponStatus.RESERVED, valid.getStatus());
+        verify(coupons, org.mockito.Mockito.never()).save(any(UserCoupon.class));
+    }
+
+    @Test
+    public void consumptionRequiresTheFullOrderDiscountAndReplaysSafely() {
+        UserCouponRepository coupons = mock(UserCouponRepository.class);
+        UserCoupon coupon = couponForConsumption();
+        coupon.reserve("ORD-1", new java.util.Date(System.currentTimeMillis() + 15 * 60_000L));
+        when(coupons.findByReservedOrderNoAndStatus("ORD-1", CouponStatus.RESERVED))
+                .thenAnswer(invocation -> coupon.getStatus() == CouponStatus.RESERVED
+                        ? Collections.singletonList(coupon) : Collections.emptyList());
+        when(coupons.findByReservedOrderNoAndStatus("ORD-1", CouponStatus.USED))
+                .thenAnswer(invocation -> coupon.getStatus() == CouponStatus.USED
+                        ? Collections.singletonList(coupon) : Collections.emptyList());
+        CouponService service = new CouponService(mock(CouponStockRepository.class), coupons,
+                mock(MallTicketDao.class), mock(StoreTicketDao.class), 15);
+
+        org.junit.jupiter.api.Assertions.assertEquals(409, org.junit.jupiter.api.Assertions.assertThrows(
+                TradeException.class, () -> service.consumeOrder("ORD-1", new BigDecimal("2.00"))).getStatus());
+        service.consumeOrder("ORD-1", BigDecimal.ONE);
+        service.consumeOrder("ORD-1", BigDecimal.ONE);
+
+        org.junit.jupiter.api.Assertions.assertEquals(CouponStatus.USED, coupon.getStatus());
+        verify(coupons).save(coupon);
+    }
+
+    @Test
+    public void zeroDiscountOrderNeedsNoCouponReservation() {
+        CouponService service = new CouponService(mock(CouponStockRepository.class), mock(UserCouponRepository.class),
+                mock(MallTicketDao.class), mock(StoreTicketDao.class), 15);
+        service.consumeOrder("ORD-1", BigDecimal.ZERO);
+    }
+
+    @Test
+    public void consumptionAndExpiryQueriesLockTheSameCouponRows() throws Exception {
+        java.lang.reflect.Method byOrder = UserCouponRepository.class.getMethod(
+                "findByReservedOrderNoAndStatus", String.class, CouponStatus.class);
+        java.lang.reflect.Method byExpiry = UserCouponRepository.class.getMethod(
+                "findByStatusAndReservationExpiresAtBefore", CouponStatus.class, java.util.Date.class);
+        org.junit.jupiter.api.Assertions.assertEquals(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE,
+                byOrder.getAnnotation(org.springframework.data.jpa.repository.Lock.class).value());
+        org.junit.jupiter.api.Assertions.assertEquals(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE,
+                byExpiry.getAnnotation(org.springframework.data.jpa.repository.Lock.class).value());
+    }
+
+    private UserCoupon couponForConsumption() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        return new UserCoupon("CPN-1", 1L, com.own.promotion.coupon.domain.CouponType.MALL,
+                7L, null, BigDecimal.ZERO, BigDecimal.ONE, calendar.getTime());
     }
 
     @Test
@@ -167,6 +297,48 @@ public class CouponServiceClaimTest {
     }
 
     @Test
+    public void concurrentBuyerTemplateDuplicateMapsToConflict() {
+        UserCouponRepository coupons = mock(UserCouponRepository.class);
+        DataIntegrityViolationException duplicate = new DataIntegrityViolationException("coupon insert failed",
+                new java.sql.SQLIntegrityConstraintViolationException(
+                        "Duplicate entry for key 'uk_mkt_coupon_buyer_source'", "23000", 1062));
+        when(coupons.saveAndFlush(any(UserCoupon.class))).thenThrow(duplicate);
+
+        TradeException error = org.junit.jupiter.api.Assertions.assertThrows(TradeException.class,
+                () -> merchantClaimService(coupons).claim(1L, merchantClaimCommand()));
+
+        org.junit.jupiter.api.Assertions.assertEquals(409, error.getStatus());
+    }
+
+    @Test
+    public void unrelatedCouponInsertFailureIsNotReportedAsDuplicateClaim() {
+        UserCouponRepository coupons = mock(UserCouponRepository.class);
+        DataIntegrityViolationException failure = new DataIntegrityViolationException("amount column overflow");
+        when(coupons.saveAndFlush(any(UserCoupon.class))).thenThrow(failure);
+
+        DataIntegrityViolationException actual = org.junit.jupiter.api.Assertions.assertThrows(
+                DataIntegrityViolationException.class,
+                () -> merchantClaimService(coupons).claim(1L, merchantClaimCommand()));
+
+        org.junit.jupiter.api.Assertions.assertSame(failure, actual);
+    }
+
+    @Test
+    public void differentUniqueKeyFailureIsNotReportedAsDuplicateClaim() {
+        UserCouponRepository coupons = mock(UserCouponRepository.class);
+        DataIntegrityViolationException failure = new DataIntegrityViolationException("coupon insert failed",
+                new java.sql.SQLIntegrityConstraintViolationException(
+                        "Duplicate entry for key 'uk_mkt_coupon_no'", "23000", 1062));
+        when(coupons.saveAndFlush(any(UserCoupon.class))).thenThrow(failure);
+
+        DataIntegrityViolationException actual = org.junit.jupiter.api.Assertions.assertThrows(
+                DataIntegrityViolationException.class,
+                () -> merchantClaimService(coupons).claim(1L, merchantClaimCommand()));
+
+        org.junit.jupiter.api.Assertions.assertSame(failure, actual);
+    }
+
+    @Test
     public void merchantCanEditTemplateBeforeFirstClaim() {
         CouponStockRepository stocks = mock(CouponStockRepository.class);
         MerchantCouponTemplateRepository templates = mock(MerchantCouponTemplateRepository.class);
@@ -221,6 +393,27 @@ public class CouponServiceClaimTest {
         command.setName("updated"); command.setTotalQuantity(5);
         command.setMinimumAmount("10"); command.setDiscountAmount("1");
         command.setExpiresAt(calendar.getTimeInMillis());
+        return command;
+    }
+
+    private CouponService merchantClaimService(UserCouponRepository coupons) {
+        CouponStockRepository stocks = mock(CouponStockRepository.class);
+        when(stocks.findByScopeKeyForUpdate("MERCHANT_TEMPLATE:8"))
+                .thenReturn(new CouponStock("MERCHANT_TEMPLATE:8", 3));
+        MerchantCouponTemplateRepository templates = mock(MerchantCouponTemplateRepository.class);
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        MerchantCouponTemplate template = new MerchantCouponTemplate(9L, "store coupon", 3,
+                BigDecimal.ZERO, BigDecimal.ONE, null, null, calendar.getTime());
+        org.springframework.test.util.ReflectionTestUtils.setField(template, "id", 8L);
+        when(templates.findByIdForUpdate(8L)).thenReturn(template);
+        return new CouponService(stocks, coupons, mock(MallTicketDao.class), mock(StoreTicketDao.class), templates, 15);
+    }
+
+    private ClaimCouponCommand merchantClaimCommand() {
+        ClaimCouponCommand command = new ClaimCouponCommand();
+        command.setCouponType("STORE");
+        command.setMerchantTemplateId(8L);
         return command;
     }
 

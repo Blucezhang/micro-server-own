@@ -11,12 +11,15 @@ import jakarta.persistence.LockModeType;
 
 public interface UserCouponRepository extends JpaRepository<UserCoupon, Long> {
     UserCoupon findByCouponNo(String couponNo);
+    List<UserCoupon> findByReservedOrderNoOrderByIdAsc(String orderNo);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select c from UserCoupon c where c.couponNo = ?1")
     UserCoupon findByCouponNoForUpdate(String couponNo);
     List<UserCoupon> findByBuyerIdOrderByIdDesc(Long buyerId);
     UserCoupon findByBuyerIdAndSourceKey(Long buyerId, String sourceKey);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<UserCoupon> findByReservedOrderNoAndStatus(String orderNo, CouponStatus status);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<UserCoupon> findByStatusAndReservationExpiresAtBefore(CouponStatus status, Date reservationExpiresAt);
     long countByMerchantId(Long merchantId);
     long countByMerchantIdAndStatus(Long merchantId, CouponStatus status);

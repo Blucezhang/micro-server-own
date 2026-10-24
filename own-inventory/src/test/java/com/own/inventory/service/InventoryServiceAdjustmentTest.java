@@ -10,6 +10,7 @@ import com.own.inventory.domain.InventoryReservation;
 import com.own.inventory.dto.AfterSaleInventoryRefundCommand;
 import com.own.inventory.dto.AfterSaleInventoryRefundItem;
 import com.own.inventory.dto.InventoryAdjustmentCommand;
+import com.own.inventory.dto.StockCommand;
 import com.own.inventory.repository.InventoryAdjustmentRepository;
 import com.own.inventory.repository.InventoryReservationRepository;
 import com.own.inventory.repository.InventoryStockRepository;
@@ -37,6 +38,45 @@ public class InventoryServiceAdjustmentTest {
         InventoryAdjustment result = service.adjust(101L, new TradeActor(10L, ActorType.MERCHANT), command("INBOUND", 3));
 
         assertEquals(Integer.valueOf(8), stock.getAvailableQuantity()); assertEquals(Integer.valueOf(5), result.getBeforeAvailable()); assertEquals(Integer.valueOf(8), result.getAfterAvailable()); verify(stocks).save(stock);
+    }
+
+    @Test public void merchantCanUseRemainingAvailableStockWhileOtherUnitsAreReserved() {
+        InventoryStockRepository stocks = mock(InventoryStockRepository.class);
+        InventoryAdjustmentRepository adjustments = mock(InventoryAdjustmentRepository.class);
+        InventoryStock stock = new InventoryStock(101L, 10L, 6);
+        stock.reserve(5);
+        when(stocks.findLockedByProductIdAndMerchantId(101L, 10L)).thenReturn(stock);
+        when(adjustments.save(any(InventoryAdjustment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        InventoryService service = new InventoryService(stocks, mock(InventoryReservationRepository.class), 15, adjustments);
+
+        InventoryAdjustment result = service.adjust(101L, new TradeActor(10L, ActorType.MERCHANT), command("OUTBOUND", 1));
+
+        assertEquals(Integer.valueOf(0), stock.getAvailableQuantity());
+        assertEquals(Integer.valueOf(5), stock.getReservedQuantity());
+        assertEquals(Integer.valueOf(1), result.getBeforeAvailable());
+        assertEquals(Integer.valueOf(0), result.getAfterAvailable());
+        TradeException insufficient = assertThrows(TradeException.class,
+                () -> service.adjust(101L, new TradeActor(10L, ActorType.MERCHANT), command("OUTBOUND", 1)));
+        assertEquals(409, insufficient.getStatus());
+        assertEquals(Integer.valueOf(5), stock.getReservedQuantity());
+    }
+
+    @Test public void systemCanSetAvailableQuantityBelowSeparateReservedQuantity() {
+        InventoryStockRepository stocks = mock(InventoryStockRepository.class);
+        InventoryStock stock = new InventoryStock(101L, 10L, 6);
+        stock.reserve(5);
+        when(stocks.findLockedByProductIdAndMerchantId(101L, 10L)).thenReturn(stock);
+        when(stocks.save(stock)).thenReturn(stock);
+        InventoryService service = new InventoryService(stocks, mock(InventoryReservationRepository.class), 15,
+                mock(InventoryAdjustmentRepository.class));
+        StockCommand command = new StockCommand();
+        command.setMerchantId(10L);
+        command.setAvailableQuantity(0);
+
+        assertSame(stock, service.setAvailableStock(101L, command));
+        assertEquals(Integer.valueOf(0), stock.getAvailableQuantity());
+        assertEquals(Integer.valueOf(5), stock.getReservedQuantity());
+        verify(stocks).save(stock);
     }
 
     @Test public void repeatedCatalogueBootstrapKeepsExistingLiveStockInsteadOfResettingIt() {

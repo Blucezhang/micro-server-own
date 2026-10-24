@@ -49,6 +49,7 @@ import org.springframework.beans.factory.annotation.Value;
 public class OrderService {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
+    @org.springframework.beans.factory.annotation.Autowired private OrderPaymentGuard paymentGuard;
 
     private final CartItemRepository cartItemRepository;
     private final com.own.order.repository.CartBuyerGuardRepository cartBuyerGuards;
@@ -66,6 +67,7 @@ public class OrderService {
     private final SensitiveAccessAuditRepository sensitiveAccessAuditRepository;
     @org.springframework.beans.factory.annotation.Autowired(required = false) private AsyncOrderSagaService asyncOrderSagaService;
     @Value("${trade.saga.async-enabled:true}") private boolean asyncSagaEnabled;
+    @Value("${trade.order.payment-timeout-minutes:15}") private int paymentTimeoutMinutes = 15;
 
     public OrderService(CartItemRepository cartItemRepository, com.own.order.repository.CartBuyerGuardRepository cartBuyerGuards, TradeOrderRepository orderRepository,
                         TradeSubOrderRepository subOrderRepository, OrderItemRepository orderItemRepository,
@@ -204,16 +206,26 @@ public class OrderService {
     @Transactional
     public TradeOrder paymentSucceeded(String orderNo, TradeActor actor) {
         actor.require(ActorType.SYSTEM);
+        if (!paymentGuard.claim(orderNo)) throw TradeException.conflict("payment requires manual reconciliation");
         TradeOrder order = requireLockedOrder(orderNo);
         if (order.getStatus() == OrderStatus.PAID || order.getStatus() == OrderStatus.FULFILLING
-                || order.getStatus() == OrderStatus.COMPLETED) {
+                || order.getStatus() == OrderStatus.COMPLETED || order.getStatus() == OrderStatus.REFUNDING
+                || order.getStatus() == OrderStatus.REFUNDED) {
             return order;
         }
         if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
             throw TradeException.conflict("order cannot be paid from current status");
         }
-        inventoryClient.commit(orderNo);
-        couponClient.consume(orderNo);
+        if (!order.isPaymentStarted() && paymentWindowExpired(order)) {
+            throw TradeException.conflict("order payment window has expired");
+        }
+        if (order.getPaymentRecoveryAttempts() > 1) {
+            inventoryClient.reconcileCommit(orderNo, orderItemRepository.findByOrderNo(orderNo));
+            couponClient.reconcileConsume(orderNo, order.getBuyerId(), order.getDiscountAmount());
+        } else {
+            inventoryClient.commit(orderNo, orderItemRepository.findByOrderNo(orderNo));
+            couponClient.consume(orderNo, order.getDiscountAmount());
+        }
         order.markPaid();
         orderRepository.save(order);
         for (TradeSubOrder subOrder : subOrderRepository.findByOrderNo(orderNo)) {
@@ -224,11 +236,36 @@ public class OrderService {
         return order;
     }
 
+    public BigDecimal paymentAmount(Long buyerId, String orderNo) {
+        TradeOrder order = orderRepository.findByOrderNo(orderNo);
+        if (order == null || buyerId == null || !buyerId.equals(order.getBuyerId())) {
+            throw TradeException.notFound("order was not found");
+        }
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT || paymentWindowExpired(order)) {
+            throw TradeException.conflict("order is not awaiting payment");
+        }
+        return order.getPayableAmount();
+    }
+
+    public com.own.face.trade.OrderRecoverySnapshot recoverySnapshot(TradeActor actor, String orderNo) {
+        actor.require(ActorType.SYSTEM);
+        TradeOrder order = orderRepository.findByOrderNo(orderNo);
+        if (order == null) throw TradeException.notFound("order was not found");
+        return new com.own.face.trade.OrderRecoverySnapshot(order.getOrderNo(), order.getBuyerId(),
+                order.getPayableAmount(), order.getStatus().name(), order.getPaymentRecoveryStatus());
+    }
+
+    private boolean paymentWindowExpired(TradeOrder order) {
+        Date deadline = new Date(System.currentTimeMillis() - paymentTimeoutMinutes * 60L * 1000L);
+        return order.getCreatedAt().before(deadline);
+    }
+
     @Transactional
     public TradeOrder cancel(TradeActor actor, String orderNo) {
         actor.require(ActorType.BUYER);
         TradeOrder order = requireBuyerLockedOrder(orderNo, actor.getId());
         if (order.getStatus() == OrderStatus.PENDING_PAYMENT) {
+            if (order.isPaymentStarted()) throw TradeException.conflict("payment is processing or requires reconciliation");
             order.cancel();
             for (TradeSubOrder subOrder : subOrderRepository.findByOrderNo(orderNo)) {
                 subOrder.cancel();
@@ -263,7 +300,7 @@ public class OrderService {
             subOrder.refund();
             subOrderRepository.save(subOrder);
         }
-        inventoryClient.refund(orderNo);
+        inventoryClient.refund(orderNo, orderItemRepository.findByOrderNo(orderNo));
         couponClient.release(orderNo);
         order.refund();
         orderRepository.save(order);
@@ -277,25 +314,34 @@ public class OrderService {
         if (command == null || blank(command.getLogisticsCompany()) || blank(command.getTrackingNo())) {
             throw TradeException.unprocessable("logisticsCompany and trackingNo are required");
         }
-        TradeSubOrder subOrder = subOrderRepository.findBySubOrderNo(subOrderNo);
-        if (subOrder == null) {
+        TradeSubOrder lookup = subOrderRepository.findBySubOrderNo(subOrderNo);
+        if (lookup == null) {
             throw TradeException.notFound("sub order was not found");
         }
-        if (!actor.getId().equals(subOrder.getMerchantId())) {
+        if (!actor.getId().equals(lookup.getMerchantId())) {
             throw TradeException.forbidden("merchant does not own this sub order");
         }
         // A buyer's paid cancellation changes the parent order to REFUNDING.
         // Lock and validate it before a merchant can turn a to-ship item into a
         // shipped one while the simulated payment refund is in flight.
-        TradeOrder parent = requireLockedOrder(subOrder.getOrderNo());
-        if (parent.getStatus() != OrderStatus.PAID) {
+        TradeOrder parent = requireLockedOrder(lookup.getOrderNo());
+        TradeSubOrder subOrder = requireLockedSubOrder(subOrderNo);
+        if (!actor.getId().equals(subOrder.getMerchantId())) {
+            throw TradeException.forbidden("merchant does not own this sub order");
+        }
+        if (parent.getStatus() != OrderStatus.PAID && parent.getStatus() != OrderStatus.FULFILLING) {
             throw TradeException.conflict("sub order cannot be shipped from current parent order status");
+        }
+        if (subOrder.getStatus() != SubOrderStatus.TO_SHIP) {
+            throw TradeException.conflict("sub order cannot be shipped from current status");
         }
         subOrder.ship(command.getLogisticsCompany().trim(), command.getTrackingNo().trim());
         subOrderRepository.save(subOrder);
         logisticsTraceRepository.save(new com.own.order.domain.LogisticsTrace(subOrderNo, "SHIPPED", "merchant shipped order", actor.getId()));
-        parent.markFulfilling();
-        orderRepository.save(parent);
+        if (parent.getStatus() == OrderStatus.PAID) {
+            parent.markFulfilling();
+            orderRepository.save(parent);
+        }
         event(parent.getOrderNo(), subOrderNo, "SUB_ORDER_SHIPPED", actor, command.getTrackingNo());
         return subOrder;
     }
@@ -363,7 +409,7 @@ public class OrderService {
         TradeOrder parent = requireLockedOrder(lookup.getOrderNo());
         TradeSubOrder subOrder = requireLockedSubOrder(subOrderNo);
         if (subOrder.getStatus() != SubOrderStatus.SHIPPED) return false;
-        if (!afterSaleRepository.findBySubOrderNoAndStatusIn(subOrderNo, Arrays.asList(AfterSaleStatus.APPLYING, AfterSaleStatus.APPROVED, AfterSaleStatus.RETURNING, AfterSaleStatus.RECEIVED, AfterSaleStatus.EXCHANGE_PENDING_SHIPMENT, AfterSaleStatus.EXCHANGE_SHIPPED, AfterSaleStatus.REFUND_PENDING)).isEmpty()) return false;
+        if (!afterSaleRepository.findBySubOrderNoAndStatusIn(subOrderNo, AfterSaleStatus.activeStatuses()).isEmpty()) return false;
         subOrder.receive(); subOrderRepository.save(subOrder);
         logisticsTraceRepository.save(new com.own.order.domain.LogisticsTrace(subOrderNo, "AUTO_RECEIVED", "system auto receipt", 0L));
         if (allReceived(parent.getOrderNo())) { parent.markCompleted(); orderRepository.save(parent); }
@@ -407,8 +453,10 @@ public class OrderService {
     public com.own.order.domain.MerchantFreightRule saveFreightRule(TradeActor actor, com.own.order.dto.FreightRuleCommand command) {
         actor.require(ActorType.MERCHANT);
         if (command == null || command.getFixedAmount() == null || command.getFixedAmount().compareTo(BigDecimal.ZERO) < 0
-                || command.getFreeThreshold() != null && command.getFreeThreshold().compareTo(BigDecimal.ZERO) < 0) {
-            throw TradeException.unprocessable("fixedAmount and freeThreshold must not be negative");
+                || command.getFixedAmount().stripTrailingZeros().scale() > 2
+                || command.getFreeThreshold() != null && (command.getFreeThreshold().compareTo(BigDecimal.ZERO) < 0
+                || command.getFreeThreshold().stripTrailingZeros().scale() > 2)) {
+            throw TradeException.unprocessable("fixedAmount and freeThreshold must be nonnegative amounts in cents");
         }
         com.own.order.domain.MerchantFreightRule rule = freightRuleRepository.findByMerchantId(actor.getId());
         if (rule == null) rule = new com.own.order.domain.MerchantFreightRule(actor.getId(), command.getFixedAmount(), command.getFreeThreshold());
@@ -461,7 +509,8 @@ public class OrderService {
     @Transactional
     public boolean expirePendingOrder(String orderNo, Date deadline) {
         TradeOrder order = requireLockedOrder(orderNo);
-        if (order.getStatus() != OrderStatus.PENDING_PAYMENT || !order.getCreatedAt().before(deadline)) return false;
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT || order.isPaymentStarted()
+                || !order.getCreatedAt().before(deadline)) return false;
         for (TradeSubOrder subOrder : subOrderRepository.findByOrderNo(orderNo)) {
             subOrder.cancel();
             subOrderRepository.save(subOrder);

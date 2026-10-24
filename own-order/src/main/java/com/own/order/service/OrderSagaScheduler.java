@@ -4,12 +4,15 @@ import com.own.order.domain.OrderSaga;
 import com.own.order.domain.OrderSagaStatus;
 import com.own.order.repository.OrderSagaRepository;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OrderSagaScheduler {
+    private static final Logger LOG = LoggerFactory.getLogger(OrderSagaScheduler.class);
     private final OrderSagaRepository sagas;
     private final AsyncOrderSagaService service;
     private final boolean enabled;
@@ -23,10 +26,18 @@ public class OrderSagaScheduler {
     public void processPendingSagas() {
         if (!enabled) return;
         for (OrderSaga saga : sagas.findByStatusAndNextAttemptAtBeforeOrderByIdAsc(OrderSagaStatus.PROCESSING, new Date())) {
-            service.process(saga.getOrderNo());
+            processOne(saga);
         }
         for (OrderSaga saga : sagas.findByStatusAndNextAttemptAtBeforeOrderByIdAsc(OrderSagaStatus.COMPENSATING, new Date())) {
+            processOne(saga);
+        }
+    }
+
+    private void processOne(OrderSaga saga) {
+        try {
             service.process(saga.getOrderNo());
+        } catch (RuntimeException exception) {
+            LOG.warn("Order saga attempt failed and remains eligible for retry: {}", saga.getOrderNo(), exception);
         }
     }
 }

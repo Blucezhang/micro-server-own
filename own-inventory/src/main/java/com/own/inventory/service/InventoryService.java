@@ -8,6 +8,7 @@ import com.own.inventory.dto.InventoryBootstrapItem;
 import com.own.inventory.dto.ReservationCommand;
 import com.own.inventory.dto.StockCommand;
 import com.own.inventory.dto.InventoryAdjustmentCommand;
+import com.own.inventory.dto.OrderInventoryItem;
 import com.own.inventory.domain.InventoryAdjustment;
 import com.own.inventory.domain.AfterSaleInventoryRefund;
 import com.own.inventory.domain.LowStockAlertRule;
@@ -88,9 +89,6 @@ public class InventoryService {
         if (stock == null) {
             return stockRepository.save(new InventoryStock(productId, command.getMerchantId(), quantity));
         }
-        if (stock.getReservedQuantity().intValue() > quantity.intValue()) {
-            throw TradeException.conflict("available quantity cannot be lower than active reservations");
-        }
         stock.setAvailableQuantity(quantity);
         return stockRepository.save(stock);
     }
@@ -135,7 +133,7 @@ public class InventoryService {
         try {
             stock.reserve(command.getQuantity().intValue());
         } catch (IllegalStateException exception) {
-            throw TradeException.conflict("insufficient inventory");
+            throw TradeException.conflict(exception.getMessage());
         }
         stockRepository.save(stock);
         int ttl = command.getTtlMinutes() == null ? reservationTtlMinutes : command.getTtlMinutes();
@@ -149,27 +147,79 @@ public class InventoryService {
     }
 
     @Transactional
-    public void commitOrder(String orderNo) {
-        changeReservationState(orderNo, true);
+    public void commitOrder(String orderNo, List<OrderInventoryItem> items) {
+        List<InventoryReservation> reservations = lockedMatchingOrderReservations(orderNo, items);
+        List<InventoryReservation> toCommit = new ArrayList<InventoryReservation>();
+        Date now = new Date();
+        for (InventoryReservation reservation : reservations) {
+            if (reservation.getStatus() == ReservationStatus.COMMITTED) continue;
+            if (reservation.getStatus() != ReservationStatus.RESERVED || reservation.getExpiresAt() == null
+                    || !reservation.getExpiresAt().after(now)) {
+                throw TradeException.conflict("inventory reservation is no longer active");
+            }
+            toCommit.add(reservation);
+        }
+        for (InventoryReservation reservation : toCommit) commitReservation(reservation);
     }
 
     @Transactional
     public void releaseOrder(String orderNo) {
-        changeReservationState(orderNo, false);
+        changeReservationState(orderNo);
     }
 
     @Transactional
-    public void refundOrder(String orderNo) {
-        if (orderNo == null || orderNo.trim().isEmpty()) {
-            throw TradeException.badRequest("orderNo is required");
+    public void refundOrder(String orderNo, List<OrderInventoryItem> items) {
+        List<InventoryReservation> reservations = lockedMatchingOrderReservations(orderNo, items);
+        for (InventoryReservation reservation : reservations) {
+            if (reservation.getStatus() != ReservationStatus.COMMITTED
+                    && reservation.getStatus() != ReservationStatus.REFUNDED) {
+                throw TradeException.conflict("inventory reservation was not committed");
+            }
         }
-        for (InventoryReservation reservation : reservationRepository.findByOrderNoAndStatus(orderNo, ReservationStatus.COMMITTED)) {
+        for (InventoryReservation reservation : reservations) {
+            if (reservation.getStatus() == ReservationStatus.REFUNDED) continue;
             InventoryStock stock = lockedStock(reservation.getProductId(), reservation.getMerchantId());
-            stock.refund(reservation.getQuantity().intValue());
+            try {
+                stock.refund(reservation.getQuantity().intValue());
+            } catch (IllegalStateException exception) {
+                throw TradeException.conflict(exception.getMessage());
+            }
             stockRepository.save(stock);
             reservation.refund();
             reservationRepository.save(reservation);
         }
+    }
+
+    private List<InventoryReservation> lockedMatchingOrderReservations(String orderNo, List<OrderInventoryItem> items) {
+        if (orderNo == null || orderNo.trim().isEmpty() || items == null || items.isEmpty()) {
+            throw TradeException.badRequest("orderNo and inventory items are required");
+        }
+        Map<Long, OrderInventoryItem> expected = new LinkedHashMap<Long, OrderInventoryItem>();
+        for (OrderInventoryItem item : items) {
+            requirePositive(item == null ? null : item.getProductId(), "productId");
+            requirePositive(item.getMerchantId(), "merchantId");
+            if (item.getQuantity() == null || item.getQuantity().intValue() <= 0) {
+                throw TradeException.unprocessable("quantity must be positive");
+            }
+            if (expected.putIfAbsent(item.getProductId(), item) != null) {
+                throw TradeException.unprocessable("duplicate productId in inventory items");
+            }
+        }
+        List<InventoryReservation> reservations = new ArrayList<InventoryReservation>();
+        for (Long id : reservationRepository.findIdsByOrderNoOrderByIdAsc(orderNo)) {
+            InventoryReservation reservation = reservationRepository.findByIdForUpdate(id);
+            if (reservation == null || !orderNo.equals(reservation.getOrderNo())) {
+                throw TradeException.conflict("inventory reservation does not match order");
+            }
+            OrderInventoryItem item = expected.remove(reservation.getProductId());
+            if (item == null || !item.getMerchantId().equals(reservation.getMerchantId())
+                    || !item.getQuantity().equals(reservation.getQuantity())) {
+                throw TradeException.conflict("inventory reservation does not match order items");
+            }
+            reservations.add(reservation);
+        }
+        if (!expected.isEmpty()) throw TradeException.conflict("inventory reservation is missing for order items");
+        return reservations;
     }
 
     @Transactional
@@ -204,7 +254,7 @@ public class InventoryService {
             InventoryStock stock = lockedStock(item.getProductId(), item.getMerchantId());
             AfterSaleInventoryRefund existing = afterSaleRefundRepository.findByAfterSaleNoAndProductId(command.getAfterSaleNo(), item.getProductId());
             if (existing != null) { if (!existing.getMerchantId().equals(item.getMerchantId()) || !existing.getQuantity().equals(item.getQuantity())) throw TradeException.conflict("after-sale inventory refund does not match original request"); continue; }
-            try { stock.refund(item.getQuantity()); } catch (IllegalStateException exception) { throw TradeException.conflict("sold inventory is insufficient for after-sale refund"); }
+            try { stock.refund(item.getQuantity()); } catch (IllegalStateException exception) { throw TradeException.conflict(exception.getMessage()); }
             stockRepository.save(stock); afterSaleRefundRepository.save(new AfterSaleInventoryRefund(command.getAfterSaleNo(), item.getProductId(), item.getMerchantId(), item.getQuantity()));
         }
     }
@@ -250,7 +300,7 @@ public class InventoryService {
         if(command==null||command.getMerchantId()==null||!actor.getId().equals(command.getMerchantId())||command.getQuantity()==null||command.getQuantity().intValue()<0||command.getAdjustmentType()==null||command.getReason()==null||command.getReason().trim().isEmpty()) throw TradeException.unprocessable("merchantId, adjustmentType, nonnegative quantity and reason are required");
         String type=command.getAdjustmentType().trim(); if(!"INBOUND".equals(type)&&!"OUTBOUND".equals(type)&&!"STOCKTAKE".equals(type))throw TradeException.unprocessable("adjustmentType must be INBOUND, OUTBOUND or STOCKTAKE");
         InventoryStock stock=lockedStock(productId,actor.getId()); int before=stock.getAvailableQuantity(); int after="INBOUND".equals(type)?before+command.getQuantity():"OUTBOUND".equals(type)?before-command.getQuantity():command.getQuantity();
-        if(after<0)throw TradeException.conflict("inventory cannot be negative"); if(stock.getReservedQuantity().intValue()>after)throw TradeException.conflict("available quantity cannot be lower than active reservations");
+        if(after<0)throw TradeException.conflict("inventory cannot be negative");
         stock.setAvailableQuantity(after); stockRepository.save(stock);
         return adjustmentRepository.save(new InventoryAdjustment(productId,actor.getId(),type,command.getQuantity(),before,after,command.getReason().trim(),actor.getId()));
     }
@@ -300,24 +350,24 @@ public class InventoryService {
         return alerts;
     }
 
-    private void changeReservationState(String orderNo, boolean commit) {
+    private void changeReservationState(String orderNo) {
         if (orderNo == null || orderNo.trim().isEmpty()) {
             throw TradeException.badRequest("orderNo is required");
         }
         for (Long reservationId : reservationRepository.findIdsByOrderNoAndStatus(orderNo, ReservationStatus.RESERVED)) {
             InventoryReservation reservation = reservationRepository.findByIdForUpdate(reservationId);
             if (reservation == null || reservation.getStatus() != ReservationStatus.RESERVED) continue;
-            if (commit) {
-                commitReservation(reservation);
-            } else {
-                releaseReservation(reservation, false);
-            }
+            releaseReservation(reservation, false);
         }
     }
 
     private void commitReservation(InventoryReservation reservation) {
         InventoryStock stock = lockedStock(reservation.getProductId(), reservation.getMerchantId());
-        stock.commit(reservation.getQuantity().intValue());
+        try {
+            stock.commit(reservation.getQuantity().intValue());
+        } catch (IllegalStateException exception) {
+            throw TradeException.conflict(exception.getMessage());
+        }
         stockRepository.save(stock);
         reservation.commit();
         reservationRepository.save(reservation);
@@ -325,7 +375,11 @@ public class InventoryService {
 
     private void releaseReservation(InventoryReservation reservation, boolean expired) {
         InventoryStock stock = lockedStock(reservation.getProductId(), reservation.getMerchantId());
-        stock.release(reservation.getQuantity().intValue());
+        try {
+            stock.release(reservation.getQuantity().intValue());
+        } catch (IllegalStateException exception) {
+            throw TradeException.conflict(exception.getMessage());
+        }
         stockRepository.save(stock);
         if (expired) {
             reservation.expire();

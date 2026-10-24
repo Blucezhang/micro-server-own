@@ -1,6 +1,7 @@
 package com.own.order.service;
 
 import com.own.face.trade.TradeException;
+import com.own.face.trade.TradeResponse;
 import com.own.face.security.InternalServiceGuard;
 import com.own.order.domain.AfterSale;
 import java.util.HashMap;
@@ -22,9 +23,10 @@ public class SettlementClient {
     public void refundAfterSale(AfterSale sale) {
         Map<String, Object> body = new HashMap<String, Object>();
         body.put("afterSaleNo", sale.getAfterSaleNo()); body.put("orderNo", sale.getOrderNo()); body.put("buyerId", sale.getBuyerId()); body.put("amount", sale.getRequestedAmount());
+        body.put("merchantId", sale.getMerchantId());
         try {
             ResponseEntity<Map> response = restTemplate.exchange("http://own-settlement/api/v1/payments/internal/after-sales/refund", HttpMethod.POST, new HttpEntity<Object>(body, headers(sale.getAfterSaleNo())), Map.class);
-            if (!response.getStatusCode().is2xxSuccessful()) throw TradeException.conflict("settlement operation failed");
+            TradeResponse.requireSuccess(response, "after-sale settlement operation");
         } catch (TradeException exception) { throw exception; } catch (Exception exception) { throw TradeException.conflict("settlement service is unavailable"); }
     }
     private HttpHeaders headers(String no) { HttpHeaders headers = new HttpHeaders(); headers.set("X-Actor-Id", "1"); headers.set("X-Actor-Type", "SYSTEM"); headers.set("Idempotency-Key", "order-after-sale-" + no); headers.set(InternalServiceGuard.HEADER, internalToken); return headers; }

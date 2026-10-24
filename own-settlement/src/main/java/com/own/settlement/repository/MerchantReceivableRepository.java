@@ -9,9 +9,12 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 public interface MerchantReceivableRepository extends JpaRepository<MerchantReceivable, Long> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     MerchantReceivable findByOrderNoAndMerchantId(String orderNo, Long merchantId);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<MerchantReceivable> findByStatusAndCreatedAtBefore(String status, Date cutoff);
     @Lock(LockModeType.PESSIMISTIC_WRITE) @Query("select r from MerchantReceivable r where r.merchantId = ?1 and r.status = 'SETTLED'")
     List<MerchantReceivable> lockSettledByMerchantId(Long merchantId);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<MerchantReceivable> findByOrderNo(String orderNo);
 }

@@ -45,6 +45,19 @@ class MerchantCouponTemplateTimeTest {
         assertEquals(new Date(expiresAt - 1000L), template.getClaimStartsAt());
     }
 
+    @Test
+    void rejectsSubCentCouponAmounts() {
+        MerchantCouponTemplateCommand input = command(expiresAt - 1000L);
+        input.setMinimumAmount("10.001");
+        assertEquals(422, assertThrows(TradeException.class,
+                () -> service.createMerchantTemplate(9L, input)).getStatus());
+        input.setMinimumAmount("10.00");
+        input.setDiscountAmount("1.001");
+        assertEquals(422, assertThrows(TradeException.class,
+                () -> service.createMerchantTemplate(9L, input)).getStatus());
+        verify(templates, never()).save(any());
+    }
+
     private MerchantCouponTemplateCommand command(long start) {
         MerchantCouponTemplateCommand command = new MerchantCouponTemplateCommand();
         command.setName("coupon"); command.setTotalQuantity(3);
