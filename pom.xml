@@ -35,7 +35,7 @@
         <springdoc.version>3.1.1</springdoc.version>
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
-        <ognl.version>3.2.6</ognl.version>
+        <ognl.version>3.4.13</ognl.version>
         <aspectjweaver.version>1.8.6</aspectjweaver.version>
         <aspectjweaver-file.version>1.8.13</aspectjweaver-file.version>
         <jpush-client.version>3.2.3</jpush-client.version>
