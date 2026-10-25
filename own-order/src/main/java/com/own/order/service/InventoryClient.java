@@ -1,5 +1,9 @@
 package com.own.order.service;
 
+import com.own.face.trade.config.ReservationLimits;
+import com.own.face.trade.config.ServiceEndpoint;
+import com.own.face.trade.ActorType;
+import com.own.face.trade.TradeHeaders;
 import com.own.face.trade.TradeException;
 import com.own.face.trade.TradeResponse;
 import com.own.face.security.InternalServiceGuard;
@@ -23,12 +27,21 @@ import org.springframework.beans.factory.annotation.Value;
 public class InventoryClient {
 
     private final RestTemplate restTemplate;
+    private final String baseUrl;
     private final String internalToken;
-    @Value("${trade.saga.reservation-ttl-minutes:15}") private int reservationTtlMinutes = 15;
+    private final int reservationTtlMinutes;
 
-    public InventoryClient(RestTemplate restTemplate, @Value("${trade.internal.service-token:}") String internalToken) {
+    public InventoryClient(RestTemplate restTemplate,
+            @Value("${trade.internal.service-token:}") String internalToken,
+            @Value("${trade.services.inventory-base-url}") String baseUrl,
+            @Value("${trade.saga.reservation-ttl-minutes}") int reservationTtlMinutes) {
         this.restTemplate = restTemplate;
+        this.baseUrl = ServiceEndpoint.requireRoot(baseUrl);
         this.internalToken = internalToken;
+        if (reservationTtlMinutes < 1 || reservationTtlMinutes > ReservationLimits.MAX_TTL_MINUTES) {
+            throw new IllegalArgumentException("reservation TTL must be 1.." + ReservationLimits.MAX_TTL_MINUTES + " minutes");
+        }
+        this.reservationTtlMinutes = reservationTtlMinutes;
     }
 
     public void reserve(String orderNo, OrderItem item) {
@@ -43,27 +56,30 @@ public class InventoryClient {
         body.put("merchantId", merchantId);
         body.put("quantity", quantity);
         body.put("ttlMinutes", reservationTtlMinutes);
-        post("http://own-inventory/api/v1/internal/reservations", body,
+        post(baseUrl + "/api/v1/internal/reservations", body,
                 "order-inventory-reserve-" + orderNo + "-" + productId + "-" + merchantId);
     }
 
     public void commit(String orderNo, List<OrderItem> items) {
-        post("http://own-inventory/api/v1/internal/orders/" + orderNo + "/inventory/commit",
+        post(baseUrl + "/api/v1/internal/orders/" + orderNo + "/inventory/commit",
                 orderItemBody(items), "order-inventory-commit-" + orderNo);
     }
     public void reconcileCommit(String orderNo, List<OrderItem> items) {
         if (!confirmedEffect(orderNo, items, "COMMITTED")) commit(orderNo, items);
     }
-    public void release(String orderNo) { post("http://own-inventory/api/v1/internal/orders/" + orderNo + "/inventory/release", null, "order-inventory-release-" + orderNo); }
+    public void release(String orderNo) { post(baseUrl + "/api/v1/internal/orders/" + orderNo + "/inventory/release", null, "order-inventory-release-" + orderNo); }
+    public void reconcileRelease(String orderNo, List<OrderItem> items) {
+        if (!confirmedEffect(orderNo, items, "RELEASED")) release(orderNo);
+    }
     public void refund(String orderNo, List<OrderItem> items) {
         if (confirmedEffect(orderNo, items, "REFUNDED")) return;
-        post("http://own-inventory/api/v1/internal/orders/" + orderNo + "/inventory/refund",
+        post(baseUrl + "/api/v1/internal/orders/" + orderNo + "/inventory/refund",
                 orderItemBody(items), "order-inventory-refund-" + orderNo);
     }
 
     private boolean confirmedEffect(String orderNo, List<OrderItem> items, String target) {
         try {
-            ResponseEntity<Map> response = restTemplate.exchange("http://own-inventory/api/v1/internal/orders/" + orderNo + "/inventory/state",
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl + "/api/v1/internal/orders/" + orderNo + "/inventory/state",
                     HttpMethod.GET, new HttpEntity<Void>(internalHeaders("inventory-state-" + orderNo)), Map.class);
             Object data = TradeResponse.requireSuccess(response, "inventory recovery state").get("data");
             List<Map<String, Object>> expected = orderItemBody(items);
@@ -83,11 +99,13 @@ public class InventoryClient {
                         || !String.valueOf(line.get("quantity")).equals(String.valueOf(row.get("quantity")))) {
                     throw TradeException.conflict("inventory recovery row does not match order item");
                 }
-                String source = "COMMITTED".equals(target) ? "RESERVED" : "COMMITTED";
-                if (!target.equals(row.get("status")) && !source.equals(row.get("status"))) {
+                String source = "REFUNDED".equals(target) ? "COMMITTED" : "RESERVED";
+                boolean done = target.equals(row.get("status"))
+                        || "RELEASED".equals(target) && "EXPIRED".equals(row.get("status"));
+                if (!done && !source.equals(row.get("status"))) {
                     throw TradeException.conflict("inventory recovery requires reconciliation");
                 }
-                confirmed &= target.equals(row.get("status"));
+                confirmed &= done;
             }
             return confirmed;
         } catch (TradeException exception) { throw exception;
@@ -117,8 +135,8 @@ public class InventoryClient {
         }
         return new ArrayList<Map<String, Object>>(byProduct.values());
     }
-    public void refundAfterSale(String afterSaleNo, Long merchantId, List<AfterSaleItem> items) { List<Map<String, Object>> lines = new ArrayList<Map<String, Object>>(); for (AfterSaleItem item : items) { Map<String, Object> line = new HashMap<String, Object>(); line.put("productId", item.getProductId()); line.put("merchantId", merchantId); line.put("quantity", item.getQuantity()); lines.add(line); } Map<String, Object> body = new HashMap<String, Object>(); body.put("afterSaleNo", afterSaleNo); body.put("items", lines); post("http://own-inventory/api/v1/internal/after-sales/inventory/refund", body, "order-after-sale-inventory-refund-" + afterSaleNo); }
-    public void exchangeAfterSale(String afterSaleNo, Long merchantId, List<AfterSaleItem> items) { List<Map<String, Object>> lines = new ArrayList<Map<String, Object>>(); for (AfterSaleItem item : items) { Map<String, Object> line = new HashMap<String, Object>(); line.put("productId", item.getProductId()); line.put("merchantId", merchantId); line.put("quantity", item.getQuantity()); lines.add(line); } Map<String, Object> body = new HashMap<String, Object>(); body.put("afterSaleNo", afterSaleNo); body.put("items", lines); post("http://own-inventory/api/v1/internal/after-sales/inventory/exchange", body, "order-after-sale-inventory-exchange-" + afterSaleNo); }
+    public void refundAfterSale(String afterSaleNo, Long merchantId, List<AfterSaleItem> items) { List<Map<String, Object>> lines = new ArrayList<Map<String, Object>>(); for (AfterSaleItem item : items) { Map<String, Object> line = new HashMap<String, Object>(); line.put("productId", item.getProductId()); line.put("merchantId", merchantId); line.put("quantity", item.getQuantity()); lines.add(line); } Map<String, Object> body = new HashMap<String, Object>(); body.put("afterSaleNo", afterSaleNo); body.put("items", lines); post(baseUrl + "/api/v1/internal/after-sales/inventory/refund", body, "order-after-sale-inventory-refund-" + afterSaleNo); }
+    public void exchangeAfterSale(String afterSaleNo, Long merchantId, List<AfterSaleItem> items) { List<Map<String, Object>> lines = new ArrayList<Map<String, Object>>(); for (AfterSaleItem item : items) { Map<String, Object> line = new HashMap<String, Object>(); line.put("productId", item.getProductId()); line.put("merchantId", merchantId); line.put("quantity", item.getQuantity()); lines.add(line); } Map<String, Object> body = new HashMap<String, Object>(); body.put("afterSaleNo", afterSaleNo); body.put("items", lines); post(baseUrl + "/api/v1/internal/after-sales/inventory/exchange", body, "order-after-sale-inventory-exchange-" + afterSaleNo); }
 
     private void post(String url, Object body, String idempotencyKey) {
         try {
@@ -139,9 +157,9 @@ public class InventoryClient {
 
     private HttpHeaders internalHeaders(String idempotencyKey) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Actor-Id", "1");
-        headers.set("X-Actor-Type", "SYSTEM");
-        headers.set("Idempotency-Key", idempotencyKey);
+        headers.set(TradeHeaders.ACTOR_ID, "1");
+        headers.set(TradeHeaders.ACTOR_TYPE, ActorType.SYSTEM.name());
+        headers.set(TradeHeaders.IDEMPOTENCY_KEY, idempotencyKey);
         headers.set(InternalServiceGuard.HEADER, internalToken);
         return headers;
     }

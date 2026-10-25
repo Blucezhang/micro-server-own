@@ -1,26 +1,29 @@
 package com.own.order.service;
 
+import com.own.face.trade.config.ServiceEndpoint;
 import com.own.face.trade.TradeException;
 import java.math.BigDecimal;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 
 @Component
 public class CatalogClient {
 
     private final RestTemplate restTemplate;
+    private final String baseUrl;
 
-    public CatalogClient(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public CatalogClient(RestTemplate restTemplate, @Value("${trade.services.product-base-url}") String baseUrl) {
+        this.restTemplate = restTemplate; this.baseUrl = ServiceEndpoint.requireRoot(baseUrl);
     }
 
     @SuppressWarnings("unchecked")
     public CatalogProduct getProduct(Long productId) {
         try {
             ResponseEntity<Map> response = restTemplate.getForEntity(
-                    "http://own-product/product/Product/{productId}", Map.class, productId);
+                    baseUrl + "/product/Product/{productId}", Map.class, productId);
             Map body = response.getBody();
             Object data = body == null ? null : body.get("data");
             if (!(data instanceof Map)) {

@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderFace extends FaceBase {
 
-	protected String serviceUrl="http://ORDER/";
+	@org.springframework.beans.factory.annotation.Value("${trade.legacy-services.order-base-url}")
+    protected String serviceUrl;
 	/**
 	 * 订单查询
 	 * @param id

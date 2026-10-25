@@ -9,11 +9,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "trade_message_inbox")
+@Table(name = "trade_message_inbox", uniqueConstraints = @jakarta.persistence.UniqueConstraint(
+        name = "uk_trade_message_inbox_consumer_message", columnNames = {"consumer_name", "message_id"}))
 public class TradeMessageInbox {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(name = "consumer_name", nullable = false, length = 64) private String consumerName;
     @Column(name = "message_id", nullable = false, length = 128) private String messageId;
     @Column(name = "payload_hash", nullable = false, length = 64) private String payloadHash;
     @Column(name = "processed_at", nullable = false) private Date processedAt;
+    public String getPayloadHash() { return payloadHash; }
 }

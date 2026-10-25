@@ -24,7 +24,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class RefreshSessionServiceTest {
     @Test
     public void activeSessionListDoesNotExposeTokenIdentifier() {
-        JwtTokenService tokens = new JwtTokenService(new ObjectMapper(), "01234567890123456789012345678901", 120L, "issuer");
+        JwtTokenService tokens = new JwtTokenService(new ObjectMapper(), "01234567890123456789012345678901", "", 120L, 1209600L, "issuer");
         RefreshTokenSessionRepository sessions = mock(RefreshTokenSessionRepository.class);
         RefreshTokenSession session = new RefreshTokenSession("private-jti", 7L, "BUYER", tokens.refreshExpiresAt());
         ReflectionTestUtils.setField(session, "id", 9L);
@@ -35,7 +35,7 @@ public class RefreshSessionServiceTest {
 
     @Test
     public void rotationReplacesOldSessionAndRejectsItsReuse() {
-        JwtTokenService tokens = new JwtTokenService(new ObjectMapper(), "01234567890123456789012345678901", 120L, "issuer");
+        JwtTokenService tokens = new JwtTokenService(new ObjectMapper(), "01234567890123456789012345678901", "", 120L, 1209600L, "issuer");
         RefreshTokenSessionRepository sessions = mock(RefreshTokenSessionRepository.class);
         LoginUserService users = mock(LoginUserService.class);
         RefreshSessionService service = new RefreshSessionService(tokens, sessions, users);

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FileFace extends FaceBase {
 
-    @Value("FileServiceUrl")
+    @Value("${FileServiceUrl:}")
     private  String serviceUrl;
 
     public List<String> getFileList(String type) {
@@ -20,6 +20,5 @@ public class FileFace extends FaceBase {
                 + "/file/{type}", List.class, type);
             return fileList;
     }
-    
+
 }
- 

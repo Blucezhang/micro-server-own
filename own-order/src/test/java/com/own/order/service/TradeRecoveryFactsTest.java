@@ -23,28 +23,54 @@ class TradeRecoveryFactsTest {
     @Test
     void alreadyCommittedInventoryDoesNotRepeatUnknownHttpWrite() {
         RestTemplate rest = facts(List.of(stock("COMMITTED", 20, 2)));
-        new InventoryClient(rest, "token").reconcileCommit("ORD-1", items);
+        new InventoryClient(rest, "token", "http://own-inventory", 15).reconcileCommit("ORD-1", items);
         noWrites(rest);
     }
 
     @Test
     void alreadyRefundedInventoryDoesNotRepeatRefund() {
         RestTemplate rest = facts(List.of(stock("REFUNDED", 20, 2)));
-        new InventoryClient(rest, "token").refund("ORD-1", items);
+        new InventoryClient(rest, "token", "http://own-inventory", 15).refund("ORD-1", items);
         noWrites(rest);
+    }
+
+    @Test
+    void releasedOrExpiredInventoryDoesNotRepeatUnknownRelease() {
+        for (String status : List.of("RELEASED", "EXPIRED")) {
+            RestTemplate rest = facts(List.of(stock(status, 20, 2)));
+            new InventoryClient(rest, "token", "http://own-inventory", 15).reconcileRelease("ORD-1", items);
+            noWrites(rest);
+        }
+    }
+
+    @Test
+    void reservedInventoryReleaseRetainsOriginalKey() {
+        RestTemplate rest = facts(List.of(stock("RESERVED", 20, 2)));
+        new InventoryClient(rest, "token", "http://own-inventory", 15).reconcileRelease("ORD-1", items);
+        assertKey(rest, "order-inventory-release-ORD-1");
+    }
+
+    @Test
+    void committedMissingOrMismatchedInventoryCannotAuthorizeCancellation() {
+        for (List<?> rows : List.of(List.of(), List.of(stock("COMMITTED", 20, 2)),
+                List.of(stock("RELEASED", 21, 2)), List.of(stock("EXPIRED", 20, 3)))) {
+            RestTemplate rest = facts(rows);
+            assertThrows(TradeException.class, () -> new InventoryClient(rest, "token", "http://own-inventory", 15).reconcileRelease("ORD-1", items));
+            noWrites(rest);
+        }
     }
 
     @Test
     void reservedInventoryUsesOriginalCommitKey() {
         RestTemplate rest = facts(List.of(stock("RESERVED", 20, 2)));
-        new InventoryClient(rest, "token").reconcileCommit("ORD-1", items);
+        new InventoryClient(rest, "token", "http://own-inventory", 15).reconcileCommit("ORD-1", items);
         assertKey(rest, "order-inventory-commit-ORD-1");
     }
 
     @Test
     void committedInventoryUsesOriginalRefundKey() {
         RestTemplate rest = facts(List.of(stock("COMMITTED", 20, 2)));
-        new InventoryClient(rest, "token").refund("ORD-1", items);
+        new InventoryClient(rest, "token", "http://own-inventory", 15).refund("ORD-1", items);
         assertKey(rest, "order-inventory-refund-ORD-1");
     }
 
@@ -54,7 +80,7 @@ class TradeRecoveryFactsTest {
                 List.of(stock("COMMITTED", 20, 3)), List.of(stock("EXPIRED", 20, 2)),
                 List.of(stock("COMMITTED", 20, 2), stock("COMMITTED", 20, 2)))) {
             RestTemplate rest = facts(rows);
-            assertThrows(TradeException.class, () -> new InventoryClient(rest, "token").reconcileCommit("ORD-1", items));
+            assertThrows(TradeException.class, () -> new InventoryClient(rest, "token", "http://own-inventory", 15).reconcileCommit("ORD-1", items));
             noWrites(rest);
         }
     }
@@ -62,14 +88,14 @@ class TradeRecoveryFactsTest {
     @Test
     void usedCouponFactsSkipRepeatedConsumption() {
         RestTemplate rest = facts(List.of(coupon("USED", 7, "1.00")));
-        new CouponClient(rest, "token").reconcileConsume("ORD-1", 7L, BigDecimal.ONE);
+        new CouponClient(rest, "token", "http://own-promotion", 15).reconcileConsume("ORD-1", 7L, BigDecimal.ONE);
         noWrites(rest);
     }
 
     @Test
     void reservedCouponFactsRetainOriginalConsumptionBusinessKey() {
         RestTemplate rest = facts(List.of(coupon("RESERVED", 7, "1.00")));
-        new CouponClient(rest, "token").reconcileConsume("ORD-1", 7L, BigDecimal.ONE);
+        new CouponClient(rest, "token", "http://own-promotion", 15).reconcileConsume("ORD-1", 7L, BigDecimal.ONE);
         assertKey(rest, "order-coupon-consume-ORD-1");
     }
 
@@ -79,7 +105,7 @@ class TradeRecoveryFactsTest {
                 List.of(coupon("USED", 7, "2.00")), List.of(coupon("AVAILABLE", 7, "1.00")),
                 List.of(coupon("USED", 7, "0.50"), coupon("USED", 7, "0.50")))) {
             RestTemplate rest = facts(rows);
-            assertThrows(TradeException.class, () -> new CouponClient(rest, "token").reconcileConsume("ORD-1", 7L, BigDecimal.ONE));
+            assertThrows(TradeException.class, () -> new CouponClient(rest, "token", "http://own-promotion", 15).reconcileConsume("ORD-1", 7L, BigDecimal.ONE));
             noWrites(rest);
         }
     }
@@ -87,7 +113,7 @@ class TradeRecoveryFactsTest {
     @Test
     void zeroDiscountWithNoCouponsNeedsNoWrite() {
         RestTemplate rest = facts(List.of());
-        new CouponClient(rest, "token").reconcileConsume("ORD-1", 7L, BigDecimal.ZERO);
+        new CouponClient(rest, "token", "http://own-promotion", 15).reconcileConsume("ORD-1", 7L, BigDecimal.ZERO);
         noWrites(rest);
     }
 

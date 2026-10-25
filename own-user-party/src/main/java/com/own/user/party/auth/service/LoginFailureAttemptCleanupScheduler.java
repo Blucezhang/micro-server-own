@@ -13,14 +13,14 @@ public class LoginFailureAttemptCleanupScheduler {
     private final long retentionDays;
 
     public LoginFailureAttemptCleanupScheduler(LoginFailureAttemptRepository attempts,
-                                               @Value("${trade.security.login.attempt-retention-days:90}") long retentionDays) {
+                                               @Value("${trade.security.login.attempt-retention-days}") long retentionDays) {
         this.attempts = attempts;
         this.retentionDays = Math.min(3650L, Math.max(1L, retentionDays));
     }
 
-    @Scheduled(fixedDelayString = "${trade.security.login.attempt-cleanup-delay-ms:86400000}")
+    @Scheduled(fixedDelayString = "${trade.security.login.attempt-cleanup-delay-ms}")
     public void purgeExpiredAttempts() {
         Date now = new Date();
-        attempts.deleteInactiveBefore(new Date(now.getTime() - retentionDays * 24L * 60L * 60L * 1000L), now);
+        attempts.deleteInactiveBefore(new Date(now.getTime() - java.time.Duration.ofDays(retentionDays).toMillis()), now);
     }
 }

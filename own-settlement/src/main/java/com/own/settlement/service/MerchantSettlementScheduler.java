@@ -6,6 +6,6 @@ import org.springframework.stereotype.Component;
 public class MerchantSettlementScheduler {
     private final MerchantSettlementService service;
     public MerchantSettlementScheduler(MerchantSettlementService service) { this.service = service; }
-    @Scheduled(fixedDelayString = "${trade.settlement.scan-fixed-delay-millis:86400000}")
+    @Scheduled(fixedDelayString = "${trade.settlement.scan-fixed-delay-millis}")
     public void settleDue() { service.settleDue(null); }
 }

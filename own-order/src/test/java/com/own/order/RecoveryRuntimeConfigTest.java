@@ -14,11 +14,11 @@ class RecoveryRuntimeConfigTest {
     @Test
     void requestsHaveFiniteTimeoutsAndInvalidValuesCannotDisableThem() {
         OrderApplication app = new OrderApplication();
-        var client = app.restTemplate(3000, 10000);
+        var client = app.restTemplate(new com.own.face.trade.config.TradeHttpProperties(3000, 10000));
         assertEquals(3000, ReflectionTestUtils.getField(client.getRequestFactory(), "connectTimeout"));
         assertEquals(10000, ReflectionTestUtils.getField(client.getRequestFactory(), "readTimeout"));
-        assertThrows(IllegalArgumentException.class, () -> app.restTemplate(0, 1000));
-        assertThrows(IllegalArgumentException.class, () -> app.restTemplate(1000, -1));
+        assertThrows(IllegalArgumentException.class, () -> app.restTemplate(new com.own.face.trade.config.TradeHttpProperties(0, 1000)));
+        assertThrows(IllegalArgumentException.class, () -> app.restTemplate(new com.own.face.trade.config.TradeHttpProperties(1000, -1)));
     }
     @Test
     void recoveryDoesNotUseTheDefaultSchedulerThread() throws Exception {
@@ -27,7 +27,7 @@ class RecoveryRuntimeConfigTest {
     }
     @Test
     void createdRequestsCarryTimeoutsWithoutOpeningANetworkConnection() throws Exception {
-        var client = new OrderApplication().restTemplate(1000, 100);
+        var client = new OrderApplication().restTemplate(new com.own.face.trade.config.TradeHttpProperties(1000, 100));
         var request = client.getRequestFactory().createRequest(URI.create("http://fixture.invalid/pending"), org.springframework.http.HttpMethod.GET);
         HttpURLConnection connection = (HttpURLConnection) ReflectionTestUtils.getField(request, "connection");
         assertNotNull(connection);

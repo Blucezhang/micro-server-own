@@ -1,5 +1,8 @@
 package com.own.order;
 
+import com.own.face.trade.config.TradeHttpProperties;
+import com.own.face.trade.config.TradeRecoveryProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
@@ -18,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableJpaRepositories(basePackages = {"com.own.order.repository", "com.own.face.trade.idempotency"})
 @ComponentScan(basePackages = {"com.own.order", "com.own.face"})
 @EnableScheduling
+@EnableConfigurationProperties({TradeHttpProperties.class, TradeRecoveryProperties.class})
 public class OrderApplication {
 
     public static void main(String[] args) {
@@ -28,11 +32,10 @@ public class OrderApplication {
     @Primary
     @LoadBalanced
     public RestTemplate restTemplate(
-            @org.springframework.beans.factory.annotation.Value("${trade.http.connect-timeout-millis:3000}") int connectMillis,
-            @org.springframework.beans.factory.annotation.Value("${trade.http.read-timeout-millis:10000}") int readMillis) {
-        if (connectMillis < 1 || connectMillis > 60_000 || readMillis < 1 || readMillis > 60_000) throw new IllegalArgumentException("HTTP timeouts must be 1..60000 ms");
+            TradeHttpProperties properties) {
         var requests = new org.springframework.http.client.SimpleClientHttpRequestFactory();
-        requests.setConnectTimeout(connectMillis); requests.setReadTimeout(readMillis);
+        requests.setConnectTimeout(properties.connectTimeoutMillis());
+        requests.setReadTimeout(properties.readTimeoutMillis());
         return new RestTemplate(requests);
     }
 

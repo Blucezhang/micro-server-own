@@ -2,7 +2,6 @@ package com.own.product.controller;
 
 import com.own.face.core.FaceUtil;
 import com.own.face.trade.TradeException;
-import com.own.face.product.ProductBean;
 import com.own.face.product.TemplateBean;
 import com.own.face.util.Resp;
 import com.own.face.util.Util;
@@ -160,54 +159,6 @@ public class ProductController extends BaseController {
         }
         return value;
     }
-
-    @Operation(summary = "添加产品")
-    @PutMapping("/addProduct")
-    public Resp addProduct(@RequestBody ProductBean productBean) {
-        Product product = new Product();
-        product.setName(productBean.getName());
-        product.setContent(productBean.getContent());
-        product.setPartyId(productBean.getPartyId());
-        product.setOriginalPrice(productBean.getOriginalPrice());
-        product.setPromotionPrice(productBean.getPromotionPrice());
-        product.setStocksNum(productBean.getStocksNum());
-        product.setSalesNum(productBean.getSalesNum());
-        product.setCategoryId(productBean.getCategoryId());
-        product.setBrandId(productBean.getBrandId());
-        productDao.save(product);
-        if (!Util.isNullOrEmpty(productBean.getProductTypeIdList()) && productBean.getProductTypeIdList().size() > 0) {
-            List<Long> productTypeIdList = productBean.getProductTypeIdList();
-            for (Long productTypeId : productTypeIdList) {
-                productDao.createRelation(product.getId(), productTypeId);
-            }
-        }
-        log.info("addProduct pro:{}",product);
-        return new Resp(product);
-    }
-
-    @Operation(summary = "修改产品")
-    @PostMapping("/{id}")
-    public Resp  updProduct(@PathVariable Long id, @RequestBody ProductBean productBean) {
-        Product product = productDao.queryProductById(id);
-        product.setName(productBean.getName());
-        product.setContent(productBean.getContent());
-        product.setPartyId(productBean.getPartyId());
-        product.setOriginalPrice(productBean.getOriginalPrice());
-        product.setPromotionPrice(productBean.getPromotionPrice());
-        product.setStocksNum(productBean.getStocksNum());
-        product.setSalesNum(productBean.getSalesNum());
-        product.setCategoryId(productBean.getCategoryId());
-        product.setBrandId(productBean.getBrandId());
-        return new Resp(productDao.save(product));
-    }
-
-    @Operation(summary = "根据ID删除产品")
-    @DeleteMapping("/{id}")
-    public void delProduct(@PathVariable Long id) {
-        productDao.deleteProduct(id);
-    }
-
-
 
     @Operation(summary = "根据ID查询产品模板")
     @GetMapping("/template/{id}")

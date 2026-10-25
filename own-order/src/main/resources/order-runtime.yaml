@@ -1,0 +1,40 @@
+# Packaged defaults; later Nacos imports and deployment overrides take precedence.
+trade:
+  after-sale:
+    audit-reminder-hours: 48
+    refund-retry-delay-millis: 60000
+    reminder-delay-millis: 3600000
+    reminder-repeat-hours: 24
+  http:
+    connect-timeout-millis: 3000
+    read-timeout-millis: 10000
+  order:
+    auto-receipt-days: 7
+    auto-receipt-delay-millis: 3600000
+    expiry-delay-millis: 60000
+    payment-timeout-minutes: 15
+  outbox:
+    delay-millis: 60000
+    max-attempts: 10
+    retry-seconds: 60
+    rocketmq:
+      binding: "orderEvents-out-0"
+  recovery:
+    max-attempts: 8
+    retry-delay-millis: 30000
+    scan-delay-millis: 30000
+  saga:
+    async-enabled: true
+    delay-millis: 1000
+    reservation-ttl-minutes: 15
+    retry-seconds: 30
+  security:
+    audit-retention-days: 180
+    audit-retention-delay-millis: 86400000
+  services:
+    file-base-url: "http://own-file"
+    inventory-base-url: "http://own-inventory"
+    product-base-url: "http://own-product"
+    promotion-base-url: "http://own-promotion"
+    settlement-base-url: "http://own-settlement"
+    user-party-base-url: "http://own-user-party"

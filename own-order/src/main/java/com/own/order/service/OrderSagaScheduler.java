@@ -18,11 +18,11 @@ public class OrderSagaScheduler {
     private final boolean enabled;
 
     public OrderSagaScheduler(OrderSagaRepository sagas, AsyncOrderSagaService service,
-                              @Value("${trade.saga.async-enabled:true}") boolean enabled) {
+                              @Value("${trade.saga.async-enabled}") boolean enabled) {
         this.sagas = sagas; this.service = service; this.enabled = enabled;
     }
 
-    @Scheduled(fixedDelayString = "${trade.saga.delay-millis:1000}")
+    @Scheduled(fixedDelayString = "${trade.saga.delay-millis}")
     public void processPendingSagas() {
         if (!enabled) return;
         for (OrderSaga saga : sagas.findByStatusAndNextAttemptAtBeforeOrderByIdAsc(OrderSagaStatus.PROCESSING, new Date())) {

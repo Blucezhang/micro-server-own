@@ -73,7 +73,9 @@ public class RbacAccessPolicyTest {
     @Test
     public void buyerCannotWriteLegacyProductEndpoint() {
         assertFalse(policy.decide("/product/addProduct", "PUT", principal(ActorType.BUYER, "ROLE_BUYER")).isAllowed());
-        assertTrue(policy.decide("/product/addProduct", "PUT", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
+        assertFalse(policy.decide("/product/addProduct", "PUT", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
+        assertFalse(policy.decide("/product/7", "POST", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
+        assertFalse(policy.decide("/product/7/", "DELETE", principal(ActorType.SYSTEM, "ROLE_SYSTEM")).isAllowed());
     }
 
     @Test

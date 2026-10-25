@@ -11,6 +11,6 @@ public class InventoryExpiryScheduler {
     public InventoryExpiryScheduler(InventoryService inventoryService, TradeReliabilityMetrics metrics) {
         this.inventoryService = inventoryService; this.metrics = metrics;
     }
-    @Scheduled(fixedDelayString = "${trade.inventory.expiry-delay-millis:60000}")
+    @Scheduled(fixedDelayString = "${trade.inventory.expiry-delay-millis}")
     public void releaseExpiredReservations() { metrics.expiredReservations(inventoryService.expireReservations()); }
 }

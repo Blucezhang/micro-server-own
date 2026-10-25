@@ -164,6 +164,6 @@ class OrderShipmentTest {
                 subOrders, mock(OrderItemRepository.class), mock(OrderEventRepository.class), mock(CatalogClient.class),
                 mock(InventoryClient.class), mock(CouponClient.class), mock(AddressClient.class),
                 mock(MerchantFreightRuleRepository.class), mock(LogisticsTraceRepository.class),
-                mock(AfterSaleRepository.class), mock(SensitiveAccessAuditRepository.class));
+                mock(AfterSaleRepository.class), mock(SensitiveAccessAuditRepository.class), 15);
     }
 }

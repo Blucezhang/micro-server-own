@@ -1,0 +1,5 @@
+own:
+  file:
+    storage:
+      temporary-root: /opt/temp
+      permanent-root: /opt/real

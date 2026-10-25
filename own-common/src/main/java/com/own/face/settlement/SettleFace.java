@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 public class SettleFace extends FaceBase {
 
 
-	protected String serviceUrl="http://SETTLEMENT/";
+	@org.springframework.beans.factory.annotation.Value("${trade.legacy-services.settlement-base-url}")
+    protected String serviceUrl;
 
  	/**
  	 * 支付交易

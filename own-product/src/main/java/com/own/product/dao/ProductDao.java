@@ -16,6 +16,9 @@ public interface ProductDao extends BaseDao<Product>{
 	
 	@Query("MATCH (n:Product) WHERE id(n) = $0 RETURN n")
     public Product queryProductById(Long id);
+
+	@Query("MATCH (p:Product) WHERE id(p) = $0 SET p.priceWriteRevision=coalesce(p.priceWriteRevision,0)+1 RETURN p")
+	public Product lockProductById(Long id);
 	
 	@Query("MATCH (n:Product) WHERE id(n) = $0 RETURN n")
     public List<Product> queryProductByIds(String ids);

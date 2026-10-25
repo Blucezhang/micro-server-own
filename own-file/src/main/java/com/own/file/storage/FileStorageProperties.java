@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "own.file.storage")
 public class FileStorageProperties {
 
-    private String temporaryRoot = "/opt/temp";
-    private String permanentRoot = "/opt/real";
+    private String temporaryRoot;
+    private String permanentRoot;
 
     public String getTemporaryRoot() {
         return temporaryRoot;

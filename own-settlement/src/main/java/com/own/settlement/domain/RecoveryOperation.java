@@ -1,5 +1,6 @@
 package com.own.settlement.domain;
 
+import com.own.face.trade.recovery.RecoveryStatus;
 import com.own.face.trade.TradeException;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -24,7 +25,7 @@ public class RecoveryOperation {
     public RecoveryOperation(Payment payment, RecoveryAction action) {
         this.operationKey = key(payment.getPaymentNo(), action); this.paymentNo = payment.getPaymentNo();
         this.orderNo = payment.getOrderNo(); this.buyerId = payment.getBuyerId(); this.amount = payment.getAmount();
-        this.action = action; this.status = "PENDING"; this.createdAt = new Date(); this.nextAttemptAt = createdAt;
+        this.action = action; this.status = RecoveryStatus.PENDING; this.createdAt = new Date(); this.nextAttemptAt = createdAt;
     }
     public static String key(String paymentNo, RecoveryAction action) { return action.name() + ":" + paymentNo; }
     public void requireMatches(Payment payment) {
@@ -34,15 +35,15 @@ public class RecoveryOperation {
         }
     }
     public int attempt(int maxAttempts, long retryMillis, Date now) {
-        if ("COMPLETED".equals(status)) return attempts;
-        if ("RECONCILIATION_REQUIRED".equals(status) || attempts >= maxAttempts) {
-            status = "RECONCILIATION_REQUIRED";
+        if (RecoveryStatus.COMPLETED.equals(status)) return attempts;
+        if (RecoveryStatus.RECONCILIATION_REQUIRED.equals(status) || attempts >= maxAttempts) {
+            status = RecoveryStatus.RECONCILIATION_REQUIRED;
             return 0;
         }
         attempts++; nextAttemptAt = new Date(now.getTime() + retryMillis);
         return attempts;
     }
-    public void complete() { status = "COMPLETED"; if (completedAt == null) completedAt = new Date(); }
+    public void complete() { status = RecoveryStatus.COMPLETED; if (completedAt == null) completedAt = new Date(); }
     public String getOperationKey() { return operationKey; }
     public String getPaymentNo() { return paymentNo; }
     public String getOrderNo() { return orderNo; }

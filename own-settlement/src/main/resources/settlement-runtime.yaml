@@ -1,0 +1,18 @@
+# Packaged defaults; later Nacos imports and deployment overrides take precedence.
+trade:
+  http:
+    connect-timeout-millis: 3000
+    read-timeout-millis: 30000
+  payment:
+    channel: "MOCK_WECHAT"
+  recovery:
+    max-attempts: 8
+    retry-delay-millis: 30000
+    scan-delay-millis: 30000
+  services:
+    order-base-url: "http://own-order"
+  settlement:
+    cycle-days: 7
+    merchant-rate: "0.80"
+    scan-fixed-delay-millis: 86400000
+    withdrawal-minimum: "100.00"

@@ -18,7 +18,7 @@ public class RocketMqOrderEventSink implements OrderEventSink {
     private final String bindingName;
 
     public RocketMqOrderEventSink(StreamBridge streamBridge,
-                                  @Value("${trade.outbox.rocketmq.binding:orderEvents-out-0}") String bindingName) {
+                                  @Value("${trade.outbox.rocketmq.binding}") String bindingName) {
         this.streamBridge = streamBridge;
         this.bindingName = bindingName;
     }

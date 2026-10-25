@@ -1,5 +1,6 @@
 package com.own.order.service;
 
+import com.own.face.trade.config.ReservationLimits;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.own.face.trade.ActorType;
@@ -50,8 +51,8 @@ public class AsyncOrderSagaService {
                                  TradeSubOrderRepository subOrders, CartItemRepository carts,
                                  OrderEventRepository events, InventoryClient inventory,
                                  CouponClient coupons, ObjectMapper objectMapper,
-                                 @Value("${trade.saga.retry-seconds:30}") int retrySeconds,
-                                 @Value("${trade.saga.reservation-ttl-minutes:15}") int reservationTtlMinutes) {
+                                 @Value("${trade.saga.retry-seconds}") int retrySeconds,
+                                 @Value("${trade.saga.reservation-ttl-minutes}") int reservationTtlMinutes) {
         this.sagas = sagas;
         this.orders = orders;
         this.subOrders = subOrders;
@@ -61,7 +62,7 @@ public class AsyncOrderSagaService {
         this.coupons = coupons;
         this.objectMapper = objectMapper;
         this.retrySeconds = retrySeconds;
-        if (reservationTtlMinutes < 1 || reservationTtlMinutes > 60) {
+        if (reservationTtlMinutes < 1 || reservationTtlMinutes > ReservationLimits.MAX_TTL_MINUTES) {
             throw new IllegalArgumentException("trade.saga.reservation-ttl-minutes must be between 1 and 60");
         }
         this.reservationTtlMinutes = reservationTtlMinutes;
@@ -219,7 +220,7 @@ public class AsyncOrderSagaService {
     }
 
     private boolean expired(OrderSaga saga) {
-        long ttlMillis = Math.max(1, reservationTtlMinutes) * 60L * 1000L;
+        long ttlMillis = java.time.Duration.ofMinutes(Math.max(1, reservationTtlMinutes)).toMillis();
         return saga.getCreatedAt().getTime() < System.currentTimeMillis() - ttlMillis;
     }
 }

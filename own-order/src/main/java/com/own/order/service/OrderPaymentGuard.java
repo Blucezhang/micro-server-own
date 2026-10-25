@@ -1,6 +1,8 @@
 package com.own.order.service;
 
 import com.own.face.trade.TradeException;
+import com.own.face.trade.config.TradeRecoveryProperties;
+import java.time.Duration;
 import com.own.order.domain.OrderStatus;
 import com.own.order.domain.TradeOrder;
 import com.own.order.repository.TradeOrderRepository;
@@ -17,10 +19,10 @@ public class OrderPaymentGuard {
     private final int maxAttempts;
 
     public OrderPaymentGuard(TradeOrderRepository orders,
-            @Value("${trade.order.payment-timeout-minutes:15}") int timeoutMinutes,
-            @Value("${trade.recovery.max-attempts:8}") int maxAttempts) {
-        if (timeoutMinutes < 1 || maxAttempts < 1) throw new IllegalArgumentException("positive recovery limits required");
-        this.orders = orders; this.timeoutMinutes = timeoutMinutes; this.maxAttempts = maxAttempts;
+            @Value("${trade.order.payment-timeout-minutes}") int timeoutMinutes,
+            TradeRecoveryProperties recovery) {
+        if (timeoutMinutes < 1) throw new IllegalArgumentException("positive recovery limits required");
+        this.orders = orders; this.timeoutMinutes = timeoutMinutes; this.maxAttempts = recovery.maxAttempts();
     }
 
     /** Must commit before the first remote write; a rollback cannot erase the cancellation barrier. */
@@ -31,7 +33,8 @@ public class OrderPaymentGuard {
         if (java.util.Set.of(OrderStatus.PAID, OrderStatus.FULFILLING, OrderStatus.COMPLETED,
                 OrderStatus.REFUNDING, OrderStatus.REFUNDED).contains(order.getStatus())) return true;
         if (order.getStatus() != OrderStatus.PENDING_PAYMENT) throw TradeException.conflict("order cannot accept payment");
-        if (!order.isPaymentStarted() && order.getCreatedAt().before(new Date(System.currentTimeMillis() - timeoutMinutes * 60_000L))) {
+        if (order.isCancellationStarted()) throw TradeException.conflict("order cancellation is processing or requires reconciliation");
+        if (!order.isPaymentStarted() && order.getCreatedAt().before(new Date(System.currentTimeMillis() - Duration.ofMinutes(timeoutMinutes).toMillis()))) {
             throw TradeException.conflict("order payment window has expired");
         }
         boolean claimed = order.beginPayment(maxAttempts);

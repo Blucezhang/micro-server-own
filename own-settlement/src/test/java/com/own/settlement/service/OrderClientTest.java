@@ -30,7 +30,7 @@ class OrderClientTest {
         when(rest.exchange(eq(URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(Map.class)))
                 .thenReturn(new ResponseEntity<Map>(Map.of("status", 200, "data", "17.90"), HttpStatus.OK));
 
-        BigDecimal amount = new OrderClient(rest, "internal-test-token").payableAmount("ORD-1", 7L);
+        BigDecimal amount = new OrderClient(rest, "internal-test-token", "http://own-order").payableAmount("ORD-1", 7L);
 
         assertEquals(new BigDecimal("17.90"), amount);
         ArgumentCaptor<HttpEntity> request = ArgumentCaptor.forClass(HttpEntity.class);
@@ -47,7 +47,7 @@ class OrderClientTest {
                 .thenReturn(new ResponseEntity<Map>(Map.of("status", 200), HttpStatus.OK));
 
         TradeException error = assertThrows(TradeException.class,
-                () -> new OrderClient(rest, "internal-test-token").payableAmount("ORD-1", 7L));
+                () -> new OrderClient(rest, "internal-test-token", "http://own-order").payableAmount("ORD-1", 7L));
         assertEquals(404, error.getStatus());
     }
 
@@ -59,7 +59,7 @@ class OrderClientTest {
                 .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT));
 
         TradeException error = assertThrows(TradeException.class,
-                () -> new OrderClient(rest, "internal-test-token").payableAmount("ORD-1", 7L));
+                () -> new OrderClient(rest, "internal-test-token", "http://own-order").payableAmount("ORD-1", 7L));
 
         assertEquals(409, error.getStatus());
         assertEquals("order is not awaiting payment", error.getMessage());

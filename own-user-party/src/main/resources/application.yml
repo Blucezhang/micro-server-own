@@ -4,7 +4,10 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
   config:
-    import: optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml?group=${NACOS_GROUP:MICRO_SERVER}
+    import:
+      - classpath:trade-runtime.yaml
+      - classpath:user-party-runtime.yaml
+      - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml?group=${NACOS_GROUP:MICRO_SERVER}
   cloud:
     nacos:
       server-addr: ${NACOS_SERVER_ADDR:localhost:8848}

@@ -20,7 +20,7 @@ class OrderRecoverySnapshotClientTest {
     @SuppressWarnings("rawtypes")
     void readsOnlyAuthenticatedAuthoritativeOrderProjection() {
         RestTemplate rest = response(Map.of("status", 200, "data", row("ORD-1", "PAID", "10.00")));
-        OrderRecoverySnapshot snapshot = new OrderClient(rest, "internal-test-token").recoverySnapshot("ORD-1");
+        OrderRecoverySnapshot snapshot = new OrderClient(rest, "internal-test-token", "http://own-order").recoverySnapshot("ORD-1");
         assertEquals(7L, snapshot.buyerId()); assertEquals(new BigDecimal("10.00"), snapshot.payableAmount());
         assertTrue(snapshot.paymentCompleted()); assertFalse(snapshot.refundCompleted());
         ArgumentCaptor<HttpEntity> request = ArgumentCaptor.forClass(HttpEntity.class);
@@ -35,7 +35,7 @@ class OrderRecoverySnapshotClientTest {
                 Map.of("status", 200, "data", row("ORD-2", "PAID", "10.00")),
                 Map.of("status", 200, "data", row("ORD-1", "PAID", "bad")),
                 Map.of("status", 200, "data", Map.of("orderNo", "ORD-1")))) {
-            assertThrows(TradeException.class, () -> new OrderClient(response(body), "token").recoverySnapshot("ORD-1"));
+            assertThrows(TradeException.class, () -> new OrderClient(response(body), "token", "http://own-order").recoverySnapshot("ORD-1"));
         }
     }
 

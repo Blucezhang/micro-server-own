@@ -1,5 +1,8 @@
 package com.own.order.service;
 
+import com.own.face.trade.config.ServiceEndpoint;
+import com.own.face.trade.ActorType;
+import com.own.face.trade.TradeHeaders;
 import com.own.face.trade.TradeException;
 import com.own.face.trade.TradeResponse;
 import com.own.face.security.InternalServiceGuard;
@@ -18,16 +21,17 @@ import org.springframework.beans.factory.annotation.Value;
 @Component
 public class SettlementClient {
     private final RestTemplate restTemplate;
+    private final String baseUrl;
     private final String internalToken;
-    public SettlementClient(RestTemplate restTemplate, @Value("${trade.internal.service-token:}") String internalToken) { this.restTemplate = restTemplate; this.internalToken = internalToken; }
+    public SettlementClient(RestTemplate restTemplate, @Value("${trade.internal.service-token:}") String internalToken, @Value("${trade.services.settlement-base-url}") String baseUrl) { this.restTemplate = restTemplate; this.baseUrl = ServiceEndpoint.requireRoot(baseUrl); this.internalToken = internalToken; }
     public void refundAfterSale(AfterSale sale) {
         Map<String, Object> body = new HashMap<String, Object>();
         body.put("afterSaleNo", sale.getAfterSaleNo()); body.put("orderNo", sale.getOrderNo()); body.put("buyerId", sale.getBuyerId()); body.put("amount", sale.getRequestedAmount());
         body.put("merchantId", sale.getMerchantId());
         try {
-            ResponseEntity<Map> response = restTemplate.exchange("http://own-settlement/api/v1/payments/internal/after-sales/refund", HttpMethod.POST, new HttpEntity<Object>(body, headers(sale.getAfterSaleNo())), Map.class);
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl + "/api/v1/payments/internal/after-sales/refund", HttpMethod.POST, new HttpEntity<Object>(body, headers(sale.getAfterSaleNo())), Map.class);
             TradeResponse.requireSuccess(response, "after-sale settlement operation");
         } catch (TradeException exception) { throw exception; } catch (Exception exception) { throw TradeException.conflict("settlement service is unavailable"); }
     }
-    private HttpHeaders headers(String no) { HttpHeaders headers = new HttpHeaders(); headers.set("X-Actor-Id", "1"); headers.set("X-Actor-Type", "SYSTEM"); headers.set("Idempotency-Key", "order-after-sale-" + no); headers.set(InternalServiceGuard.HEADER, internalToken); return headers; }
+    private HttpHeaders headers(String no) { HttpHeaders headers = new HttpHeaders(); headers.set(TradeHeaders.ACTOR_ID, "1"); headers.set(TradeHeaders.ACTOR_TYPE, ActorType.SYSTEM.name()); headers.set(TradeHeaders.IDEMPOTENCY_KEY, "order-after-sale-" + no); headers.set(InternalServiceGuard.HEADER, internalToken); return headers; }
 }

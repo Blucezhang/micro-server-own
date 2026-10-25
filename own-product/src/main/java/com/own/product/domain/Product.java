@@ -1,5 +1,6 @@
 package com.own.product.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -34,6 +35,18 @@ public class Product {
 	@Property(name="skuCode") private String skuCode;
 	@Property(name="specification") private String specification;
 	@Property(name="saleStatus") private String saleStatus;
+	@JsonIgnore
+	@Property(name="priceWriteRevision")
+	private Long priceWriteRevision;
 
+	@JsonIgnore
+	public Long getPriceWriteRevision() {
+		return priceWriteRevision;
+	}
+
+	@JsonIgnore
+	public void setPriceWriteRevision(Long priceWriteRevision) {
+		this.priceWriteRevision = priceWriteRevision;
+	}
 
 }

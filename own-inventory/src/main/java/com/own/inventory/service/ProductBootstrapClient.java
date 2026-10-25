@@ -14,15 +14,16 @@ import org.springframework.web.client.RestTemplate;
 public class ProductBootstrapClient {
 
     private final RestTemplate restTemplate;
+    private final String baseUrl;
 
-    public ProductBootstrapClient(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public ProductBootstrapClient(RestTemplate restTemplate, @org.springframework.beans.factory.annotation.Value("${trade.services.product-base-url}") String baseUrl) {
+        this.restTemplate = restTemplate; this.baseUrl = com.own.face.trade.config.ServiceEndpoint.requireRoot(baseUrl);
     }
 
     @SuppressWarnings("unchecked")
     public List<InventoryBootstrapItem> loadCatalogue() {
         try {
-            ResponseEntity<Map> response = restTemplate.getForEntity("http://own-product/product", Map.class);
+            ResponseEntity<Map> response = restTemplate.getForEntity(baseUrl + "/product", Map.class);
             Object data = response.getBody() == null ? null : response.getBody().get("data");
             if (!(data instanceof Iterable)) {
                 throw TradeException.conflict("product catalogue did not return a product list");

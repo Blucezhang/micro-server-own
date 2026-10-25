@@ -18,7 +18,8 @@ import org.springframework.util.MultiValueMap;
 @Service
 public class PromotionFace extends FaceBase {
 
-	protected String serviceUrl="http://PROMOTIONWJJ/sale";
+	@org.springframework.beans.factory.annotation.Value("${trade.legacy-services.promotion-base-url}")
+    protected String serviceUrl;
 	/**
 	 * 查询活动信息
 	 * @param id

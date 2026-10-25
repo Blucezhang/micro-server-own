@@ -23,7 +23,7 @@ public class AfterSaleRefundRetryScheduler {
         this.settlement = settlement;
     }
 
-    @Scheduled(fixedDelayString = "${trade.after-sale.refund-retry-delay-millis:60000}")
+    @Scheduled(fixedDelayString = "${trade.after-sale.refund-retry-delay-millis}")
     public void retryPendingRefunds() {
         for (AfterSale sale : sales.findByStatus(AfterSaleStatus.REFUND_PENDING)) {
             try {

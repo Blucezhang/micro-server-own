@@ -45,7 +45,7 @@ public class LoginUserControllerTest {
         loginAttempts = mock(LoginAttemptService.class);
         objectMapper = new ObjectMapper();
         controller = new LoginUserController(loginUserService, mock(LoginUserDao.class),
-                new JwtTokenService(objectMapper, "01234567890123456789012345678901", 7200L, "test"), refreshSessions, loginAttempts);
+                new JwtTokenService(objectMapper, "01234567890123456789012345678901", "", 7200L, 1209600L, "test"), refreshSessions, loginAttempts);
     }
 
     @Test

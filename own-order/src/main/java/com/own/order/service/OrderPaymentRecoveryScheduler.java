@@ -1,5 +1,6 @@
 package com.own.order.service;
 
+import com.own.face.trade.recovery.RecoveryStatus;
 import com.own.face.trade.ActorType;
 import com.own.face.trade.TradeActor;
 import com.own.order.domain.OrderStatus;
@@ -18,9 +19,9 @@ public class OrderPaymentRecoveryScheduler {
     public OrderPaymentRecoveryScheduler(TradeOrderRepository orders, OrderService service) {
         this.orders = orders; this.service = service;
     }
-    @Scheduled(fixedDelayString = "${trade.recovery.scan-delay-millis:30000}", scheduler = "tradeRecoveryScheduler")
+    @Scheduled(fixedDelayString = "${trade.recovery.scan-delay-millis}", scheduler = "tradeRecoveryScheduler")
     public void recover() {
-        for (TradeOrder order : orders.findTop50ByStatusAndPaymentRecoveryStatusOrderByPaymentStartedAtAsc(OrderStatus.PENDING_PAYMENT, "PENDING")) {
+        for (TradeOrder order : orders.findTop50ByStatusAndPaymentRecoveryStatusOrderByPaymentStartedAtAsc(OrderStatus.PENDING_PAYMENT, RecoveryStatus.PENDING)) {
             try { service.paymentSucceeded(order.getOrderNo(), new TradeActor(1L, ActorType.SYSTEM)); }
             catch (RuntimeException exception) { LOG.warn("Payment recovery failed for {}", order.getOrderNo(), exception); }
         }

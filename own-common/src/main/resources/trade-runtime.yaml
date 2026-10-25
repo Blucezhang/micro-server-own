@@ -1,0 +1,19 @@
+# Packaged defaults; later Nacos imports and deployment overrides take precedence.
+trade:
+  idempotency:
+    retention-hours: 24
+  legacy-services:
+    ems-base-url: "http://EMSERVER/"
+    order-base-url: "http://ORDER/"
+    party-base-url: "http://PARTY/"
+    product-base-url: "http://PRODUCT/"
+    promotion-base-url: "http://PROMOTIONWJJ/sale"
+    settlement-base-url: "http://SETTLEMENT/"
+    workflow-base-url: "http://WORKFLOW/"
+  security:
+    jwt:
+      expiration-seconds: 7200
+      issuer: "micro-server-own"
+      refresh-expiration-seconds: 1209600
+    service-boundary:
+      enabled: false

@@ -256,7 +256,7 @@ class AsyncOrderSagaServiceTest {
         private final boolean failReserve;
         private int reserveCalls;
         private int releaseCalls;
-        private RecordingInventory(boolean failReserve) { super(new RestTemplate(), ""); this.failReserve = failReserve; }
+        private RecordingInventory(boolean failReserve) { super(new RestTemplate(), "", "http://own-inventory", 15); this.failReserve = failReserve; }
         @Override public void reserve(String orderNo, Long productId, Long merchantId, Integer quantity) {
             reserveCalls++;
             if (failReserve) throw new IllegalStateException("inventory unavailable");
@@ -268,7 +268,7 @@ class AsyncOrderSagaServiceTest {
         private final boolean failReserve;
         private int reserveCalls;
         private int releaseCalls;
-        private RecordingCoupons(boolean failReserve) { super(new RestTemplate(), ""); this.failReserve = failReserve; }
+        private RecordingCoupons(boolean failReserve) { super(new RestTemplate(), "", "http://own-promotion", 15); this.failReserve = failReserve; }
         @Override public CouponReservation reserve(String orderNo, Long buyerId, BigDecimal parentAmount,
                                                    Map<Long, BigDecimal> merchantAmounts, List<com.own.order.dto.CouponUse> uses) {
             reserveCalls++;

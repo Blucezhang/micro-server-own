@@ -35,7 +35,7 @@ public class DownstreamIdempotencyKeyTest {
                 .thenReturn(new ResponseEntity<Map>(Map.of("status", 200), HttpStatus.OK));
         com.own.order.domain.AfterSale sale = new com.own.order.domain.AfterSale("AS-1", "ORD-1", "SUB-1", 7L, 20L,
                 com.own.order.domain.AfterSaleType.REFUND_ONLY, new BigDecimal("4.00"), "test refund");
-        SettlementClient client = new SettlementClient(rest, "internal-test-token");
+        SettlementClient client = new SettlementClient(rest, "internal-test-token", "http://own-settlement");
 
         client.refundAfterSale(sale);
         client.refundAfterSale(sale);
@@ -61,7 +61,7 @@ public class DownstreamIdempotencyKeyTest {
         String url = "http://own-inventory/api/v1/internal/orders/ORD-1/inventory/commit";
         when(rest.exchange(eq(url), eq(HttpMethod.POST), any(HttpEntity.class), eq(java.util.Map.class)))
                 .thenReturn(new ResponseEntity<java.util.Map>(Map.of("status", 200), HttpStatus.OK));
-        InventoryClient client = new InventoryClient(rest, "internal-test-token");
+        InventoryClient client = new InventoryClient(rest, "internal-test-token", "http://own-inventory", 15);
 
         OrderItem item = new OrderItem("ORD-1", "SUB-1",
                 new CartItem(1L, 101L, 10L, "test product", BigDecimal.ONE, 2));
@@ -89,7 +89,7 @@ public class DownstreamIdempotencyKeyTest {
         String url = "http://own-inventory/api/v1/internal/orders/ORD-1/inventory/commit";
         when(rest.exchange(eq(url), eq(HttpMethod.POST), any(HttpEntity.class), eq(java.util.Map.class)))
                 .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT));
-        InventoryClient client = new InventoryClient(rest, "internal-test-token");
+        InventoryClient client = new InventoryClient(rest, "internal-test-token", "http://own-inventory", 15);
         OrderItem item = new OrderItem("ORD-1", "SUB-1",
                 new CartItem(1L, 101L, 10L, "test product", BigDecimal.ONE, 1));
 
@@ -110,7 +110,7 @@ public class DownstreamIdempotencyKeyTest {
         String url = "http://own-inventory/api/v1/internal/orders/ORD-1/inventory/refund";
         when(rest.exchange(eq(url), eq(HttpMethod.POST), any(HttpEntity.class), eq(java.util.Map.class)))
                 .thenReturn(new ResponseEntity<java.util.Map>(Map.of("status", 200), HttpStatus.OK));
-        InventoryClient client = new InventoryClient(rest, "internal-test-token");
+        InventoryClient client = new InventoryClient(rest, "internal-test-token", "http://own-inventory", 15);
         OrderItem item = new OrderItem("ORD-1", "SUB-1",
                 new CartItem(1L, 101L, 10L, "test product", BigDecimal.ONE, 2));
 
@@ -131,7 +131,7 @@ public class DownstreamIdempotencyKeyTest {
         String url = "http://own-promotion/sale/api/v1/coupons/internal/orders/consume";
         when(rest.exchange(eq(url), eq(HttpMethod.POST), any(HttpEntity.class), eq(java.util.Map.class)))
                 .thenReturn(new ResponseEntity<java.util.Map>(Map.of("status", 200), HttpStatus.OK));
-        CouponClient client = new CouponClient(rest, "internal-test-token");
+        CouponClient client = new CouponClient(rest, "internal-test-token", "http://own-promotion", 15);
 
         client.consume("ORD-1", BigDecimal.ONE);
         client.consume("ORD-1", BigDecimal.ONE);
@@ -153,7 +153,7 @@ public class DownstreamIdempotencyKeyTest {
                 .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT));
 
         TradeException error = Assertions.assertThrows(TradeException.class,
-                () -> new CouponClient(rest, "internal-test-token").consume("ORD-1", BigDecimal.ONE));
+                () -> new CouponClient(rest, "internal-test-token", "http://own-promotion", 15).consume("ORD-1", BigDecimal.ONE));
 
         Assertions.assertEquals(409, error.getStatus());
         Assertions.assertEquals("coupon reservation no longer matches order", error.getMessage());
@@ -166,7 +166,7 @@ public class DownstreamIdempotencyKeyTest {
         String url = "http://own-inventory/api/v1/internal/reservations";
         when(rest.exchange(eq(url), eq(HttpMethod.POST), any(HttpEntity.class), eq(java.util.Map.class)))
                 .thenReturn(new ResponseEntity<java.util.Map>(Map.of("status", 200), HttpStatus.OK));
-        InventoryClient client = new InventoryClient(rest, "internal-test-token");
+        InventoryClient client = new InventoryClient(rest, "internal-test-token", "http://own-inventory", 15);
 
         client.reserve("ORD-1", 10L, 20L, 3);
 
@@ -187,8 +187,8 @@ public class DownstreamIdempotencyKeyTest {
                 .thenReturn(new ResponseEntity<Map>(Map.of("status", 200), HttpStatus.OK));
         when(rest.exchange(eq(couponUrl), eq(HttpMethod.POST), any(HttpEntity.class), eq(Map.class)))
                 .thenReturn(new ResponseEntity<Map>(Map.of("status", 200, "data", Map.of("totalDiscount", "1.00")), HttpStatus.OK));
-        InventoryClient inventory = new InventoryClient(rest, "internal-test-token");
-        CouponClient coupons = new CouponClient(rest, "internal-test-token");
+        InventoryClient inventory = new InventoryClient(rest, "internal-test-token", "http://own-inventory", 15);
+        CouponClient coupons = new CouponClient(rest, "internal-test-token", "http://own-promotion", 15);
         ReflectionTestUtils.setField(inventory, "reservationTtlMinutes", 30);
         ReflectionTestUtils.setField(coupons, "reservationTtlMinutes", 30);
         CouponUse use = new CouponUse();

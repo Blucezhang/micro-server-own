@@ -1,0 +1,5 @@
+# Packaged defaults; later Nacos imports and deployment overrides take precedence.
+trade:
+  promotion:
+    reservation-expiry-scan-delay-millis: 60000
+    reservation-ttl-minutes: 15

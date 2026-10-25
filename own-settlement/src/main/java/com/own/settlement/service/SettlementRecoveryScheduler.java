@@ -1,5 +1,6 @@
 package com.own.settlement.service;
 
+import com.own.face.trade.recovery.RecoveryStatus;
 import com.own.settlement.domain.RecoveryOperation;
 import com.own.settlement.repository.RecoveryOperationRepository;
 import java.util.Date;
@@ -16,9 +17,9 @@ public class SettlementRecoveryScheduler {
     public SettlementRecoveryScheduler(RecoveryOperationRepository operations, SettlementService settlement) {
         this.operations = operations; this.settlement = settlement;
     }
-    @Scheduled(fixedDelayString = "${trade.recovery.scan-delay-millis:30000}", scheduler = "tradeRecoveryScheduler")
+    @Scheduled(fixedDelayString = "${trade.recovery.scan-delay-millis}", scheduler = "tradeRecoveryScheduler")
     public void recover() {
-        for (RecoveryOperation operation : operations.findTop50ByStatusAndNextAttemptAtBeforeOrderByIdAsc("PENDING", new Date())) {
+        for (RecoveryOperation operation : operations.findTop50ByStatusAndNextAttemptAtBeforeOrderByIdAsc(RecoveryStatus.PENDING, new Date())) {
             try { settlement.recover(operation.getPaymentNo(), operation.getAction()); }
             catch (RuntimeException exception) { LOG.warn("Settlement recovery failed for {}", operation.getOperationKey(), exception); }
         }

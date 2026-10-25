@@ -26,7 +26,7 @@ public class GatewaySecurityFilter implements GlobalFilter, Ordered {
     private final RbacAccessPolicy policy = new RbacAccessPolicy();
 
     public GatewaySecurityFilter(JwtTokenService tokenService,
-                                 @Value("${trade.security.jwt.enabled:false}") boolean jwtEnabled,
+                                 @Value("${trade.security.jwt.enabled}") boolean jwtEnabled,
                                  @Value("${trade.internal.service-token:}") String internalToken) {
         this.tokenService = tokenService;
         this.jwtEnabled = jwtEnabled;

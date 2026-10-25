@@ -27,7 +27,7 @@ class OrderDownstreamFailureTest {
     void rejectedInventoryCommitDoesNotConsumeCouponOrMarkOrderPaid() {
         TradeOrder order = order();
         CouponClient coupons = mock(CouponClient.class);
-        OrderService service = service(new InventoryClient(failedResponse(), "token"), coupons);
+        OrderService service = service(new InventoryClient(failedResponse(), "token", "http://own-inventory", 15), coupons);
 
         assertEquals(409, assertThrows(TradeException.class, () -> service.paymentSucceeded("ORD-1", system)).getStatus());
 
@@ -41,7 +41,7 @@ class OrderDownstreamFailureTest {
     void rejectedCouponConsumptionDoesNotMarkOrderPaidAfterInventoryCall() {
         TradeOrder order = order();
         InventoryClient inventory = mock(InventoryClient.class);
-        OrderService service = service(inventory, new CouponClient(failedResponse(), "token"));
+        OrderService service = service(inventory, new CouponClient(failedResponse(), "token", "http://own-promotion", 15));
 
         assertEquals(409, assertThrows(TradeException.class, () -> service.paymentSucceeded("ORD-1", system)).getStatus());
 
@@ -56,7 +56,7 @@ class OrderDownstreamFailureTest {
     void rejectedInventoryRefundDoesNotReleaseCouponsOrMarkOrderRefunded() {
         TradeOrder order = refunding();
         CouponClient coupons = mock(CouponClient.class);
-        OrderService service = service(new InventoryClient(failedResponse(), "token"), coupons);
+        OrderService service = service(new InventoryClient(failedResponse(), "token", "http://own-inventory", 15), coupons);
 
         assertThrows(TradeException.class, () -> service.refundSucceeded("ORD-1", system));
 
@@ -70,7 +70,7 @@ class OrderDownstreamFailureTest {
     void rejectedCouponReleaseDoesNotMarkOrderRefundedAfterInventoryCall() {
         TradeOrder order = refunding();
         InventoryClient inventory = mock(InventoryClient.class);
-        OrderService service = service(inventory, new CouponClient(failedResponse(), "token"));
+        OrderService service = service(inventory, new CouponClient(failedResponse(), "token", "http://own-promotion", 15));
 
         assertThrows(TradeException.class, () -> service.refundSucceeded("ORD-1", system));
 
@@ -98,7 +98,7 @@ class OrderDownstreamFailureTest {
         OrderService service = new OrderService(mock(CartItemRepository.class), mock(CartBuyerGuardRepository.class), orders,
                 mock(TradeSubOrderRepository.class), items, events, mock(CatalogClient.class), inventory, coupons,
                 mock(AddressClient.class), mock(MerchantFreightRuleRepository.class), mock(LogisticsTraceRepository.class),
-                mock(AfterSaleRepository.class), mock(SensitiveAccessAuditRepository.class));
+                mock(AfterSaleRepository.class), mock(SensitiveAccessAuditRepository.class), 15);
         OrderPaymentGuard paymentGuard = mock(OrderPaymentGuard.class);
         when(paymentGuard.claim(anyString())).thenReturn(true);
         org.springframework.test.util.ReflectionTestUtils.setField(service, "paymentGuard", paymentGuard);

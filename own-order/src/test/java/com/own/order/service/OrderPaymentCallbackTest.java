@@ -189,7 +189,7 @@ public class OrderPaymentCallbackTest {
         OrderService service = new OrderService(Mockito.mock(CartItemRepository.class), guard(), orders, subOrders,
                 Mockito.mock(OrderItemRepository.class), events, Mockito.mock(CatalogClient.class), Mockito.mock(InventoryClient.class),
                 Mockito.mock(CouponClient.class), Mockito.mock(AddressClient.class), Mockito.mock(com.own.order.repository.MerchantFreightRuleRepository.class),
-                Mockito.mock(com.own.order.repository.LogisticsTraceRepository.class), Mockito.mock(com.own.order.repository.AfterSaleRepository.class), Mockito.mock(SensitiveAccessAuditRepository.class));
+                Mockito.mock(com.own.order.repository.LogisticsTraceRepository.class), Mockito.mock(com.own.order.repository.AfterSaleRepository.class), Mockito.mock(SensitiveAccessAuditRepository.class), 15);
 
         Map<String, Object> detail = service.merchantSubOrderDetail(new TradeActor(8L, ActorType.MERCHANT), "SUB-3");
 
@@ -209,7 +209,7 @@ public class OrderPaymentCallbackTest {
         OrderService service = new OrderService(carts, guard(), Mockito.mock(TradeOrderRepository.class), Mockito.mock(TradeSubOrderRepository.class),
                 Mockito.mock(OrderItemRepository.class), Mockito.mock(OrderEventRepository.class), catalog, Mockito.mock(InventoryClient.class),
                 Mockito.mock(CouponClient.class), Mockito.mock(AddressClient.class), Mockito.mock(com.own.order.repository.MerchantFreightRuleRepository.class),
-                Mockito.mock(com.own.order.repository.LogisticsTraceRepository.class), Mockito.mock(com.own.order.repository.AfterSaleRepository.class), Mockito.mock(SensitiveAccessAuditRepository.class));
+                Mockito.mock(com.own.order.repository.LogisticsTraceRepository.class), Mockito.mock(com.own.order.repository.AfterSaleRepository.class), Mockito.mock(SensitiveAccessAuditRepository.class), 15);
         UpdateCartItemCommand command = new UpdateCartItemCommand(); command.setQuantity(3);
 
         CartItem updated = service.updateCartItem(new TradeActor(7L, ActorType.BUYER), 5L, command);
@@ -228,7 +228,7 @@ public class OrderPaymentCallbackTest {
         OrderService service = new OrderService(carts, guard(), Mockito.mock(TradeOrderRepository.class), Mockito.mock(TradeSubOrderRepository.class),
                 Mockito.mock(OrderItemRepository.class), Mockito.mock(OrderEventRepository.class), catalog, Mockito.mock(InventoryClient.class),
                 Mockito.mock(CouponClient.class), Mockito.mock(AddressClient.class), Mockito.mock(com.own.order.repository.MerchantFreightRuleRepository.class),
-                Mockito.mock(com.own.order.repository.LogisticsTraceRepository.class), Mockito.mock(com.own.order.repository.AfterSaleRepository.class), Mockito.mock(SensitiveAccessAuditRepository.class));
+                Mockito.mock(com.own.order.repository.LogisticsTraceRepository.class), Mockito.mock(com.own.order.repository.AfterSaleRepository.class), Mockito.mock(SensitiveAccessAuditRepository.class), 15);
         com.own.order.dto.AddCartItemCommand command = new com.own.order.dto.AddCartItemCommand(); command.setProductId(101L); command.setQuantity(3);
 
         CartItem updated = service.addCartItem(new TradeActor(7L, ActorType.BUYER), command);
@@ -252,7 +252,7 @@ public class OrderPaymentCallbackTest {
                 inventory, coupons, Mockito.mock(AddressClient.class),
                 Mockito.mock(com.own.order.repository.MerchantFreightRuleRepository.class),
                 Mockito.mock(com.own.order.repository.LogisticsTraceRepository.class),
-                Mockito.mock(com.own.order.repository.AfterSaleRepository.class), Mockito.mock(SensitiveAccessAuditRepository.class));
+                Mockito.mock(com.own.order.repository.AfterSaleRepository.class), Mockito.mock(SensitiveAccessAuditRepository.class), 15);
         OrderPaymentGuard paymentGuard = Mockito.mock(OrderPaymentGuard.class);
         Mockito.when(paymentGuard.claim(Mockito.anyString())).thenReturn(true);
         org.springframework.test.util.ReflectionTestUtils.setField(service, "paymentGuard", paymentGuard);

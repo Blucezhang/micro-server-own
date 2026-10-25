@@ -23,7 +23,7 @@ class DownstreamResponseContractTest {
     @Test
     void inventoryWriteActionsRejectBusinessFailureInsideHttpSuccess() {
         RestTemplate rest = response(Map.of("status", 409, "data", "ORD-1"), HttpStatus.OK);
-        InventoryClient client = new InventoryClient(rest, "test-internal-token");
+        InventoryClient client = new InventoryClient(rest, "test-internal-token", "http://own-inventory", 15);
         List<OrderItem> items = List.of(new OrderItem("ORD-1", "SUB-1",
                 new CartItem(1L, 101L, 20L, "test", BigDecimal.TEN, 1)));
         assertThrows(TradeException.class, () -> client.reserve("ORD-1", 101L, 20L, 1));
@@ -36,7 +36,7 @@ class DownstreamResponseContractTest {
 
     @Test
     void couponWriteActionsRejectBusinessFailureInsideHttpSuccess() {
-        CouponClient client = new CouponClient(response(Map.of("status", 409, "data", "ORD-1"), HttpStatus.OK), "token");
+        CouponClient client = new CouponClient(response(Map.of("status", 409, "data", "ORD-1"), HttpStatus.OK), "token", "http://own-promotion", 15);
         assertThrows(TradeException.class, () -> client.consume("ORD-1", BigDecimal.ONE));
         assertThrows(TradeException.class, () -> client.release("ORD-1"));
     }
@@ -44,7 +44,7 @@ class DownstreamResponseContractTest {
     @Test
     void couponReserveAndQuoteRejectFailedEnvelopesEvenWithPlausibleDiscountData() {
         CouponClient client = new CouponClient(response(Map.of("status", 409,
-                "data", Map.of("totalDiscount", "1.00", "merchantDiscounts", Map.of("20", "1.00"))), HttpStatus.OK), "token");
+                "data", Map.of("totalDiscount", "1.00", "merchantDiscounts", Map.of("20", "1.00"))), HttpStatus.OK), "token", "http://own-promotion", 15);
         CouponUse coupon = new CouponUse();
         coupon.setCouponNo("CPN-1"); coupon.setMerchantId(20L);
         assertThrows(TradeException.class,
@@ -55,32 +55,32 @@ class DownstreamResponseContractTest {
 
     @Test
     void afterSaleDispatchRejectsBusinessFailureInsideHttpSuccess() {
-        SettlementClient client = new SettlementClient(response(Map.of("status", 409, "data", "AS-1"), HttpStatus.OK), "token");
+        SettlementClient client = new SettlementClient(response(Map.of("status", 409, "data", "AS-1"), HttpStatus.OK), "token", "http://own-settlement");
         assertThrows(TradeException.class, () -> client.refundAfterSale(sale()));
     }
 
     @Test
     void missingBusinessStatusIsNotAnAcknowledgement() {
         RestTemplate rest = response(Map.of("data", "ORD-1"), HttpStatus.OK);
-        assertThrows(TradeException.class, () -> new InventoryClient(rest, "token").release("ORD-1"));
-        assertThrows(TradeException.class, () -> new CouponClient(rest, "token").release("ORD-1"));
-        assertThrows(TradeException.class, () -> new SettlementClient(rest, "token").refundAfterSale(sale()));
+        assertThrows(TradeException.class, () -> new InventoryClient(rest, "token", "http://own-inventory", 15).release("ORD-1"));
+        assertThrows(TradeException.class, () -> new CouponClient(rest, "token", "http://own-promotion", 15).release("ORD-1"));
+        assertThrows(TradeException.class, () -> new SettlementClient(rest, "token", "http://own-settlement").refundAfterSale(sale()));
     }
 
     @Test
     void nonSuccessfulHttpStatusCannotBeMaskedBySuccessfulBody() {
         RestTemplate rest = response(Map.of("status", 200, "data", "ORD-1"), HttpStatus.SERVICE_UNAVAILABLE);
-        assertThrows(TradeException.class, () -> new InventoryClient(rest, "token").release("ORD-1"));
-        assertThrows(TradeException.class, () -> new CouponClient(rest, "token").release("ORD-1"));
-        assertThrows(TradeException.class, () -> new SettlementClient(rest, "token").refundAfterSale(sale()));
+        assertThrows(TradeException.class, () -> new InventoryClient(rest, "token", "http://own-inventory", 15).release("ORD-1"));
+        assertThrows(TradeException.class, () -> new CouponClient(rest, "token", "http://own-promotion", 15).release("ORD-1"));
+        assertThrows(TradeException.class, () -> new SettlementClient(rest, "token", "http://own-settlement").refundAfterSale(sale()));
     }
 
     @Test
     void legitimateCreatedResponseIsStillAccepted() {
         RestTemplate rest = response(Map.of("status", 201, "data", "created"), HttpStatus.CREATED);
-        assertDoesNotThrow(() -> new InventoryClient(rest, "token").reserve("ORD-1", 101L, 20L, 1));
-        assertDoesNotThrow(() -> new CouponClient(rest, "token").consume("ORD-1", BigDecimal.ONE));
-        assertDoesNotThrow(() -> new SettlementClient(rest, "token").refundAfterSale(sale()));
+        assertDoesNotThrow(() -> new InventoryClient(rest, "token", "http://own-inventory", 15).reserve("ORD-1", 101L, 20L, 1));
+        assertDoesNotThrow(() -> new CouponClient(rest, "token", "http://own-promotion", 15).consume("ORD-1", BigDecimal.ONE));
+        assertDoesNotThrow(() -> new SettlementClient(rest, "token", "http://own-settlement").refundAfterSale(sale()));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

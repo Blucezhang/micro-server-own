@@ -13,7 +13,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class WorkFlowFace extends FaceBase {
 
-	private String ServiceUrl = "http://WORKFLOW/";
+	@org.springframework.beans.factory.annotation.Value("${trade.legacy-services.workflow-base-url}")
+    private String serviceUrl;
 
 	/**
 	 * getAllWorkFlowByLoginId
@@ -23,7 +24,7 @@ public class WorkFlowFace extends FaceBase {
 	public Map<String,Object> getAllWorkFlowByLoginId(Long id){
 		Map<String,Object> params = new HashMap<String, Object>();
 		params.put("LoginId", id);
-		Map<String,Object> maps = get(ServiceUrl+"/workflow?LoginId={LoginId}", Map.class, params);
+		Map<String,Object> maps = get(serviceUrl+"/workflow?LoginId={LoginId}", Map.class, params);
 		log.info(maps.get("TransByLoginId")+"TransByLoginId");
 		return maps;
 	}
@@ -40,7 +41,7 @@ public class WorkFlowFace extends FaceBase {
 		params.put("partyId", partId);
 		params.put("bizTypeId", bizTypeId);
 		params.put("ActionName", "PartyIdAndBizTypeId");
-		Map<String,List<?>> maps = get(ServiceUrl+"/workflow?partyId={partyId}&bizTypeId={bizTypeId}&ActionName={ActionName}", Map.class, params);
+		Map<String,List<?>> maps = get(serviceUrl+"/workflow?partyId={partyId}&bizTypeId={bizTypeId}&ActionName={ActionName}", Map.class, params);
 		return maps;
 	}
 
@@ -54,7 +55,7 @@ public class WorkFlowFace extends FaceBase {
 		Map params = new HashMap();
 		params.put("processId",processId);
 		params.put("bizType",bizType);
-		Map<String,List<?>> maps = get(ServiceUrl+"/workflow/{processId}/{bizType}", Map.class,params);
+		Map<String,List<?>> maps = get(serviceUrl+"/workflow/{processId}/{bizType}", Map.class,params);
 		return maps;
 	}
 
@@ -66,7 +67,7 @@ public class WorkFlowFace extends FaceBase {
 	public List getAllType(){
 		Map<String,Object> params = new HashMap<String,Object>();
 		params.put("ActionName", "FlowType");
-		List obj=restTemplate.getForObject(ServiceUrl+"/workflow?ActionName={ActionName}", List.class, params);
+		List obj=restTemplate.getForObject(serviceUrl+"/workflow?ActionName={ActionName}", List.class, params);
 		return obj;
 	}
 
@@ -79,7 +80,7 @@ public class WorkFlowFace extends FaceBase {
 	 */
 	public Map<String,Object> updataFlowTrans(Long processId,String funName){
         String requestBody = "{\"processId\":\""+processId+"\",\"funName\":\"" + funName + "\"}";
-		Map<String,Object> obj = restTemplate.postForObject(ServiceUrl+"/workflow", requestBody, Map.class, "null");
+		Map<String,Object> obj = restTemplate.postForObject(serviceUrl+"/workflow", requestBody, Map.class, "null");
 		return obj;
 	}
 
@@ -89,7 +90,7 @@ public class WorkFlowFace extends FaceBase {
 	 * @return
 	 */
 	public Object putWorkFlow(Map maps){
-		 restTemplate.put(ServiceUrl+"/workflow", maps);
+		 restTemplate.put(serviceUrl+"/workflow", maps);
 		return maps;
 	}
 	

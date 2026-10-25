@@ -34,6 +34,7 @@ public class EmsFaceTest {
 
     private EmsFace face(RestTemplate restTemplate) {
         EmsFace face = new EmsFace();
+        ReflectionTestUtils.setField(face, "serviceUrl", "http://EMSERVER/");
         ReflectionTestUtils.setField(face, "restTemplate", restTemplate);
         return face;
     }

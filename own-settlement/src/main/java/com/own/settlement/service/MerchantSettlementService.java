@@ -35,9 +35,9 @@ public class MerchantSettlementService {
 
     public MerchantSettlementService(MerchantReceivableRepository receivables, SettlementBatchRepository batches,
                                      MerchantWithdrawalRepository withdrawals, AfterSaleRefundRepository refunds,
-                                     @Value("${trade.settlement.merchant-rate:0.80}") BigDecimal merchantRate,
-                                     @Value("${trade.settlement.cycle-days:7}") int cycleDays,
-                                     @Value("${trade.settlement.withdrawal-minimum:100.00}") BigDecimal withdrawalMinimum) {
+                                     @Value("${trade.settlement.merchant-rate}") BigDecimal merchantRate,
+                                     @Value("${trade.settlement.cycle-days}") int cycleDays,
+                                     @Value("${trade.settlement.withdrawal-minimum}") BigDecimal withdrawalMinimum) {
         this.receivables = receivables; this.batches = batches; this.withdrawals = withdrawals;
         this.refunds = refunds;
         if (merchantRate == null || merchantRate.signum() < 0 || merchantRate.compareTo(BigDecimal.ONE) > 0) throw new IllegalArgumentException("merchant rate must be between 0 and 1");
@@ -68,7 +68,7 @@ public class MerchantSettlementService {
     @Transactional
     public SettlementBatch settleDue(Date now) {
         Date current = now == null ? new Date() : now;
-        Date cutoff = new Date(current.getTime() - cycleDays * 24L * 60L * 60L * 1000L);
+        Date cutoff = new Date(current.getTime() - java.time.Duration.ofDays(cycleDays).toMillis());
         List<MerchantReceivable> due = receivables.findByStatusAndCreatedAtBefore("PENDING", cutoff);
         if (due.isEmpty()) return null;
         SettlementBatch batch = batches.save(new SettlementBatch("STL-" + UUID.randomUUID().toString(), cutoff, current));

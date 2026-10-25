@@ -1,0 +1,10 @@
+# Packaged defaults; later Nacos imports and deployment overrides take precedence.
+trade:
+  security:
+    jwt:
+      refresh-session-cleanup-delay-ms: 3600000
+    login:
+      attempt-cleanup-delay-ms: 86400000
+      attempt-retention-days: 90
+      lock-minutes: 15
+      max-failures: 5

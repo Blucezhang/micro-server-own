@@ -19,15 +19,15 @@ public class AfterSaleReminderScheduler {
     private final int repeatHours;
 
     public AfterSaleReminderScheduler(AfterSaleRepository sales, OrderEventRepository events,
-            @Value("${trade.after-sale.audit-reminder-hours:48}") int auditHours,
-            @Value("${trade.after-sale.reminder-repeat-hours:24}") int repeatHours) {
+            @Value("${trade.after-sale.audit-reminder-hours}") int auditHours,
+            @Value("${trade.after-sale.reminder-repeat-hours}") int repeatHours) {
         this.sales = sales;
         this.events = events;
         this.auditHours = auditHours;
         this.repeatHours = repeatHours;
     }
 
-    @Scheduled(fixedDelayString = "${trade.after-sale.reminder-delay-millis:3600000}")
+    @Scheduled(fixedDelayString = "${trade.after-sale.reminder-delay-millis}")
     @Transactional
     public void remindOverdueAudits() {
         if (auditHours <= 0) {

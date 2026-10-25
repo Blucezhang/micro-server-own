@@ -13,7 +13,7 @@ public class JwtTokenServiceTest {
 
     @Test
     public void issuesAndVerifiesActorAndRbacClaims() {
-        JwtTokenService service = new JwtTokenService(new ObjectMapper(), SECRET, 120L, "test-issuer");
+        JwtTokenService service = new JwtTokenService(new ObjectMapper(), SECRET, "", 120L, 1209600L, "test-issuer");
         String token = service.issue(10L, 20L, ActorType.MERCHANT,
                 Arrays.asList("ROLE_MERCHANT"), Arrays.asList("product:write"));
         JwtPrincipal principal = service.verify(token);
@@ -26,7 +26,7 @@ public class JwtTokenServiceTest {
 
     @Test
     public void rejectsTamperedToken() {
-        JwtTokenService service = new JwtTokenService(new ObjectMapper(), SECRET, 120L, "test-issuer");
+        JwtTokenService service = new JwtTokenService(new ObjectMapper(), SECRET, "", 120L, 1209600L, "test-issuer");
         String token = service.issue(10L, 10L, ActorType.BUYER, null, null);
         int signatureStart = token.lastIndexOf('.') + 1;
         char firstSignatureCharacter = token.charAt(signatureStart);
@@ -38,7 +38,7 @@ public class JwtTokenServiceTest {
 
     @Test
     public void accessAndRefreshTokensCannotBeUsedInterchangeably() {
-        JwtTokenService service = new JwtTokenService(new ObjectMapper(), SECRET, 120L, "test-issuer");
+        JwtTokenService service = new JwtTokenService(new ObjectMapper(), SECRET, "", 120L, 1209600L, "test-issuer");
         String access = service.issue(10L, 20L, ActorType.MERCHANT, null, null);
         String refresh = service.issueRefresh(10L, ActorType.MERCHANT);
         assertEquals(Long.valueOf(10L), service.verifyRefresh(refresh).getUserId());
@@ -48,7 +48,7 @@ public class JwtTokenServiceTest {
 
     @Test
     public void verifierAcceptsPreviousSecretOnlyDuringRotationWindow() {
-        JwtTokenService old = new JwtTokenService(new ObjectMapper(), SECRET, 120L, "test-issuer");
+        JwtTokenService old = new JwtTokenService(new ObjectMapper(), SECRET, "", 120L, 1209600L, "test-issuer");
         String oldToken = old.issue(10L, 10L, ActorType.BUYER, null, null);
         JwtTokenService rotated = new JwtTokenService(new ObjectMapper(), "abcdefabcdefabcdefabcdefabcdef12", SECRET, 120L, 120L, "test-issuer");
         assertEquals(Long.valueOf(10L), rotated.verify(oldToken).getUserId());
@@ -56,7 +56,7 @@ public class JwtTokenServiceTest {
 
     @Test
     public void refusesWeakSigningSecret() {
-        assertThrows(IllegalStateException.class, () -> new JwtTokenService(new ObjectMapper(), "short", 120L, "test-issuer")
+        assertThrows(IllegalStateException.class, () -> new JwtTokenService(new ObjectMapper(), "short", "", 120L, 1209600L, "test-issuer")
                 .issue(1L, 1L, ActorType.BUYER, null, null));
     }
 }

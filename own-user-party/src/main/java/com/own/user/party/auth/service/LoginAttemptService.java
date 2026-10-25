@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class LoginAttemptService {
     private final LoginFailureAttemptRepository attempts; private final int maxFailures; private final long lockMinutes;
-    public LoginAttemptService(LoginFailureAttemptRepository attempts, @Value("${trade.security.login.max-failures:5}") int maxFailures, @Value("${trade.security.login.lock-minutes:15}") long lockMinutes) {
+    public LoginAttemptService(LoginFailureAttemptRepository attempts, @Value("${trade.security.login.max-failures}") int maxFailures, @Value("${trade.security.login.lock-minutes}") long lockMinutes) {
         this.attempts = attempts; this.maxFailures = Math.max(1, maxFailures); this.lockMinutes = Math.max(1L, lockMinutes);
     }
     public void requireAllowed(String rawLoginName) {
@@ -23,7 +23,7 @@ public class LoginAttemptService {
         String loginName = normalize(rawLoginName); if (loginName.isEmpty()) return;
         attempts.insertIfAbsent(loginName); LoginFailureAttempt attempt = attempts.findByLoginNameForUpdate(loginName);
         if (attempt == null) throw new IllegalStateException("login failure record was not created");
-        attempt.fail(maxFailures, new Date(System.currentTimeMillis() + lockMinutes * 60L * 1000L)); attempts.save(attempt);
+        attempt.fail(maxFailures, new Date(System.currentTimeMillis() + java.time.Duration.ofMinutes(lockMinutes).toMillis())); attempts.save(attempt);
     }
     @Transactional public void succeeded(String rawLoginName) {
         String loginName = normalize(rawLoginName); if (loginName.isEmpty()) return;

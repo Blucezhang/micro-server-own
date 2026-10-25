@@ -28,7 +28,7 @@ public class TradeIdempotencyAspect {
 
     public TradeIdempotencyAspect(TradeIdempotencyStore store, ObjectMapper objectMapper,
                                   @Value("${spring.application.name}") String serviceName,
-                                  @Value("${trade.idempotency.retention-hours:24}") int retentionHours) {
+                                  @Value("${trade.idempotency.retention-hours}") int retentionHours) {
         this.store = store; this.objectMapper = objectMapper;
         this.serviceName = serviceName; this.retentionHours = retentionHours;
     }

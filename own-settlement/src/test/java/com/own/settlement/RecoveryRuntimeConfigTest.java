@@ -10,11 +10,11 @@ class RecoveryRuntimeConfigTest {
     @Test
     void settlementAllowsBoundedDownstreamChainTimeAndRejectsInfiniteTimeouts() {
         SettlementApplication app = new SettlementApplication();
-        var client = app.restTemplate(3000, 30000);
+        var client = app.restTemplate(new com.own.face.trade.config.TradeHttpProperties(3000, 30000));
         assertEquals(3000, ReflectionTestUtils.getField(client.getRequestFactory(), "connectTimeout"));
         assertEquals(30000, ReflectionTestUtils.getField(client.getRequestFactory(), "readTimeout"));
-        assertThrows(IllegalArgumentException.class, () -> app.restTemplate(1000, 0));
-        assertThrows(IllegalArgumentException.class, () -> app.restTemplate(1000, 60001));
+        assertThrows(IllegalArgumentException.class, () -> app.restTemplate(new com.own.face.trade.config.TradeHttpProperties(1000, 0)));
+        assertThrows(IllegalArgumentException.class, () -> app.restTemplate(new com.own.face.trade.config.TradeHttpProperties(1000, 60001)));
     }
     @Test
     void recoveryHasADedicatedScheduler() throws Exception {

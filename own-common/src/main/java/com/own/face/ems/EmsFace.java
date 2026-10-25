@@ -17,7 +17,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmsFace extends FaceBase {
 
-    protected String serviceUrl = "http://EMSERVER/";
+    @org.springframework.beans.factory.annotation.Value("${trade.legacy-services.ems-base-url}")
+    protected String serviceUrl ;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**

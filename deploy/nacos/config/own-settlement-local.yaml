@@ -25,9 +25,7 @@ spring:
 
 trade:
   inbox:
-    consumer-name: settlement-saga
-
-trade:
+    consumer-name: settlement-order-effects-v1
   internal:
     service-token: ${INTERNAL_SERVICE_TOKEN:}
     previous-service-token: ${INTERNAL_SERVICE_PREVIOUS_TOKEN:}

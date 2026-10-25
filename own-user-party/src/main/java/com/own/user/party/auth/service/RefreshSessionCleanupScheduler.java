@@ -14,7 +14,7 @@ public class RefreshSessionCleanupScheduler {
         this.sessions = sessions;
     }
 
-    @Scheduled(fixedDelayString = "${trade.security.jwt.refresh-session-cleanup-delay-ms:3600000}")
+    @Scheduled(fixedDelayString = "${trade.security.jwt.refresh-session-cleanup-delay-ms}")
     public void purgeExpiredSessions() {
         sessions.deleteExpiredBefore(new Date());
     }

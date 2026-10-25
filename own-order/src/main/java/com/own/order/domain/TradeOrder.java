@@ -1,5 +1,6 @@
 package com.own.order.domain;
 
+import com.own.face.trade.recovery.RecoveryStatus;
 import java.math.BigDecimal;
 import java.util.Date;
 import jakarta.persistence.Column;
@@ -34,7 +35,11 @@ public class TradeOrder {
     @Column(name = "created_at", nullable = false) private Date createdAt;
     @Column(name = "payment_started_at") private Date paymentStartedAt;
     @Column(name = "payment_recovery_attempts", nullable = false) private int paymentRecoveryAttempts;
-    @Column(name = "payment_recovery_status", nullable = false, length = 32) private String paymentRecoveryStatus = "NONE";
+    @Column(name = "payment_recovery_status", nullable = false, length = 32) private String paymentRecoveryStatus = RecoveryStatus.NONE;
+    @Column(name = "cancellation_started_at") private Date cancellationStartedAt;
+    @Column(name = "cancellation_recovery_attempts", nullable = false) private int cancellationRecoveryAttempts;
+    @Column(name = "cancellation_recovery_status", nullable = false, length = 32) private String cancellationRecoveryStatus = RecoveryStatus.NONE;
+    @Column(name = "cancellation_reason", length = 16) private String cancellationReason;
 
     protected TradeOrder() { }
     /** Compatibility constructor for historical orders and unit tests; new checkouts must use address snapshots. */
@@ -56,16 +61,17 @@ public class TradeOrder {
     }
     public void markPaid() {
         require(OrderStatus.PENDING_PAYMENT); status = OrderStatus.PAID;
-        if (paymentStartedAt != null) paymentRecoveryStatus = "COMPLETED";
+        if (paymentStartedAt != null) paymentRecoveryStatus = RecoveryStatus.COMPLETED;
     }
     public boolean beginPayment(int maxAttempts) {
         require(OrderStatus.PENDING_PAYMENT);
-        if ("RECONCILIATION_REQUIRED".equals(paymentRecoveryStatus) || paymentRecoveryAttempts >= maxAttempts) {
-            paymentRecoveryStatus = "RECONCILIATION_REQUIRED";
+        if (isCancellationStarted()) throw new IllegalStateException("cancellation has already started");
+        if (RecoveryStatus.RECONCILIATION_REQUIRED.equals(paymentRecoveryStatus) || paymentRecoveryAttempts >= maxAttempts) {
+            paymentRecoveryStatus = RecoveryStatus.RECONCILIATION_REQUIRED;
             return false;
         }
         if (paymentStartedAt == null) paymentStartedAt = new Date();
-        paymentRecoveryStatus = "PENDING";
+        paymentRecoveryStatus = RecoveryStatus.PENDING;
         paymentRecoveryAttempts++;
         return true;
     }
@@ -75,12 +81,38 @@ public class TradeOrder {
     public int getPaymentRecoveryAttempts() { return paymentRecoveryAttempts; }
     @com.fasterxml.jackson.annotation.JsonIgnore
     public String getPaymentRecoveryStatus() { return paymentRecoveryStatus; }
+    public boolean beginCancellation(int maxAttempts, boolean expired) {
+        require(OrderStatus.PENDING_PAYMENT);
+        if (isPaymentStarted()) throw new IllegalStateException("payment has already started");
+        if (RecoveryStatus.RECONCILIATION_REQUIRED.equals(cancellationRecoveryStatus) || cancellationRecoveryAttempts >= maxAttempts) {
+            cancellationRecoveryStatus = RecoveryStatus.RECONCILIATION_REQUIRED;
+            return false;
+        }
+        if (cancellationStartedAt == null) {
+            cancellationStartedAt = new Date();
+            cancellationReason = expired ? CancellationReason.TIMEOUT.name() : CancellationReason.BUYER.name();
+        }
+        cancellationRecoveryStatus = RecoveryStatus.PENDING;
+        cancellationRecoveryAttempts++;
+        return true;
+    }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public boolean isCancellationStarted() { return cancellationStartedAt != null; }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public int getCancellationRecoveryAttempts() { return cancellationRecoveryAttempts; }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getCancellationRecoveryStatus() { return cancellationRecoveryStatus; }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getCancellationReason() { return cancellationReason; }
     public void startSaga() { require(OrderStatus.PENDING_PAYMENT); status = OrderStatus.PROCESSING; }
     public void sagaReadyForPayment() { require(OrderStatus.PROCESSING); status = OrderStatus.PENDING_PAYMENT; }
     public void sagaFailed() { require(OrderStatus.PROCESSING); status = OrderStatus.SAGA_FAILED; }
     public void markFulfilling() { require(OrderStatus.PAID); status = OrderStatus.FULFILLING; }
     public void markCompleted() { require(OrderStatus.FULFILLING); status = OrderStatus.COMPLETED; }
-    public void cancel() { require(OrderStatus.PENDING_PAYMENT); status = OrderStatus.CANCELED; }
+    public void cancel() {
+        require(OrderStatus.PENDING_PAYMENT); status = OrderStatus.CANCELED;
+        if (cancellationStartedAt != null) cancellationRecoveryStatus = RecoveryStatus.COMPLETED;
+    }
     public void startRefund() { if (status != OrderStatus.PAID && status != OrderStatus.FULFILLING) throw new IllegalStateException("order cannot be refunded"); status = OrderStatus.REFUNDING; }
     public void refund() { require(OrderStatus.REFUNDING); status = OrderStatus.REFUNDED; }
     private void require(OrderStatus expected) { if (status != expected) throw new IllegalStateException("invalid order state transition"); }

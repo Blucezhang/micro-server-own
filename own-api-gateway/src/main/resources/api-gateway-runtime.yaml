@@ -1,0 +1,5 @@
+# Packaged defaults; later Nacos imports and deployment overrides take precedence.
+trade:
+  security:
+    jwt:
+      enabled: false

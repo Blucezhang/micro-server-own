@@ -1,5 +1,6 @@
 package com.own.order.service;
 
+import com.own.face.trade.inbox.OrderEventTypes;
 import com.own.face.trade.ActorType;
 import com.own.face.trade.TradeActor;
 import com.own.face.trade.TradeException;
@@ -50,6 +51,7 @@ public class OrderService {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
     @org.springframework.beans.factory.annotation.Autowired private OrderPaymentGuard paymentGuard;
+    @org.springframework.beans.factory.annotation.Autowired private OrderCancellationService cancellations;
 
     private final CartItemRepository cartItemRepository;
     private final com.own.order.repository.CartBuyerGuardRepository cartBuyerGuards;
@@ -66,8 +68,8 @@ public class OrderService {
     private final com.own.order.repository.AfterSaleRepository afterSaleRepository;
     private final SensitiveAccessAuditRepository sensitiveAccessAuditRepository;
     @org.springframework.beans.factory.annotation.Autowired(required = false) private AsyncOrderSagaService asyncOrderSagaService;
-    @Value("${trade.saga.async-enabled:true}") private boolean asyncSagaEnabled;
-    @Value("${trade.order.payment-timeout-minutes:15}") private int paymentTimeoutMinutes = 15;
+    @Value("${trade.saga.async-enabled}") private boolean asyncSagaEnabled;
+    private final int paymentTimeoutMinutes;
 
     public OrderService(CartItemRepository cartItemRepository, com.own.order.repository.CartBuyerGuardRepository cartBuyerGuards, TradeOrderRepository orderRepository,
                         TradeSubOrderRepository subOrderRepository, OrderItemRepository orderItemRepository,
@@ -76,7 +78,10 @@ public class OrderService {
                         com.own.order.repository.MerchantFreightRuleRepository freightRuleRepository,
                         com.own.order.repository.LogisticsTraceRepository logisticsTraceRepository,
                         com.own.order.repository.AfterSaleRepository afterSaleRepository,
-                        SensitiveAccessAuditRepository sensitiveAccessAuditRepository) {
+                        SensitiveAccessAuditRepository sensitiveAccessAuditRepository,
+                        @Value("${trade.order.payment-timeout-minutes}") int paymentTimeoutMinutes) {
+        if (paymentTimeoutMinutes < 1) throw new IllegalArgumentException("payment timeout must be positive");
+        this.paymentTimeoutMinutes = paymentTimeoutMinutes;
         this.cartItemRepository = cartItemRepository;
         this.cartBuyerGuards = cartBuyerGuards;
         this.orderRepository = orderRepository;
@@ -232,7 +237,7 @@ public class OrderService {
             subOrder.markToShip();
             subOrderRepository.save(subOrder);
         }
-        event(orderNo, null, "PAYMENT_SUCCEEDED", actor, "to_ship");
+        event(orderNo, null, OrderEventTypes.PAYMENT_SUCCEEDED, actor, "to_ship");
         return order;
     }
 
@@ -241,7 +246,7 @@ public class OrderService {
         if (order == null || buyerId == null || !buyerId.equals(order.getBuyerId())) {
             throw TradeException.notFound("order was not found");
         }
-        if (order.getStatus() != OrderStatus.PENDING_PAYMENT || paymentWindowExpired(order)) {
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT || order.isCancellationStarted() || paymentWindowExpired(order)) {
             throw TradeException.conflict("order is not awaiting payment");
         }
         return order.getPayableAmount();
@@ -256,26 +261,18 @@ public class OrderService {
     }
 
     private boolean paymentWindowExpired(TradeOrder order) {
-        Date deadline = new Date(System.currentTimeMillis() - paymentTimeoutMinutes * 60L * 1000L);
+        Date deadline = new Date(System.currentTimeMillis() - java.time.Duration.ofMinutes(paymentTimeoutMinutes).toMillis());
         return order.getCreatedAt().before(deadline);
     }
 
     @Transactional
     public TradeOrder cancel(TradeActor actor, String orderNo) {
         actor.require(ActorType.BUYER);
+        TradeOrder canceled = cancellations.tryCancel(actor, orderNo, null);
+        if (canceled != null) return canceled;
         TradeOrder order = requireBuyerLockedOrder(orderNo, actor.getId());
         if (order.getStatus() == OrderStatus.PENDING_PAYMENT) {
-            if (order.isPaymentStarted()) throw TradeException.conflict("payment is processing or requires reconciliation");
-            order.cancel();
-            for (TradeSubOrder subOrder : subOrderRepository.findByOrderNo(orderNo)) {
-                subOrder.cancel();
-                subOrderRepository.save(subOrder);
-            }
-            inventoryClient.release(orderNo);
-            couponClient.release(orderNo);
-            orderRepository.save(order);
-            event(orderNo, null, "ORDER_CANCELED", actor, "unpaid");
-            return order;
+            throw TradeException.conflict("payment is processing or requires reconciliation");
         }
         if (order.getStatus() == OrderStatus.PAID && allToShip(orderNo)) {
             order.startRefund();
@@ -304,7 +301,7 @@ public class OrderService {
         couponClient.release(orderNo);
         order.refund();
         orderRepository.save(order);
-        event(orderNo, null, "REFUND_SUCCEEDED", actor, "full_refund");
+        event(orderNo, null, OrderEventTypes.REFUND_SUCCEEDED, actor, "full_refund");
         return order;
     }
 
@@ -508,19 +505,8 @@ public class OrderService {
 
     @Transactional
     public boolean expirePendingOrder(String orderNo, Date deadline) {
-        TradeOrder order = requireLockedOrder(orderNo);
-        if (order.getStatus() != OrderStatus.PENDING_PAYMENT || order.isPaymentStarted()
-                || !order.getCreatedAt().before(deadline)) return false;
-        for (TradeSubOrder subOrder : subOrderRepository.findByOrderNo(orderNo)) {
-            subOrder.cancel();
-            subOrderRepository.save(subOrder);
-        }
-        inventoryClient.release(orderNo);
-        couponClient.release(orderNo);
-        order.cancel();
-        orderRepository.save(order);
-        event(orderNo, null, "ORDER_EXPIRED", new TradeActor(0L, ActorType.SYSTEM), "payment_timeout");
-        return true;
+        if (deadline == null) throw new IllegalArgumentException("expiry deadline is required");
+        return cancellations.tryCancel(new TradeActor(0L, ActorType.SYSTEM), orderNo, deadline) != null;
     }
 
     private CheckoutQuote quote(Long buyerId, List<CartItem> items, List<CouponUse> coupons, String reservationOrderNo) {

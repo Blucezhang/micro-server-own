@@ -100,7 +100,7 @@ class SettlementDownstreamFailureTest {
     }
 
     private SettlementService service() {
-        SettlementService service = new SettlementService(payments, new OrderClient(rest, "token"), refunds, afterSales);
+        SettlementService service = new SettlementService(payments, new OrderClient(rest, "token", "http://own-order"), refunds, afterSales);
         ReflectionTestUtils.setField(service, "merchantSettlementService", merchants);
         SettlementRecoveryJournal journal = mock(SettlementRecoveryJournal.class);
         when(journal.begin(any(Payment.class), any(com.own.settlement.domain.RecoveryAction.class))).thenReturn(1);

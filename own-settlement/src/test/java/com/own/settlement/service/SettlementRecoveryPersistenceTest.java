@@ -65,7 +65,7 @@ class SettlementRecoveryPersistenceTest {
         operations = repositories.getRepository(RecoveryOperationRepository.class);
         merchants = proxy(new MerchantSettlementService(receivables, repositories.getRepository(SettlementBatchRepository.class),
                 repositories.getRepository(MerchantWithdrawalRepository.class), afterSales, new BigDecimal("0.80"), 7, new BigDecimal("100.00")));
-        journal = proxy(new SettlementRecoveryJournal(operations, 3, 1000));
+        journal = proxy(new SettlementRecoveryJournal(operations, new com.own.face.trade.config.TradeRecoveryProperties(3, 1000, 30000)));
         orders = mock(OrderClient.class);
         when(orders.settlementLines("ORD-1")).thenReturn(List.of(new MerchantSettlementLine(2L, BigDecimal.TEN)));
         transactions.executeWithoutResult(status -> payments.save(new Payment("PAY-1", "ORD-1", 7L, BigDecimal.TEN, "key")));

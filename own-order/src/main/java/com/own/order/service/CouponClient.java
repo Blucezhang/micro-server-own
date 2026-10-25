@@ -1,5 +1,9 @@
 package com.own.order.service;
 
+import com.own.face.trade.config.ReservationLimits;
+import com.own.face.trade.config.ServiceEndpoint;
+import com.own.face.trade.ActorType;
+import com.own.face.trade.TradeHeaders;
 import com.own.face.trade.TradeException;
 import com.own.face.trade.TradeResponse;
 import com.own.face.security.InternalServiceGuard;
@@ -22,10 +26,22 @@ import org.springframework.beans.factory.annotation.Value;
 public class CouponClient {
 
     private final RestTemplate restTemplate;
+    private final String baseUrl;
     private final String internalToken;
-    @Value("${trade.saga.reservation-ttl-minutes:15}") private int reservationTtlMinutes = 15;
+    private final int reservationTtlMinutes;
 
-    public CouponClient(RestTemplate restTemplate, @Value("${trade.internal.service-token:}") String internalToken) { this.restTemplate = restTemplate; this.internalToken = internalToken; }
+    public CouponClient(RestTemplate restTemplate,
+            @Value("${trade.internal.service-token:}") String internalToken,
+            @Value("${trade.services.promotion-base-url}") String baseUrl,
+            @Value("${trade.saga.reservation-ttl-minutes}") int reservationTtlMinutes) {
+        this.restTemplate = restTemplate;
+        this.baseUrl = ServiceEndpoint.requireRoot(baseUrl);
+        this.internalToken = internalToken;
+        if (reservationTtlMinutes < 1 || reservationTtlMinutes > ReservationLimits.MAX_TTL_MINUTES) {
+            throw new IllegalArgumentException("reservation TTL must be 1.." + ReservationLimits.MAX_TTL_MINUTES + " minutes");
+        }
+        this.reservationTtlMinutes = reservationTtlMinutes;
+    }
 
     @SuppressWarnings("unchecked")
     public CouponReservation reserve(String orderNo, Long buyerId, BigDecimal parentAmount,
@@ -36,7 +52,7 @@ public class CouponClient {
         Map<String, Object> command = command(orderNo, buyerId, parentAmount, merchantAmounts, coupons);
         command.put("ttlMinutes", reservationTtlMinutes);
         try {
-            ResponseEntity<Map> response = restTemplate.exchange("http://own-promotion/sale/api/v1/coupons/internal/reservations",
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl + "/sale/api/v1/coupons/internal/reservations",
                     HttpMethod.POST, new HttpEntity<Map<String, Object>>(command, headers("order-coupon-reserve-" + orderNo)), Map.class);
             return reservation(response);
         } catch (TradeException exception) {
@@ -50,7 +66,7 @@ public class CouponClient {
     public CouponReservation preview(Long buyerId, BigDecimal parentAmount, Map<Long, BigDecimal> merchantAmounts, List<CouponUse> coupons) {
         if (coupons == null || coupons.isEmpty()) return new CouponReservation(BigDecimal.ZERO, new HashMap<Long, BigDecimal>());
         try {
-            ResponseEntity<Map> response = restTemplate.exchange("http://own-promotion/sale/api/v1/coupons/internal/quotes",
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl + "/sale/api/v1/coupons/internal/quotes",
                     HttpMethod.POST, new HttpEntity<Map<String, Object>>(command(null, buyerId, parentAmount, merchantAmounts, coupons), headers("order-coupon-preview")), Map.class);
             return reservation(response);
         } catch (TradeException exception) {
@@ -97,11 +113,11 @@ public class CouponClient {
         Map<String, Object> body = new HashMap<String, Object>();
         body.put("orderNo", orderNo);
         body.put("expectedDiscount", expectedDiscount);
-        action("http://own-promotion/sale/api/v1/coupons/internal/orders/consume", body, "order-coupon-consume-" + orderNo);
+        action(baseUrl + "/sale/api/v1/coupons/internal/orders/consume", body, "order-coupon-consume-" + orderNo);
     }
     public void reconcileConsume(String orderNo, Long buyerId, BigDecimal expectedDiscount) {
         try {
-            ResponseEntity<Map> response = restTemplate.exchange("http://own-promotion/sale/api/v1/coupons/internal/orders/" + orderNo + "/state",
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl + "/sale/api/v1/coupons/internal/orders/" + orderNo + "/state",
                     HttpMethod.GET, new HttpEntity<Void>(headers("coupon-state-" + orderNo)), Map.class);
             Object data = TradeResponse.requireSuccess(response, "coupon recovery state").get("data");
             if (!(data instanceof List<?> rows)) throw TradeException.conflict("invalid coupon recovery state");
@@ -129,7 +145,7 @@ public class CouponClient {
             throw failure;
         }
     }
-    public void release(String orderNo) { action("http://own-promotion/sale/api/v1/coupons/internal/orders/release", orderNo, "order-coupon-release-" + orderNo); }
+    public void release(String orderNo) { action(baseUrl + "/sale/api/v1/coupons/internal/orders/release", orderNo, "order-coupon-release-" + orderNo); }
 
     private void action(String url, Object body, String idempotencyKey) {
         try {
@@ -150,8 +166,8 @@ public class CouponClient {
 
     private HttpHeaders headers(String idempotencyKey) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Actor-Id", "1"); headers.set("X-Actor-Type", "SYSTEM");
-        headers.set("Idempotency-Key", idempotencyKey);
+        headers.set(TradeHeaders.ACTOR_ID, "1"); headers.set(TradeHeaders.ACTOR_TYPE, ActorType.SYSTEM.name());
+        headers.set(TradeHeaders.IDEMPOTENCY_KEY, idempotencyKey);
         headers.set(InternalServiceGuard.HEADER, internalToken);
         return headers;
     }

@@ -1,5 +1,8 @@
 package com.own.settlement.service;
 
+import com.own.face.trade.config.ServiceEndpoint;
+import com.own.face.trade.ActorType;
+import com.own.face.trade.TradeHeaders;
 import com.own.face.trade.TradeException;
 import com.own.face.trade.TradeResponse;
 import com.own.face.trade.OrderRecoverySnapshot;
@@ -21,13 +24,14 @@ import org.springframework.web.client.HttpClientErrorException;
 @Component
 public class OrderClient {
     private final RestTemplate restTemplate;
+    private final String baseUrl;
     private final String internalToken;
-    public OrderClient(RestTemplate restTemplate, @Value("${trade.internal.service-token:}") String internalToken) { this.restTemplate = restTemplate; this.internalToken = internalToken; }
+    public OrderClient(RestTemplate restTemplate, @Value("${trade.internal.service-token:}") String internalToken, @Value("${trade.services.order-base-url}") String baseUrl) { this.restTemplate = restTemplate; this.baseUrl = ServiceEndpoint.requireRoot(baseUrl); this.internalToken = internalToken; }
 
     @SuppressWarnings("unchecked")
     public BigDecimal payableAmount(String orderNo, Long buyerId) {
         try {
-            ResponseEntity<Map> response = restTemplate.exchange("http://own-order/api/v1/internal/orders/" + orderNo
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl + "/api/v1/internal/orders/" + orderNo
                             + "/payable-amount?buyerId=" + buyerId,
                     HttpMethod.GET, new HttpEntity<Void>(internalHeaders("payment-amount-" + orderNo)), Map.class);
             Map<?, ?> body = TradeResponse.requireSuccess(response, "order payable amount");
@@ -46,7 +50,7 @@ public class OrderClient {
     public void refundSucceeded(String orderNo) { callback(orderNo, "refund-succeeded"); }
     public OrderRecoverySnapshot recoverySnapshot(String orderNo) {
         try {
-            ResponseEntity<Map> response = restTemplate.exchange("http://own-order/api/v1/internal/orders/" + orderNo + "/recovery-snapshot",
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl + "/api/v1/internal/orders/" + orderNo + "/recovery-snapshot",
                     HttpMethod.GET, new HttpEntity<Void>(internalHeaders("recovery-snapshot-" + orderNo)), Map.class);
             Object data = TradeResponse.requireSuccess(response, "order recovery snapshot").get("data");
             if (!(data instanceof Map<?, ?> row) || !orderNo.equals(row.get("orderNo"))
@@ -66,7 +70,7 @@ public class OrderClient {
     @SuppressWarnings("unchecked")
     public List<MerchantSettlementLine> settlementLines(String orderNo) {
         try {
-            ResponseEntity<Map> response = restTemplate.exchange("http://own-order/api/v1/internal/orders/" + orderNo + "/settlement-lines",
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl + "/api/v1/internal/orders/" + orderNo + "/settlement-lines",
                     HttpMethod.GET, new HttpEntity<Void>(internalHeaders("settlement-lines-" + orderNo)), Map.class);
             Map<?, ?> body = TradeResponse.requireSuccess(response, "order settlement lines"); Object data = body.get("data");
             if (!(data instanceof List)) throw TradeException.conflict("order settlement lines are unavailable");
@@ -78,7 +82,7 @@ public class OrderClient {
     }
     public void afterSaleRefundSucceeded(String afterSaleNo) {
         try {
-            ResponseEntity<Map> response = restTemplate.exchange("http://own-order/api/v1/internal/after-sales/" + afterSaleNo + "/refund-succeeded",
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl + "/api/v1/internal/after-sales/" + afterSaleNo + "/refund-succeeded",
                     HttpMethod.POST, new HttpEntity<Void>(internalHeaders("settlement-after-sale-" + afterSaleNo)), Map.class);
             TradeResponse.requireSuccess(response, "order after-sale refund callback");
         } catch (TradeException exception) { throw exception;
@@ -88,7 +92,7 @@ public class OrderClient {
     private void callback(String orderNo, String action) {
         try {
             HttpHeaders headers = internalHeaders("settlement-" + action + "-" + orderNo);
-            ResponseEntity<Map> response = restTemplate.exchange("http://own-order/api/v1/internal/orders/" + orderNo + "/" + action,
+            ResponseEntity<Map> response = restTemplate.exchange(baseUrl + "/api/v1/internal/orders/" + orderNo + "/" + action,
                     HttpMethod.POST, new HttpEntity<Void>(headers), Map.class);
             TradeResponse.requireSuccess(response, "order " + action + " callback");
         } catch (TradeException exception) {
@@ -99,7 +103,7 @@ public class OrderClient {
     }
     private HttpHeaders internalHeaders(String key) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Actor-Id", "1"); headers.set("X-Actor-Type", "SYSTEM"); headers.set("Idempotency-Key", key);
+        headers.set(TradeHeaders.ACTOR_ID, "1"); headers.set(TradeHeaders.ACTOR_TYPE, ActorType.SYSTEM.name()); headers.set(TradeHeaders.IDEMPOTENCY_KEY, key);
         headers.set(InternalServiceGuard.HEADER, internalToken);
         return headers;
     }

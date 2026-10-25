@@ -16,7 +16,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProductFace extends FaceBase {
 
-	protected String serviceUrl="http://PRODUCT/";
+	@org.springframework.beans.factory.annotation.Value("${trade.legacy-services.product-base-url}")
+    protected String serviceUrl;
 
  	/**
  	 * 查询产品
@@ -105,28 +106,6 @@ public class ProductFace extends FaceBase {
  		restTemplate.put(serviceUrl+"/Category", c);
  	}
  	
- 	/**
- 	 * 添加产品
- 	 * @param p
- 	 * @throws IfException
- 	 */
- 	public ProductBean addProduct(ProductBean p) throws IfException{
-		log.info("商品创建请求已构造");
- 		ProductBean pb = put(serviceUrl+"/Product", p, ProductBean.class);
- 		return pb;
- 	}
- 	
- 	/**
- 	 * 修改产品
- 	 * @param p
- 	 * @throws IfException
- 	 */
- 	public Map updProduct(ProductBean p) throws IfException{
-        Map<String,Object> map = new HashMap<String,Object>();
- 		map.put("id", p.getId());
- 		Map returnMap = post(serviceUrl+"/Product/{id}",p,Map.class, map);
- 		return returnMap;
- 	}
 	  
     /***** Template *****/
  	

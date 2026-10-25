@@ -38,3 +38,9 @@ Internet -> WAF / Ingress -> API Gateway (JWT verification) -> service pods
 ## 支付恢复（代码已落地，真实联调未验证）
 
 迁移 39 增加订单支付屏障与结算恢复操作表。恢复任务沿用原业务键、先核对权威事实，超过尝试次数进入待人工对账；不提供自动解锁不确定幂等记录的能力。恢复任务使用独立调度器；订单/结算服务间客户端的连接、读取超时均为有限值，可通过 `trade.http.connect-timeout-millis`、`trade.http.read-timeout-millis` 配置，范围 1–60000ms。真实网络超时、MySQL 锁和迁移必须另行验收，详见 [恢复说明](quality/payment-recovery.md)。
+
+## 商品与取消恢复切换（2026-10-25）
+
+迁移 40 为 SQL 价格审计扩展可空事件键/唯一索引，旧历史不补假键；Neo4j 部署前还需执行商品事件唯一约束脚本。迁移 41 为订单增加取消恢复屏障；历史保持 NONE，不推断过去释放结果。暂停相关写入、备份并协调切换，存在待投影/恢复记录时不能回退到忽略这些事实的旧代码。
+
+旧商品新增/修改/删除入口按用户确认停用，读取保留，调用方统一使用现有商城接口。Nacos 结算重复根键已修正；三个业务消费者需要同步新的 `*-order-effects-v1` Inbox 名称，旧占位消费记录保留，Broker 位点不自动重置。MQ 开关仍保持原默认关闭；完整运行、历史受控重放及渠道接入未验收。详见 [商品](quality/product-price-consistency.md)、[取消](quality/order-cancellation-recovery.md) 和 [消息](quality/order-event-consumers.md) 的切换边界。

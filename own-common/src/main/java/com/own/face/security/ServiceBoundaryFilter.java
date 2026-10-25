@@ -20,7 +20,7 @@ public class ServiceBoundaryFilter extends OncePerRequestFilter {
     private final boolean enabled;
 
     public ServiceBoundaryFilter(InternalServiceGuard internalServiceGuard,
-                                 @Value("${trade.security.service-boundary.enabled:false}") boolean enabled) {
+                                 @Value("${trade.security.service-boundary.enabled}") boolean enabled) {
         this.internalServiceGuard = internalServiceGuard;
         this.enabled = enabled;
     }

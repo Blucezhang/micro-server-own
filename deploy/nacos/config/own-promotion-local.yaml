@@ -25,7 +25,7 @@ spring:
 
 trade:
   inbox:
-    consumer-name: promotion-saga
+    consumer-name: promotion-order-effects-v1
   neo4j:
     uri: ${NEO4J_URI:bolt://neo4j:7687}
     authentication:

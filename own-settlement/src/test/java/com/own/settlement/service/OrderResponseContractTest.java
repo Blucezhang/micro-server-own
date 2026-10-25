@@ -69,6 +69,6 @@ class OrderResponseContractTest {
         RestTemplate rest = mock(RestTemplate.class);
         when(rest.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(Map.class)))
                 .thenReturn(new ResponseEntity<Map>(body, status));
-        return new OrderClient(rest, "test-internal-token");
+        return new OrderClient(rest, "test-internal-token", "http://own-order");
     }
 }

@@ -30,6 +30,8 @@ jobs:
           python3 -B -m unittest discover -s scripts -p 'test_validate_migrations.py' -v
           python3 -B -m unittest discover -s scripts -p 'test_refund_allocation_migrations.py' -v
           python3 -B -m unittest discover -s scripts -p 'test_payment_recovery_migration.py' -v
+          python3 -B -m unittest discover -s scripts -p 'test_product_price_event_migration.py' -v
+          python3 -B -m unittest discover -s scripts -p 'test_cancellation_recovery_migration.py' -v
           bash scripts/validate-migrations.sh
 
       - name: Validate Compose configuration

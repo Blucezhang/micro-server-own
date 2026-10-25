@@ -1,5 +1,6 @@
 package com.own.promotion.coupon.service;
 
+import com.own.face.trade.config.ReservationLimits;
 import com.own.face.trade.TradeException;
 import com.own.promotion.coupon.domain.CouponStatus;
 import com.own.promotion.coupon.domain.CouponStock;
@@ -51,7 +52,7 @@ public class CouponService {
     public CouponService(CouponStockRepository couponStockRepository, UserCouponRepository userCouponRepository,
                          MallTicketDao mallTicketDao, StoreTicketDao storeTicketDao,
                          MerchantCouponTemplateRepository merchantTemplateRepository,
-                         @Value("${trade.promotion.reservation-ttl-minutes:15}") int reservationTtlMinutes) {
+                         @Value("${trade.promotion.reservation-ttl-minutes}") int reservationTtlMinutes) {
         this.couponStockRepository = couponStockRepository;
         this.userCouponRepository = userCouponRepository;
         this.mallTicketDao = mallTicketDao;
@@ -228,7 +229,7 @@ public class CouponService {
             }
             Date now = new Date();
             int ttlMinutes = command.getTtlMinutes() == null ? reservationTtlMinutes : command.getTtlMinutes();
-            Date configuredDeadline = new Date(now.getTime() + ttlMinutes * 60L * 1000L);
+            Date configuredDeadline = new Date(now.getTime() + java.time.Duration.ofMinutes(ttlMinutes).toMillis());
             coupon.reserve(command.getOrderNo(), coupon.getExpiresAt().before(configuredDeadline) ? coupon.getExpiresAt() : configuredDeadline);
             userCouponRepository.save(coupon);
             total = total.add(coupon.getDiscountAmount());
@@ -273,7 +274,7 @@ public class CouponService {
         }
     }
 
-    @Scheduled(fixedDelayString = "${trade.promotion.reservation-expiry-scan-delay-millis:60000}")
+    @Scheduled(fixedDelayString = "${trade.promotion.reservation-expiry-scan-delay-millis}")
     @Transactional
     public int releaseExpiredReservations() {
         Date now = new Date(); int released = 0;
@@ -364,7 +365,7 @@ public class CouponService {
             throw TradeException.badRequest(requireOrderNo ? "orderNo and buyerId are required" : "buyerId is required");
         }
         if (requireOrderNo && command.getTtlMinutes() != null
-                && (command.getTtlMinutes() < 1 || command.getTtlMinutes() > 60)) {
+                && (command.getTtlMinutes() < 1 || command.getTtlMinutes() > ReservationLimits.MAX_TTL_MINUTES)) {
             throw TradeException.unprocessable("ttlMinutes must be between 1 and 60");
         }
     }

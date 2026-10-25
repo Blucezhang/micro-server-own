@@ -1,0 +1,9 @@
+# Packaged defaults; later Nacos imports and deployment overrides take precedence.
+own:
+  product:
+    price-audit:
+      batch-size: 50
+      recovery-delay-ms: 30000
+trade:
+  services:
+    order-base-url: "http://own-order"

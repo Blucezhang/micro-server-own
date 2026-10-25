@@ -37,7 +37,9 @@ class MerchantProductIdempotencyTest {
             current.get().complete(result.getStatus(), mapper.writeValueAsString(result));
             return null;
         }).when(operations).complete(any(), any());
-        AspectJProxyFactory proxy = new AspectJProxyFactory(new MerchantProductController(products));
+        AspectJProxyFactory proxy = new AspectJProxyFactory(new MerchantProductController(products,
+                mock(com.own.product.audit.repository.ProductPriceAuditRepository.class),
+                mock(com.own.product.service.MerchantProductUpdateService.class)));
         proxy.addAspect(new TradeIdempotencyAspect(new TradeIdempotencyStore(operations), mapper, "own-product", 24));
         MerchantProductController controller = proxy.getProxy();
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/product/api/v1/merchant/products");

@@ -1,5 +1,8 @@
 package com.own.order.service;
 
+import com.own.face.trade.config.ServiceEndpoint;
+import com.own.face.trade.ActorType;
+import com.own.face.trade.TradeHeaders;
 import com.own.face.security.InternalServiceGuard;
 import com.own.face.trade.TradeException;
 import java.util.Map;
@@ -10,12 +13,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 
-@Component public class AddressClient {
- private final RestTemplate restTemplate; private final String internalToken; public AddressClient(RestTemplate restTemplate,@Value("${trade.internal.service-token:}") String internalToken){this.restTemplate=restTemplate;this.internalToken=internalToken;}
+@Component
+public class AddressClient {
+    private final RestTemplate restTemplate;
+    private final String baseUrl;
+    private final String internalToken;
+
+    public AddressClient(RestTemplate restTemplate,
+            @Value("${trade.internal.service-token:}") String internalToken,
+            @Value("${trade.services.user-party-base-url}") String baseUrl) {
+        this.restTemplate = restTemplate;
+        this.baseUrl = ServiceEndpoint.requireRoot(baseUrl);
+        this.internalToken = internalToken;
+    }
  @SuppressWarnings("unchecked") public AddressSnapshot get(Long buyerId, Long addressId) {
   if(addressId==null || addressId.longValue()<=0) throw TradeException.unprocessable("addressId is required");
-  HttpHeaders headers=new HttpHeaders(); headers.set("X-Actor-Id", "0"); headers.set("X-Actor-Type", "SYSTEM"); headers.set(InternalServiceGuard.HEADER,internalToken);
-  Map response=restTemplate.exchange("http://own-user-party/api/v1/internal/buyers/{buyerId}/addresses/{addressId}", HttpMethod.GET, new HttpEntity<Void>(headers), Map.class, buyerId,addressId).getBody();
+  HttpHeaders headers=new HttpHeaders(); headers.set(TradeHeaders.ACTOR_ID, "0"); headers.set(TradeHeaders.ACTOR_TYPE, ActorType.SYSTEM.name()); headers.set(InternalServiceGuard.HEADER,internalToken);
+  Map response=restTemplate.exchange(baseUrl + "/api/v1/internal/buyers/{buyerId}/addresses/{addressId}", HttpMethod.GET, new HttpEntity<Void>(headers), Map.class, buyerId,addressId).getBody();
   if(response==null || response.get("data")==null) throw TradeException.unprocessable("address was not found");
   Map data=(Map)response.get("data"); return new AddressSnapshot(addressId, str(data,"recipientName"),str(data,"mobile"),str(data,"province"),str(data,"city"),str(data,"district"),str(data,"detail"));
  }

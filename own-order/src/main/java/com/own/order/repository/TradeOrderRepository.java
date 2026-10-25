@@ -21,4 +21,7 @@ public interface TradeOrderRepository extends JpaRepository<TradeOrder, Long> {
     List<TradeOrder> findByStatusAndCreatedAtBefore(com.own.order.domain.OrderStatus status, Date createdAt);
     List<TradeOrder> findTop50ByStatusAndPaymentRecoveryStatusOrderByPaymentStartedAtAsc(
             com.own.order.domain.OrderStatus status, String paymentRecoveryStatus);
+    List<TradeOrder> findTop50ByStatusAndCancellationRecoveryStatusOrderByCancellationStartedAtAsc(
+            com.own.order.domain.OrderStatus status, String cancellationRecoveryStatus);
+    List<TradeOrder> findTop100ByCancellationRecoveryStatusOrderByIdDesc(String cancellationRecoveryStatus);
 }

@@ -17,13 +17,13 @@ public class OrderOutboxScheduler {
     private final int maxAttempts;
     private final TradeReliabilityMetrics metrics;
     public OrderOutboxScheduler(OrderEventRepository eventRepository, OrderEventSink sink,
-                                @Value("${trade.outbox.retry-seconds:60}") int retrySeconds,
-                                @Value("${trade.outbox.max-attempts:10}") int maxAttempts,
+                                @Value("${trade.outbox.retry-seconds}") int retrySeconds,
+                                @Value("${trade.outbox.max-attempts}") int maxAttempts,
                                 TradeReliabilityMetrics metrics) {
         this.eventRepository = eventRepository; this.sink = sink; this.retrySeconds = retrySeconds;
         this.maxAttempts = maxAttempts; this.metrics = metrics;
     }
-    @Scheduled(fixedDelayString = "${trade.outbox.delay-millis:60000}")
+    @Scheduled(fixedDelayString = "${trade.outbox.delay-millis}")
     @Transactional
     public void deliverPendingEvents() {
         if (!sink.isEnabled()) return;

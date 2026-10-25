@@ -46,10 +46,10 @@ trade:
     rocketmq:
       enabled: ${TRADE_OUTBOX_ROCKETMQ_ENABLED:false}
       binding: orderEvents-out-0
-    after-sale:
-      audit-reminder-hours: 48
-      reminder-repeat-hours: 24
-      reminder-delay-millis: 3600000
-    security:
-      audit-retention-days: 180
-      audit-retention-delay-millis: 86400000
+  after-sale:
+    audit-reminder-hours: 48
+    reminder-repeat-hours: 24
+    reminder-delay-millis: 3600000
+  security:
+    audit-retention-days: 180
+    audit-retention-delay-millis: 86400000

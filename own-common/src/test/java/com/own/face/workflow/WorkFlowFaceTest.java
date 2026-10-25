@@ -19,6 +19,7 @@ public class WorkFlowFaceTest {
     public void returnsSubmittedWorkflowAfterPut() {
         RestTemplate restTemplate = mock(RestTemplate.class);
         WorkFlowFace face = new WorkFlowFace();
+        ReflectionTestUtils.setField(face, "serviceUrl", "http://WORKFLOW/");
         ReflectionTestUtils.setField(face, "restTemplate", restTemplate);
         Map<String, Object> workflow = new HashMap<String, Object>();
         workflow.put("processId", Long.valueOf(7));

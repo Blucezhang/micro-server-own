@@ -33,17 +33,12 @@ public class JwtTokenService {
     private final long refreshExpirationSeconds;
     private final String issuer;
 
-    /** Compatibility constructor for focused tests and existing callers. */
-    public JwtTokenService(ObjectMapper objectMapper, String secret, long expirationSeconds, String issuer) {
-        this(objectMapper, secret, "", expirationSeconds, 1209600L, issuer);
-    }
-
     public JwtTokenService(ObjectMapper objectMapper,
                            @Value("${trade.security.jwt.secret:}") String secret,
                            @Value("${trade.security.jwt.previous-secret:}") String previousSecret,
-                           @Value("${trade.security.jwt.expiration-seconds:7200}") long expirationSeconds,
-                           @Value("${trade.security.jwt.refresh-expiration-seconds:1209600}") long refreshExpirationSeconds,
-                           @Value("${trade.security.jwt.issuer:micro-server-own}") String issuer) {
+                           @Value("${trade.security.jwt.expiration-seconds}") long expirationSeconds,
+                           @Value("${trade.security.jwt.refresh-expiration-seconds}") long refreshExpirationSeconds,
+                           @Value("${trade.security.jwt.issuer}") String issuer) {
         this.objectMapper = objectMapper;
         this.secret = secret == null ? "" : secret;
         this.previousSecret = previousSecret == null ? "" : previousSecret;

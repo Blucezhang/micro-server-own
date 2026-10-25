@@ -52,7 +52,7 @@ class OrderPaymentRecoveryPersistenceTest {
         transactions = new TransactionTemplate(manager);
         repositories = new JpaRepositoryFactory(SharedEntityManagerCreator.createSharedEntityManager(entityManagerFactory));
         orders = repositories.getRepository(TradeOrderRepository.class);
-        guard = proxy(new OrderPaymentGuard(orders, 15, 2));
+        guard = proxy(new OrderPaymentGuard(orders, 15, new com.own.face.trade.config.TradeRecoveryProperties(2, 30000, 30000)));
         inventory = mock(InventoryClient.class); coupons = mock(CouponClient.class);
         transactions.executeWithoutResult(status -> orders.save(new TradeOrder("ORD-1", 7L, BigDecimal.TEN, BigDecimal.ONE, "test", "key")));
     }
@@ -213,8 +213,12 @@ class OrderPaymentRecoveryPersistenceTest {
                 orders, repositories.getRepository(TradeSubOrderRepository.class), repositories.getRepository(OrderItemRepository.class), events,
                 mock(CatalogClient.class), inventory, coupons, mock(AddressClient.class), repositories.getRepository(MerchantFreightRuleRepository.class),
                 repositories.getRepository(LogisticsTraceRepository.class), repositories.getRepository(AfterSaleRepository.class),
-                repositories.getRepository(SensitiveAccessAuditRepository.class));
+                repositories.getRepository(SensitiveAccessAuditRepository.class), 15);
         ReflectionTestUtils.setField(target, "paymentGuard", guard);
+        OrderCancellationGuard cancellationGuard = proxy(new OrderCancellationGuard(orders, new com.own.face.trade.config.TradeRecoveryProperties(2, 30000, 30000)));
+        ReflectionTestUtils.setField(target, "cancellations", proxy(new OrderCancellationService(cancellationGuard, orders,
+                repositories.getRepository(TradeSubOrderRepository.class), repositories.getRepository(OrderItemRepository.class),
+                events, inventory, coupons)));
         return proxy(target);
     }
     private TradeActor system() { return new TradeActor(1L, ActorType.SYSTEM); }

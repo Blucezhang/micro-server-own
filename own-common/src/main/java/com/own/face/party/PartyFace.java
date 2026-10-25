@@ -15,7 +15,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 @Service
 public class PartyFace extends FaceBase {
 
-	protected String serviceUrl = "http://PARTY/";
+	@org.springframework.beans.factory.annotation.Value("${trade.legacy-services.party-base-url}")
+    protected String serviceUrl ;
 
 	/**
 	 * 根据PersonId查询用户的常用信息

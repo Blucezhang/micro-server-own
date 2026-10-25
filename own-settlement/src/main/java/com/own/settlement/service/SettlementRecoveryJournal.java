@@ -5,7 +5,7 @@ import com.own.settlement.domain.RecoveryAction;
 import com.own.settlement.domain.RecoveryOperation;
 import com.own.settlement.repository.RecoveryOperationRepository;
 import java.util.Date;
-import org.springframework.beans.factory.annotation.Value;
+import com.own.face.trade.config.TradeRecoveryProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +16,8 @@ public class SettlementRecoveryJournal {
     private final int maxAttempts;
     private final long retryMillis;
     public SettlementRecoveryJournal(RecoveryOperationRepository operations,
-            @Value("${trade.recovery.max-attempts:8}") int maxAttempts,
-            @Value("${trade.recovery.retry-delay-millis:30000}") long retryMillis) {
-        if (maxAttempts < 1 || retryMillis < 1000 || retryMillis > 86_400_000) throw new IllegalArgumentException("invalid recovery limits");
-        this.operations = operations; this.maxAttempts = maxAttempts; this.retryMillis = retryMillis;
+            TradeRecoveryProperties recovery) {
+        this.operations = operations; this.maxAttempts = recovery.maxAttempts(); this.retryMillis = recovery.retryDelayMillis();
     }
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public int begin(Payment payment, RecoveryAction action) {

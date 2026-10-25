@@ -1,5 +1,6 @@
 package com.own.inventory.service;
 
+import com.own.face.trade.config.ReservationLimits;
 import com.own.face.trade.TradeException;
 import com.own.inventory.domain.InventoryReservation;
 import com.own.inventory.domain.InventoryStock;
@@ -36,7 +37,6 @@ import org.springframework.beans.factory.annotation.Value;
 @Service
 public class InventoryService {
 
-    private static final int MAX_RESERVATION_TTL_MINUTES = 60;
 
     private final InventoryStockRepository stockRepository;
     private final InventoryReservationRepository reservationRepository;
@@ -49,7 +49,7 @@ public class InventoryService {
     @org.springframework.beans.factory.annotation.Autowired
     public InventoryService(InventoryStockRepository stockRepository,
                             InventoryReservationRepository reservationRepository,
-                            @Value("${trade.inventory.reservation-ttl-minutes:15}") int reservationTtlMinutes,
+                            @Value("${trade.inventory.reservation-ttl-minutes}") int reservationTtlMinutes,
                             InventoryAdjustmentRepository adjustmentRepository, AfterSaleInventoryRefundRepository afterSaleRefundRepository,
                             LowStockAlertRuleRepository lowStockAlertRuleRepository) {
         this.stockRepository = stockRepository;
@@ -137,12 +137,12 @@ public class InventoryService {
         }
         stockRepository.save(stock);
         int ttl = command.getTtlMinutes() == null ? reservationTtlMinutes : command.getTtlMinutes();
-        if (ttl <= 0 || ttl > MAX_RESERVATION_TTL_MINUTES) {
-            throw TradeException.unprocessable("ttlMinutes must be between 1 and " + MAX_RESERVATION_TTL_MINUTES);
+        if (ttl <= 0 || ttl > ReservationLimits.MAX_TTL_MINUTES) {
+            throw TradeException.unprocessable("ttlMinutes must be between 1 and " + ReservationLimits.MAX_TTL_MINUTES);
         }
         InventoryReservation reservation = new InventoryReservation(
                 "RSV-" + UUID.randomUUID().toString(), command.getOrderNo(), command.getProductId(),
-                command.getMerchantId(), command.getQuantity(), new Date(System.currentTimeMillis() + ttl * 60L * 1000L));
+                command.getMerchantId(), command.getQuantity(), new Date(System.currentTimeMillis() + java.time.Duration.ofMinutes(ttl).toMillis()));
         return reservationRepository.save(reservation);
     }
 

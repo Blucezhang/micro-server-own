@@ -45,7 +45,7 @@ public class SettlementService {
     @Autowired
     public SettlementService(PaymentRepository paymentRepository, OrderClient orderClient, RefundRepository refundRepository,
                              AfterSaleRefundRepository afterSaleRefundRepository,
-                             @Value("${trade.payment.channel:MOCK_WECHAT}") String defaultChannel) {
+                             @Value("${trade.payment.channel}") String defaultChannel) {
         this.paymentRepository = paymentRepository; this.orderClient = orderClient; this.refundRepository = refundRepository;
         this.afterSaleRefundRepository = afterSaleRefundRepository;
         this.defaultChannel = defaultChannel;
@@ -214,7 +214,7 @@ public class SettlementService {
         OrderRecoverySnapshot snapshot = attempt > 1 ? checkedRecoverySnapshot(payment) : null;
         if (snapshot == null || !snapshot.paymentCompleted()) {
             if (snapshot != null && (!"PENDING_PAYMENT".equals(snapshot.status())
-                    || !java.util.Set.of("NONE", "PENDING").contains(snapshot.paymentRecoveryStatus()))) {
+                    || !java.util.Set.of(com.own.face.trade.recovery.RecoveryStatus.NONE, com.own.face.trade.recovery.RecoveryStatus.PENDING).contains(snapshot.paymentRecoveryStatus()))) {
                 throw TradeException.conflict("order payment requires reconciliation");
             }
             orderClient.paymentSucceeded(payment.getOrderNo());

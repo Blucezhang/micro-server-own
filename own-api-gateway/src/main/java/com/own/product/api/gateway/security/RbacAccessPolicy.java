@@ -15,6 +15,10 @@ final class RbacAccessPolicy {
     Decision decide(String path, String method, JwtPrincipal principal) {
         String value = path == null ? "" : path.toLowerCase();
         String verb = method == null ? "GET" : method.toUpperCase();
+        if ("PUT".equals(verb) && value.matches("^/product/addproduct/?$")
+                || ("POST".equals(verb) || "DELETE".equals(verb)) && value.matches("^/product/[0-9]+/?$")) {
+            return Decision.denied();
+        }
         if (value.contains("/internal/")) return require(principal, ActorType.SYSTEM, "system:operate");
         if (value.startsWith("/user/role/") || value.startsWith("/user/fun/") || value.startsWith("/user/org/") ||
                 value.startsWith("/user/login/loginuser") || value.startsWith("/user/login/getloginuser") ||
