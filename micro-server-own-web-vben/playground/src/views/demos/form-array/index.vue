@@ -9,6 +9,8 @@ import { Button, Card, message, Space } from 'antdv-next';
 
 import { useVbenForm, z } from '#/adapter/form';
 
+import DemoOutput from '#/components/demo-output.vue';
+
 interface ContactFormValues {
   enabled: boolean;
   name: string;
@@ -54,15 +56,6 @@ const submitValues = ref<Partial<ArraySubmitValues>>({});
 const formattedSubmitValues = computed(() =>
   JSON.stringify(submitValues.value, null, 2),
 );
-const outputClass = [
-  'bg-muted',
-  'text-muted-foreground',
-  'max-h-105',
-  'overflow-auto',
-  'rounded-md',
-  'p-3',
-  'text-xs',
-];
 
 const schema: VbenFormSchema<ArrayFormValues>[] = [
   {
@@ -227,7 +220,10 @@ function handlePatchChildRule() {
       </Card>
 
       <Card title="输出">
-        <pre :class="outputClass" v-text="formattedSubmitValues"></pre>
+        <DemoOutput
+          class="text-muted-foreground max-h-105 p-3 text-xs"
+          :text="formattedSubmitValues"
+        />
       </Card>
     </div>
   </Page>

@@ -1,0 +1,510 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-26T11:58:33.955Z",
+  "title": "Design System: Vben Playground",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "操作蓝",
+        "tonalRamp": [
+          "oklch(15% 0.20341 257.88)",
+          "oklch(27% 0.20341 257.88)",
+          "oklch(38% 0.20341 257.88)",
+          "oklch(50% 0.20341 257.88)",
+          "oklch(61% 0.20341 257.88)",
+          "oklch(73% 0.20341 257.88)",
+          "oklch(84% 0.20341 257.88)",
+          "oklch(95% 0.20341 257.88)"
+        ]
+      },
+      "primary-foreground": {
+        "role": "neutral",
+        "displayName": "操作前景",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0)",
+          "oklch(27% 0.00000 0)",
+          "oklch(38% 0.00000 0)",
+          "oklch(50% 0.00000 0)",
+          "oklch(61% 0.00000 0)",
+          "oklch(73% 0.00000 0)",
+          "oklch(84% 0.00000 0)",
+          "oklch(95% 0.00000 0)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "亮色画布",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0)",
+          "oklch(27% 0.00000 0)",
+          "oklch(38% 0.00000 0)",
+          "oklch(50% 0.00000 0)",
+          "oklch(61% 0.00000 0)",
+          "oklch(73% 0.00000 0)",
+          "oklch(84% 0.00000 0)",
+          "oklch(95% 0.00000 0)"
+        ]
+      },
+      "background-deep": {
+        "role": "neutral",
+        "displayName": "冷灰底",
+        "tonalRamp": [
+          "oklch(15% 0.00423 258.32)",
+          "oklch(27% 0.00423 258.32)",
+          "oklch(38% 0.00423 258.32)",
+          "oklch(50% 0.00423 258.32)",
+          "oklch(61% 0.00423 258.32)",
+          "oklch(73% 0.00423 258.32)",
+          "oklch(84% 0.00423 258.32)",
+          "oklch(95% 0.00423 258.32)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "亮色正文",
+        "tonalRamp": [
+          "oklch(15% 0.00721 248.05)",
+          "oklch(27% 0.00721 248.05)",
+          "oklch(38% 0.00721 248.05)",
+          "oklch(50% 0.00721 248.05)",
+          "oklch(61% 0.00721 248.05)",
+          "oklch(73% 0.00721 248.05)",
+          "oklch(84% 0.00721 248.05)",
+          "oklch(95% 0.00721 248.05)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "亮色卡片",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0)",
+          "oklch(27% 0.00000 0)",
+          "oklch(38% 0.00000 0)",
+          "oklch(50% 0.00000 0)",
+          "oklch(61% 0.00000 0)",
+          "oklch(73% 0.00000 0)",
+          "oklch(84% 0.00000 0)",
+          "oklch(95% 0.00000 0)"
+        ]
+      },
+      "card-foreground": {
+        "role": "neutral",
+        "displayName": "亮色卡片文字",
+        "tonalRamp": [
+          "oklch(15% 0.03597 258.53)",
+          "oklch(27% 0.03597 258.53)",
+          "oklch(38% 0.03597 258.53)",
+          "oklch(50% 0.03597 258.53)",
+          "oklch(61% 0.03597 258.53)",
+          "oklch(73% 0.03597 258.53)",
+          "oklch(84% 0.03597 258.53)",
+          "oklch(95% 0.03597 258.53)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "亮色弱背景",
+        "tonalRamp": [
+          "oklch(15% 0.00133 286.38)",
+          "oklch(27% 0.00133 286.38)",
+          "oklch(38% 0.00133 286.38)",
+          "oklch(50% 0.00133 286.38)",
+          "oklch(61% 0.00133 286.38)",
+          "oklch(73% 0.00133 286.38)",
+          "oklch(84% 0.00133 286.38)",
+          "oklch(95% 0.00133 286.38)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "亮色弱文字",
+        "tonalRamp": [
+          "oklch(15% 0.01370 285.94)",
+          "oklch(27% 0.01370 285.94)",
+          "oklch(38% 0.01370 285.94)",
+          "oklch(50% 0.01370 285.94)",
+          "oklch(61% 0.01370 285.94)",
+          "oklch(73% 0.01370 285.94)",
+          "oklch(84% 0.01370 285.94)",
+          "oklch(95% 0.01370 285.94)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "亮色边界",
+        "tonalRamp": [
+          "oklch(15% 0.00404 286.32)",
+          "oklch(27% 0.00404 286.32)",
+          "oklch(38% 0.00404 286.32)",
+          "oklch(50% 0.00404 286.32)",
+          "oklch(61% 0.00404 286.32)",
+          "oklch(73% 0.00404 286.32)",
+          "oklch(84% 0.00404 286.32)",
+          "oklch(95% 0.00404 286.32)"
+        ]
+      },
+      "accent": {
+        "role": "neutral",
+        "displayName": "亮色交互底",
+        "tonalRamp": [
+          "oklch(15% 0.00135 286.37)",
+          "oklch(27% 0.00135 286.37)",
+          "oklch(38% 0.00135 286.37)",
+          "oklch(50% 0.00135 286.37)",
+          "oklch(61% 0.00135 286.37)",
+          "oklch(73% 0.00135 286.37)",
+          "oklch(84% 0.00135 286.37)",
+          "oklch(95% 0.00135 286.37)"
+        ]
+      },
+      "success": {
+        "role": "secondary",
+        "displayName": "成功绿",
+        "tonalRamp": [
+          "oklch(15% 0.15230 154.19)",
+          "oklch(27% 0.15230 154.19)",
+          "oklch(38% 0.15230 154.19)",
+          "oklch(50% 0.15230 154.19)",
+          "oklch(61% 0.15230 154.19)",
+          "oklch(73% 0.15230 154.19)",
+          "oklch(84% 0.15230 154.19)",
+          "oklch(95% 0.15230 154.19)"
+        ]
+      },
+      "warning": {
+        "role": "secondary",
+        "displayName": "警告黄",
+        "tonalRamp": [
+          "oklch(15% 0.14231 85.03)",
+          "oklch(27% 0.14231 85.03)",
+          "oklch(38% 0.14231 85.03)",
+          "oklch(50% 0.14231 85.03)",
+          "oklch(61% 0.14231 85.03)",
+          "oklch(73% 0.14231 85.03)",
+          "oklch(84% 0.14231 85.03)",
+          "oklch(95% 0.14231 85.03)"
+        ]
+      },
+      "destructive": {
+        "role": "secondary",
+        "displayName": "破坏性操作红",
+        "tonalRamp": [
+          "oklch(15% 0.23090 15.88)",
+          "oklch(27% 0.23090 15.88)",
+          "oklch(38% 0.23090 15.88)",
+          "oklch(50% 0.23090 15.88)",
+          "oklch(61% 0.23090 15.88)",
+          "oklch(73% 0.23090 15.88)",
+          "oklch(84% 0.23090 15.88)",
+          "oklch(95% 0.23090 15.88)"
+        ]
+      },
+      "dark-background": {
+        "role": "neutral",
+        "displayName": "石墨内容底",
+        "tonalRamp": [
+          "oklch(15% 0.00931 267.60)",
+          "oklch(27% 0.00931 267.60)",
+          "oklch(38% 0.00931 267.60)",
+          "oklch(50% 0.00931 267.60)",
+          "oklch(61% 0.00931 267.60)",
+          "oklch(73% 0.00931 267.60)",
+          "oklch(84% 0.00931 267.60)",
+          "oklch(95% 0.00931 267.60)"
+        ]
+      },
+      "dark-background-deep": {
+        "role": "neutral",
+        "displayName": "石墨暗底",
+        "tonalRamp": [
+          "oklch(15% 0.00860 264.36)",
+          "oklch(27% 0.00860 264.36)",
+          "oklch(38% 0.00860 264.36)",
+          "oklch(50% 0.00860 264.36)",
+          "oklch(61% 0.00860 264.36)",
+          "oklch(73% 0.00860 264.36)",
+          "oklch(84% 0.00860 264.36)",
+          "oklch(95% 0.00860 264.36)"
+        ]
+      },
+      "dark-foreground": {
+        "role": "neutral",
+        "displayName": "暗色正文",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0)",
+          "oklch(27% 0.00000 0)",
+          "oklch(38% 0.00000 0)",
+          "oklch(50% 0.00000 0)",
+          "oklch(61% 0.00000 0)",
+          "oklch(73% 0.00000 0)",
+          "oklch(84% 0.00000 0)",
+          "oklch(95% 0.00000 0)"
+        ]
+      },
+      "dark-card-foreground": {
+        "role": "neutral",
+        "displayName": "暗色卡片文字",
+        "tonalRamp": [
+          "oklch(15% 0.00348 247.86)",
+          "oklch(27% 0.00348 247.86)",
+          "oklch(38% 0.00348 247.86)",
+          "oklch(50% 0.00348 247.86)",
+          "oklch(61% 0.00348 247.86)",
+          "oklch(73% 0.00348 247.86)",
+          "oklch(84% 0.00348 247.86)",
+          "oklch(95% 0.00348 247.86)"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "暗色弱背景",
+        "tonalRamp": [
+          "oklch(15% 0.00548 286.03)",
+          "oklch(27% 0.00548 286.03)",
+          "oklch(38% 0.00548 286.03)",
+          "oklch(50% 0.00548 286.03)",
+          "oklch(61% 0.00548 286.03)",
+          "oklch(73% 0.00548 286.03)",
+          "oklch(84% 0.00548 286.03)",
+          "oklch(95% 0.00548 286.03)"
+        ]
+      },
+      "dark-muted-foreground": {
+        "role": "neutral",
+        "displayName": "暗色弱文字",
+        "tonalRamp": [
+          "oklch(15% 0.01287 286.07)",
+          "oklch(27% 0.01287 286.07)",
+          "oklch(38% 0.01287 286.07)",
+          "oklch(50% 0.01287 286.07)",
+          "oklch(61% 0.01287 286.07)",
+          "oklch(73% 0.01287 286.07)",
+          "oklch(84% 0.01287 286.07)",
+          "oklch(95% 0.01287 286.07)"
+        ]
+      },
+      "dark-border": {
+        "role": "neutral",
+        "displayName": "暗色边界",
+        "tonalRamp": [
+          "oklch(15% 0.00721 286.00)",
+          "oklch(27% 0.00721 286.00)",
+          "oklch(38% 0.00721 286.00)",
+          "oklch(50% 0.00721 286.00)",
+          "oklch(61% 0.00721 286.00)",
+          "oklch(73% 0.00721 286.00)",
+          "oklch(84% 0.00721 286.00)",
+          "oklch(95% 0.00721 286.00)"
+        ]
+      },
+      "dark-popover": {
+        "role": "neutral",
+        "displayName": "暗色浮层",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0)",
+          "oklch(27% 0.00000 0)",
+          "oklch(38% 0.00000 0)",
+          "oklch(50% 0.00000 0)",
+          "oklch(61% 0.00000 0)",
+          "oklch(73% 0.00000 0)",
+          "oklch(84% 0.00000 0)",
+          "oklch(95% 0.00000 0)"
+        ]
+      },
+      "dark-accent": {
+        "role": "neutral",
+        "displayName": "暗色交互底",
+        "tonalRamp": [
+          "oklch(15% 0.00588 258.35)",
+          "oklch(27% 0.00588 258.35)",
+          "oklch(38% 0.00588 258.35)",
+          "oklch(50% 0.00588 258.35)",
+          "oklch(61% 0.00588 258.35)",
+          "oklch(73% 0.00588 258.35)",
+          "oklch(84% 0.00588 258.35)",
+          "oklch(95% 0.00588 258.35)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "根排版基线",
+        "purpose": "共享 html 基线，不等同于 Ant 或各级工具类的最终字号和行高。"
+      },
+      "title": {
+        "displayName": "Page 标题",
+        "purpose": "共享 Page 的标题角色。"
+      },
+      "chart-title": {
+        "displayName": "图表卡片标题",
+        "purpose": "图表卡片采用的 text-xl 层级，行高仍由类组合决定。"
+      },
+      "label": {
+        "displayName": "基础按钮标签",
+        "purpose": "Vben 基础按钮 text-sm/font-medium。"
+      },
+      "badge": {
+        "displayName": "基础标签",
+        "purpose": "简短标签文字，不用于长篇正文。"
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-and-outline-shadow-sm",
+        "value": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        "purpose": "Tailwind 4 当前依赖的 shadow-sm；Card 与描边按钮使用，非 Ant 阴影通用值。"
+      },
+      {
+        "name": "float",
+        "value": "0 6px 16px 0 rgb(0 0 0 / 8%), 0 3px 6px -4px rgb(0 0 0 / 12%), 0 9px 28px 8px rgb(0 0 0 / 5%)",
+        "purpose": "共享 theme.css 中的浮层阴影词汇，不强制所有容器使用。"
+      }
+    ],
+    "motion": [
+      {
+        "name": "menu-state",
+        "value": "background 0.15s ease, color 0.15s ease, padding 0.15s ease, border-color 0.15s ease",
+        "purpose": "普通菜单状态过渡。"
+      },
+      {
+        "name": "side-content",
+        "value": "0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "共享侧向内容入场，不作为全局唯一动画。"
+      },
+      {
+        "name": "fade-slide",
+        "value": "opacity 0.3s, transform 0.3s",
+        "purpose": "当前共享路由过渡样式；开启与否由偏好控制。"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "40rem"
+      },
+      {
+        "name": "md",
+        "value": "48rem"
+      },
+      {
+        "name": "lg",
+        "value": "64rem"
+      },
+      {
+        "name": "xl",
+        "value": "80rem"
+      },
+      {
+        "name": "2xl",
+        "value": "96rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Vben 主按钮",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "基础变体的视觉摘录；hover 的 90% 主色透明度来自源码，不代表 Ant 按钮。",
+      "html": "<button type=\"button\" class=\"ds-button-primary\">保存设置</button>",
+      "css": ".ds-button-primary{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:calc(var(--radius,0.5rem) - 2px);font-size:0.875rem;font-weight:500;line-height:1.25rem;height:2.25rem;padding:0.5rem 1rem;transition:color 150ms,background-color 150ms;cursor:pointer;background:hsl(var(--primary, 212 100% 45%));color:hsl(var(--primary-foreground, 0 0% 98%));border:0;}.ds-button-primary:hover{background:hsl(var(--primary,212 100% 45%) / 90%);}.ds-button-primary:focus-visible{outline:1px solid hsl(var(--foreground, 210 6% 21%));outline-offset:2px;}.ds-button-primary:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none;}"
+    },
+    {
+      "name": "Vben 描边按钮",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "次要操作；保留来源的边框、轻阴影和 accent 悬停背景。",
+      "html": "<button type=\"button\" class=\"ds-button-outline\">取消</button>",
+      "css": ".ds-button-outline{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:calc(var(--radius,0.5rem) - 2px);font-size:0.875rem;font-weight:500;line-height:1.25rem;height:2.25rem;padding:0.5rem 1rem;transition:color 150ms,background-color 150ms;cursor:pointer;background:hsl(var(--background, 0 0% 100%));color:hsl(var(--foreground, 210 6% 21%));border:1px solid hsl(var(--input,240deg 5.88% 90%));box-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);}.ds-button-outline:hover{background:hsl(var(--accent, 240 5% 96%));color:hsl(var(--accent-foreground,240 6% 10%));}.ds-button-outline:focus-visible{outline:1px solid hsl(var(--foreground, 210 6% 21%));outline-offset:2px;}.ds-button-outline:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none;}"
+    },
+    {
+      "name": "Vben 幽灵按钮",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "不带默认实底的次级操作；颜色按主题继承。",
+      "html": "<button type=\"button\" class=\"ds-button-ghost\">查看更多</button>",
+      "css": ".ds-button-ghost{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:calc(var(--radius,0.5rem) - 2px);font-size:0.875rem;font-weight:500;line-height:1.25rem;height:2.25rem;padding:0.5rem 1rem;transition:color 150ms,background-color 150ms;cursor:pointer;background:transparent;border:0;color:hsl(var(--foreground, 210 6% 21%));}.ds-button-ghost:hover{background:hsl(var(--accent, 240 5% 96%));color:hsl(var(--accent-foreground,240 6% 10%));}.ds-button-ghost:focus-visible{outline:1px solid hsl(var(--foreground, 210 6% 21%));outline-offset:2px;}.ds-button-ghost:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none;}"
+    },
+    {
+      "name": "Vben 基础输入框",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "基础输入的边框、尺寸与主色内聚焦描边；不含 Ant 表单校验。",
+      "html": "<input class=\"ds-input\" type=\"text\" aria-label=\"示例名称\" placeholder=\"请输入名称\" />",
+      "css": ".ds-input{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif);display:flex;box-sizing:border-box;width:100%;height:2.5rem;border:1px solid hsl(var(--input,240deg 5.88% 90%));border-radius:calc(var(--radius,0.5rem) - 2px);background:hsl(var(--background, 0 0% 100%));color:hsl(var(--foreground, 210 6% 21%));padding:0.5rem 0.75rem;font-size:0.875rem;line-height:1.25rem;}.ds-input::placeholder{color:hsl(var(--muted-foreground,240 3.8% 46.1%) / 50%);}.ds-input:focus-visible{outline:none;box-shadow:inset 0 0 0 1px hsl(var(--primary, 212 100% 45%));}.ds-input:disabled{opacity:0.5;cursor:not-allowed;}"
+    },
+    {
+      "name": "Vben 内容卡片",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Card 与 Header/Content 的组合示意；纵向 padding 与子区块横向 padding 分开。",
+      "html": "<section class=\"ds-card\"><header class=\"ds-card-header\"><h3 class=\"ds-card-title\">访问来源</h3></header><div class=\"ds-card-content\">此处为组件示意，不是经营数据。</div></section>",
+      "css": ".ds-card{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif);display:flex;flex-direction:column;gap:1.5rem;border:1px solid hsl(var(--border, 240 5.9% 90%));border-radius:calc(var(--radius,0.5rem) + 4px);background:hsl(var(--card, 0 0% 100%));color:hsl(var(--card-foreground, 222.2 84% 4.9%));padding:1.5rem 0;box-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);}.ds-card-header,.ds-card-content{padding:0 1.5rem;}.ds-card-title{margin:0;font-size:1.25rem;font-weight:600;line-height:1;}.ds-card-content{font-size:1rem;}"
+    },
+    {
+      "name": "Vben 主色标签",
+      "kind": "chip",
+      "refersTo": "badge-primary",
+      "description": "使用链接形态演示源 Badge 的 hover 与 focus 状态；不代表真实业务状态。",
+      "html": "<a class=\"ds-badge\" href=\"#preview\">示例标签</a>",
+      "css": ".ds-badge{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif);display:inline-flex;align-items:center;justify-content:center;width:fit-content;gap:0.25rem;white-space:nowrap;border-radius:9999px;border:1px solid transparent;background:hsl(var(--primary, 212 100% 45%));color:hsl(var(--primary-foreground, 0 0% 98%));padding:0.125rem 0.5rem;font-size:0.75rem;line-height:1rem;font-weight:500;text-decoration:none;transition:color 150ms,box-shadow 150ms;}.ds-badge:hover{background:hsl(var(--primary,212 100% 45%) / 90%);}.ds-badge:focus-visible{outline:1px solid hsl(var(--foreground, 210 6% 21%));outline-offset:2px;}"
+    },
+    {
+      "name": "Vben 纵向导航",
+      "kind": "nav",
+      "description": "普通圆润菜单的视觉示意；不实现完整 Router、菜单键盘策略或混合布局。",
+      "html": "<nav class=\"ds-nav\" aria-label=\"演示导航\"><a class=\"ds-nav-item\" href=\"#preview\" aria-current=\"page\">分析页</a><a class=\"ds-nav-item\" href=\"#preview\">组件示例</a></nav>",
+      "css": ".ds-nav{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif);background:hsl(var(--menu,0 0% 100%));padding:0.25rem 0;}.ds-nav-item{display:flex;align-items:center;min-height:38px;margin:0 8px 2px;padding:0 12px;border-radius:8px;color:hsl(var(--foreground, 210 6% 21%));font-size:var(--menu-font-size,0.875rem);text-decoration:none;transition:background 150ms ease,color 150ms ease;}.ds-nav-item:hover{background:hsl(var(--accent, 240 5% 96%));}.ds-nav-item[aria-current=page]{background:hsl(var(--primary,212 100% 45%) / 15%);color:hsl(var(--primary, 212 100% 45%));}.ds-nav-item:focus-visible{outline:1px solid hsl(var(--primary, 212 100% 45%));outline-offset:2px;}:host-context(.dark) .ds-nav-item[aria-current=page]{background:hsl(var(--accent, 240 5% 96%));color:hsl(var(--accent-foreground,0 0% 98%));}"
+    },
+    {
+      "name": "Vben 分段标签页",
+      "kind": "nav",
+      "refersTo": "tabs",
+      "description": "TabsList/TabsTrigger 的状态示意；原组件负责键盘与选中行为，此处不复制其运行时。",
+      "html": "<div class=\"ds-tabs\" role=\"group\" aria-label=\"标签页外观示意\"><button class=\"ds-tab\" type=\"button\" aria-pressed=\"true\">流量趋势</button><button class=\"ds-tab\" type=\"button\" aria-pressed=\"false\">月访问量</button></div>",
+      "css": ".ds-tabs{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif);display:inline-flex;height:2.25rem;box-sizing:border-box;align-items:center;justify-content:center;border-radius:calc(var(--radius,0.5rem) - 2px);background:hsl(var(--muted, 240 4.8% 95.9%));color:hsl(var(--muted-foreground, 240 3.8% 46.1%));padding:0.25rem;}.ds-tab{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif);display:inline-flex;align-items:center;justify-content:center;height:calc(100% - 1px);border:1px solid transparent;border-radius:calc(var(--radius,0.5rem) - 2px);padding:0.25rem 0.5rem;background:transparent;color:hsl(var(--foreground, 210 6% 21%));font-size:0.875rem;font-weight:500;white-space:nowrap;}.ds-tab[aria-pressed=true]{background:hsl(var(--background, 0 0% 100%));box-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);}.ds-tab:focus-visible{outline:1px solid hsl(var(--foreground, 210 6% 21%));outline-offset:2px;}.ds-tab:disabled{opacity:0.5;pointer-events:none;}:host-context(.dark) .ds-tab{color:hsl(var(--muted-foreground, 240 3.8% 46.1%));}:host-context(.dark) .ds-tab[aria-pressed=true]{color:hsl(var(--foreground, 210 6% 21%));border-color:hsl(var(--input,0 0% 100% / 10%));background:color-mix(in oklab,hsl(var(--input,0 0% 100% / 10%)) 30%,transparent);}"
+    },
+    {
+      "name": "DemoOutput 文本输出",
+      "kind": "custom",
+      "refersTo": "demo-output",
+      "description": "playground 局部只读输出；此为默认外观示意，不实现 Vue 响应式或文本格式化。",
+      "html": "<pre class=\"ds-demo-output\">示例输出：\n  &lt;h1&gt;HTML 仍为纯文本&lt;/h1&gt;</pre>",
+      "css": ".ds-demo-output{display:block;margin:0;overflow:auto;white-space:pre;border-radius:calc(var(--radius,0.5rem) - 2px);padding:1rem;background:hsl(var(--muted,240 4.8% 95.9%));color:inherit;font-family:var(--font-mono,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace);font-size:0.875rem;line-height:1.25rem;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "清晰的操作台",
+    "overview": "本文件仅覆盖 `playground` 演示应用及其实际引用的共享组件，不是商城 `apps/web-antd` 的品牌规范，也不覆盖其他示例应用。现状为 Vue 3、Vben、Tailwind CSS 4、Reka UI 基础组件与 `antdv-next` 业务组件共同组成的后台演示界面。\n\n用户确认的气质是轻盈、柔和：圆角与留白承载主要秩序，阴影辅助表达层次。该描述用于理解现有设计和指导后续工作，不表示当前每个页面都已经符合它。用户确认的改进方向为“美观、大方、简洁、减少模板感”；本次只记录，不修改页面，不新增品牌承诺，不将演示数据变为真实业务。",
+    "keyCharacteristics": [
+      "任务与信息优先，视觉表达服务于阅读、定位和操作。",
+      "用共享语义变量连接基础组件与 Ant 业务组件，保留主题与密度设置。",
+      "采用柔和圆角、留白与辅助阴影；具体数值以实现来源为准。",
+      "严格区分源码事实、用户确认的方向与未经执行的视觉验收。"
+    ],
+    "rules": [
+      {
+        "name": "Semantic Theme",
+        "body": "复用当前主题的语义变量；不得把本文件的默认快照复制为组件里的固定颜色。完整主题变体仍以共享 CSS、偏好设置和实际计算样式为准。",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do 复用现有主题变量与组件接口，区分源码事实、用户确认方向和未验证事项。",
+      "Do 以“清晰的操作台”组织层级，用留白、圆角和辅助阴影表达轻盈、柔和。",
+      "Do 在后续改造时优先改善中文可读性、布局和任务路径，再处理装饰；此项为已确认的改进方向。",
+      "Do 对同一页面的亮暗主题、窄屏和真实交互另行执行验证，不以静态扫描代替。",
+      "Don't 将操作蓝或演示数据认定为商城品牌或真实经营事实。",
+      "Don't 将本文件扩展为 `apps/web-antd`、其他示例应用或全仓库的强制设计规范。",
+      "Don't 把默认配置输入当成浏览器最终计算值，也不要把基础组件尺寸强加给 Ant。",
+      "Don't 将“美观、大方、简洁、减少模板感”的改进方向写成已经逐页完成的验收结论。"
+    ],
+    "donts": [
+      "Don't 将操作蓝或演示数据认定为商城品牌或真实经营事实。",
+      "Don't 将本文件扩展为 `apps/web-antd`、其他示例应用或全仓库的强制设计规范。",
+      "Don't 把默认配置输入当成浏览器最终计算值，也不要把基础组件尺寸强加给 Ant。",
+      "Don't 将“美观、大方、简洁、减少模板感”的改进方向写成已经逐页完成的验收结论。"
+    ]
+  }
+}

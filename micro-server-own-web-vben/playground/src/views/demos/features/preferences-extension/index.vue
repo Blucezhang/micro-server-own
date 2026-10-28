@@ -13,6 +13,8 @@ import { Alert, Button, Card, Space, Tag } from 'antdv-next';
 
 import { $t } from '#/locales';
 
+import DemoOutput from '#/components/demo-output.vue';
+
 interface DemoTaskItem {
   id: number;
   owner: string;
@@ -76,9 +78,6 @@ const toneConfig = computed(() => {
 const formattedPlaygroundPreferences = computed(() => {
   return JSON.stringify(playgroundPreferences, null, 2);
 });
-
-const preClasses =
-  'mt-4 overflow-auto rounded-lg border border-border bg-muted p-4 text-sm';
 
 function applyPreset(type: 'compact' | 'focus' | 'review') {
   const presetMap: Record<
@@ -225,7 +224,10 @@ function getPriorityColor(priority: DemoTaskItem['priority']) {
         </Button>
       </Space>
 
-      <pre :class="preClasses">{{ formattedPlaygroundPreferences }}</pre>
+      <DemoOutput
+        class="mt-4 rounded-lg border border-border"
+        :text="formattedPlaygroundPreferences"
+      />
     </Card>
   </Page>
 </template>

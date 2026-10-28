@@ -7,6 +7,8 @@ import { Page } from '@vben/common-ui';
 import { VbenTiptap, VbenTiptapPreview } from '@vben/plugins/tiptap';
 
 import { Card, Switch } from 'antdv-next';
+
+import DemoOutput from '#/components/demo-output.vue';
 const content = ref(`
   <h1>Vben Tiptap</h1>
   <p>这个编辑器已经被封装在 <code>packages/effects/plugins/src/tiptap</code> 中。</p>
@@ -69,9 +71,11 @@ const imageUpload: ImageUploadOptions = {
     </Card>
 
     <Card title="HTML 输出">
-      <pre class="overflow-auto rounded-xl border border-border bg-muted p-4">
-        {{ previewContent }}
-      </pre>
+      <DemoOutput
+        class="rounded-xl border border-border"
+        size="inherit"
+        :text="previewContent"
+      />
     </Card>
   </Page>
 </template>
